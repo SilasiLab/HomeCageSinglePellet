@@ -1,8 +1,7 @@
-import time
 import numpy as np
 import cv2
 import serial
-import RPi.GPIO as GPIO
+import wiringpi
 from time import sleep
 
 
@@ -12,24 +11,53 @@ cap = cv2.VideoCapture(0)
 fourcc = cv2.VideoWriter_fourcc(*'MJPG')
 out = cv2.VideoWriter('output.avi',fourcc, 20.0, (640,480))
 
-
 # RFID control setup
 print ("Opening serial connection to /dev/ttyUSB0...")
 serial = serial.Serial("/dev/ttyUSB0", baudrate=9600)
 print ("Serial connection established...")
 
-def setangle(angle):
-	duty = angle / 18 + 2
-	GPIO.output(12,True)
-	pwm.ChangeDutyCycle(duty)
-	sleep(0.5)
-	GPIO.output(12, False)
-	pwm.ChangeDutyCycle(0)
+# Servo control setup
+GPIO_pin = 18
+delay_period = 0.01
+initial_position = 167
+current_position = 0
+wiringpi.wiringPiSetupGpio()
+wiringpi.pinMode(GPIO_pin, wiringpi.GPIO.PWM_OUTPUT)
+wiringpi.pwmSetMode(wiringpi.GPIO.PWM_MODE_MS)
+wiringpi.pwmSetClock(192)
+wiringpi.pwmSetRange(2000)
+
+# Initialise servo position
+def initPosition(initial_position):
+	
+	global current_position
+	wiringpi.pwmWrite(GPIO_pin, initial_position)
+	current_position = initial_position
+	sleep(2)
+
+# Set servo position (Do not set value outside 50-167 or servo will try to turn too far and break something)
+def setAngle (target_position):
+	
+	global current_position
+	number_of_pulses = abs(target_position - current_position)
+
+	if current_position < target_position:
+			for x in range (number_of_pulses):
+				wiringpi.pwmWrite(GPIO_pin, current_position)
+				current_position += 1
+				sleep(delay_period)
+	elif current_position > target_position:
+			for x in range (number_of_pulses):
+				wiringpi.pwmWrite(GPIO_pin, current_position)
+				current_position -= 1
+				sleep(delay_period)
 
 
 
 # Main loop
 code = ' '
+print "Initialising servo..."
+initPosition(167)
 print ("Waiting for RF tag...")
 while True:
 	data = serial.read()
@@ -38,17 +66,11 @@ while True:
 		#Tag has been detected
 		output = "RF tag detected: " + code 
 		print(output)
+		code = ""
+
 
 		#Send signal to raise pellet arm
-		print("Initializing GPIO pins")
-		GPIO.setmode(GPIO.BOARD)
-		GPIO.setup(12,GPIO.OUT)
-		pwm = GPIO.PWM(12,50)
-		pwm.start(0)
-		print("GPIO pins initialized")
-		print("Raising pellet arm")
-		setangle(0)
-		print("Pellet arm raised")
+		setAngle(75)
 		
 		# Capture video
 		print("Capturing video")
@@ -59,14 +81,13 @@ while True:
 		print ("Video saved to ./output.avi")
 
 		# Return pellet arm to rest position
-		print("Lowering pellet arm")
-		setangle(100)
-		print("Cutting power to servo")		
-		pwm.stop()
-		GPIO.cleanup()
-		code = ' '
+		setAngle(167)
+
+		# Cycle Complete
 		print("Ready for next cycle")
 		print("Waiting for RF tag...")
+		serial.reset_input_buffer()
+		sleep(2)
 	else:
 		code = code + data
 
