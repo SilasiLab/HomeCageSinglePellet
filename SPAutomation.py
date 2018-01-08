@@ -1,9 +1,13 @@
 import numpy as np
 import cv2
 import serial
-import wiringpi
+import Servo_Control
+import GPIO_Control
 from time import sleep
 
+
+servo1_BCM_GPIO_pin = 18
+servo1_position_increment_delay_ms = 50
 
 
 # Camera control setup
@@ -16,48 +20,17 @@ print ("Opening serial connection to /dev/ttyUSB0...")
 serial = serial.Serial("/dev/ttyUSB0", baudrate=9600)
 print ("Serial connection established...")
 
-# Servo control setup
-GPIO_pin = 18
-delay_period = 0.01
-initial_position = 167
-current_position = 0
-wiringpi.wiringPiSetupGpio()
-wiringpi.pinMode(GPIO_pin, wiringpi.GPIO.PWM_OUTPUT)
-wiringpi.pwmSetMode(wiringpi.GPIO.PWM_MODE_MS)
-wiringpi.pwmSetClock(192)
-wiringpi.pwmSetRange(2000)
-
-# Initialise servo position
-def initPosition(initial_position):
-	
-	global current_position
-	wiringpi.pwmWrite(GPIO_pin, initial_position)
-	current_position = initial_position
-	sleep(2)
-
-# Set servo position (Do not set value outside 50-167 or servo will try to turn too far and break something)
-def setAngle (target_position):
-	
-	global current_position
-	number_of_pulses = abs(target_position - current_position)
-
-	if current_position < target_position:
-			for x in range (number_of_pulses):
-				wiringpi.pwmWrite(GPIO_pin, current_position)
-				current_position += 1
-				sleep(delay_period)
-	elif current_position > target_position:
-			for x in range (number_of_pulses):
-				wiringpi.pwmWrite(GPIO_pin, current_position)
-				current_position -= 1
-				sleep(delay_period)
-
 
 
 # Main loop
+
 code = ' '
+
 print "Initialising servo..."
-initPosition(167)
+GPIO_Control.initGPIOPin(servo1_BCM_GPIO_pin, 0)
+Servo_Control.initPWMPin(servo1_BCM_GPIO_pin)
+Servo_Control.initServo(servo1_BCM_GPIO_pin)
+
 print ("Waiting for RF tag...")
 while True:
 	data = serial.read()
@@ -70,7 +43,7 @@ while True:
 
 
 		#Send signal to raise pellet arm
-		setAngle(75)
+		Servo_Control.setAngle(servo1_BCM_GPIO_pin, servo1_position_increment_delay_ms, 75)
 		
 		# Capture video
 		print("Capturing video")
@@ -81,7 +54,7 @@ while True:
 		print ("Video saved to ./output.avi")
 
 		# Return pellet arm to rest position
-		setAngle(167)
+		Servo_Control.setAngle(servo1_BCM_GPIO_pin, servo1_position_increment_delay_ms, 167)
 
 		# Cycle Complete
 		print("Ready for next cycle")
