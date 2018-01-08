@@ -7,7 +7,7 @@ from time import sleep
 
 
 servo1_BCM_GPIO_pin = 18
-servo1_position_increment_delay_ms = 50
+servo1_position_increment_delay_ms = 10
 
 
 # Camera control setup
@@ -28,7 +28,6 @@ code = ' '
 
 print "Initialising servo..."
 GPIO_Control.initGPIOPin(servo1_BCM_GPIO_pin, 0)
-Servo_Control.initPWMPin(servo1_BCM_GPIO_pin)
 Servo_Control.initServo(servo1_BCM_GPIO_pin)
 
 print ("Waiting for RF tag...")

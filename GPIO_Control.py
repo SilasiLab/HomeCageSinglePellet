@@ -20,7 +20,7 @@ def initGPIOPin(BCM_pin_number, IO_flag):
         wiringpi.pinMode(BCM_pin_number, wiringpi.GPIO.OUTPUT)
                                                 
 
-    wiring.pullUpDnControl(BCM_pin_number, wiringpi.PUD_DOWN)
+    wiringpi.pullUpDnControl(BCM_pin_number, wiringpi.PUD_DOWN)
                                                         
 
 # This function polls the supplied BCM GPIO pin

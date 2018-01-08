@@ -12,7 +12,7 @@ def initServo(BCM_pin_number):
     global current_position
     global initial_position 
 
-    wiringpi.pinMode(GPIO_pin, wiringpi.GPIO.PWM_OUTPUT)
+    wiringpi.pinMode(BCM_pin_number, wiringpi.GPIO.PWM_OUTPUT)
     wiringpi.pwmSetMode(wiringpi.GPIO.PWM_MODE_MS)
     wiringpi.pwmSetClock(192)
     wiringpi.pwmSetRange(2000)
@@ -37,7 +37,7 @@ def setAngle (BCM_pin_number, delay_period_ms, target_position):
 	    for x in range (number_of_pulses):
 		wiringpi.pwmWrite(BCM_pin_number, current_position)
 		current_position += 1
-		sleep(delay_period)
+		sleep(float(delay_period_ms)/1000.0)
 	elif current_position > target_position:
 
 	    for x in range (number_of_pulses):
