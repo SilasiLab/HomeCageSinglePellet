@@ -1,8 +1,11 @@
 import wiringpi 
 from time import sleep
 
-initial_position = 167
-current_position = 167
+initial_position = 173
+current_position = 173
+
+# TODO: Call one of the wiringpi setup functions from somewhere in this module
+# because currently this module relies on wiringpi already having been setup.
 
 
 # This function initializes the GPIO pin at <BCM_pin_number> to 
@@ -44,6 +47,8 @@ def setAngle (BCM_pin_number, delay_period_ms, target_position):
 		wiringpi.pwmWrite(BCM_pin_number, current_position)
 		current_position -= 1
 		sleep(float(delay_period_ms)/1000.0)
+
+
 
 
 

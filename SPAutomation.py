@@ -42,18 +42,21 @@ while True:
 
 
 		#Send signal to raise pellet arm
-		Servo_Control.setAngle(servo1_BCM_GPIO_pin, servo1_position_increment_delay_ms, 75)
+		Servo_Control.setAngle(servo1_BCM_GPIO_pin, servo1_position_increment_delay_ms, 90)
 		
 		# Capture video
 		print("Capturing video")
 		for x in range(0,200):
 			ret, frame = cap.read()
+			cv2.imshow("live_feed", frame)
+			if cv2.waitKey(1) & 0xFF == ord('q'):
+				break
 			out.write(frame)
-			cv2.imshow('frame',frame)
+
 		print ("Video saved to ./output.avi")
 
 		# Return pellet arm to rest position
-		Servo_Control.setAngle(servo1_BCM_GPIO_pin, servo1_position_increment_delay_ms, 167)
+		Servo_Control.setAngle(servo1_BCM_GPIO_pin, servo1_position_increment_delay_ms, 173)
 
 		# Cycle Complete
 		print("Ready for next cycle")
