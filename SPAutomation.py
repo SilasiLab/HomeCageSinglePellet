@@ -6,7 +6,7 @@ from time import sleep
 import Servo_Control
 import GPIO_Control
 
-
+GPIO_Control.initGPIO()
 
 class RFIDReader(object):
 	
@@ -124,7 +124,7 @@ class SessionController(object):
 	def listenForRFID(self):
 
 		RFID_code = ""
-		print "Waiting for RF tag..."
+		print "Waiting for RF tag...\n"
 
 		while True:
 		
@@ -134,11 +134,11 @@ class SessionController(object):
 			if data == '\r':
 				RFID_code = RFID_code[2:len(RFID_code) - 1] #TODO: Parse RFID_code properly.
 				tag_detected_message = "RF tag detected: " + RFID_code
-				print(tag_detected_message)
-				print("Flushing serial buffer...")
+				#print(tag_detected_message)
+				#print("Flushing serial buffer...")
 				self.RFID_reader.RFID.reset_input_buffer()
 				sleep(1)
-				print("Serial buffer flush completed")
+				#print("Serial buffer flush completed")
 				return RFID_code
 
 			# RFID end character not detected. Continue listening.
@@ -163,24 +163,39 @@ class SessionController(object):
 
 	def startSession(self, profile):
 
+		print("\n------------------------------------------")
+		session_start_message = "Starting session for: " + profile.name +"\nID=" + profile.ID+"\nTraining Stage=" + str(profile.training_stage) + "\nSession Count=" + str(profile.session_count)
+		print(session_start_message)
+
 		session_start_time = time.time()	
 		while_counter = 0
-		print(self.RFID_reader.proximityIsHigh())
-		while self.RFID_reader.proximityIsHigh():
-			self.servo.setAngle(90)
-			video_output_path = profile.session_history_directory + str(profile.ID) + "_session" + str(profile.session_count) + ".avi"
-			self.camera.captureVideo(video_output_path, 20.0, (640, 480), 200)
-			self.servo.setAngle(173)
-			while_counter += 1
-		
+
+		while True:
+			check_tag_msg = "Tag state= " + str(self.RFID_reader.proximityIsHigh())
+			print(check_tag_msg)
+			if self.RFID_reader.proximityIsHigh():
+				self.servo.setAngle(90)
+				video_output_path = profile.session_history_directory +"/Videos/" + str(profile.ID) + "_session#_"  + str(profile.session_count) + "." + str(while_counter) + ".avi"
+				#FPS AND RES CONFIG
+				self.camera.captureVideo(video_output_path, 20.0, (640, 480), 200)
+				self.servo.setAngle(173)
+				while_counter += 1
+			else:
+				tag_moved_away_message = profile.name + "'s RF is no longer detected. Terminating session."
+				print(tag_moved_away_message)
+				break
+
 		session_end_time = time.time()	
-		profile.insertSessionEntry(session_start_time, session_end_time, while_counter)
+		profile.insertSessionEntry(session_start_time, session_end_time, while_counter)	
+		session_end_message = profile.name + "'s session has completed."
+		print(session_end_message)
+		print("------------------------------------------\n\n")
 
 
 def main():
     
 	# Testing AnimalProfile functions
-	session_save_path = "./"
+	session_save_path = "./AnimalSessions/"
 	profile0 = AnimalProfile("0782B18622", "Jim Kirk", 0, 0, session_save_path)
 	profile1 = AnimalProfile("0782B182D6", "Yuri Gagarin", 0, 0, session_save_path)
 	profile2 = AnimalProfile("0782B17DE9", "Elon Musk", 0, 0, session_save_path)
@@ -193,10 +208,13 @@ def main():
 	RFID_1 = RFIDReader("/dev/ttyUSB0", 9600, 23)
 	session_controller = SessionController(profile_list, serial, servo_1, camera_1, RFID_1)
 
-	RFID_code = session_controller.listenForRFID()
-	profile = session_controller.searchForProfile(RFID_code)
-	session_controller.startSession(profile)
+	print("System ready\n\n")
+	while True:
+		RFID_code = session_controller.listenForRFID()
+		profile = session_controller.searchForProfile(RFID_code)
+		session_controller.startSession(profile)
 		
+
 
 if __name__ == "__main__":
     main()
