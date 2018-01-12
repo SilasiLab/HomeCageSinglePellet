@@ -42,3 +42,6 @@ def listenToPinInput(BCM_pin_number, polling_rate_ms):
         # Sleep to slow polling to avoid eating all CPU cycles
         sleep(float(polling_rate_ms)/1000.0)
 
+
+def getPinState(BCM_pin_number):
+	return wiringpi.digitalRead(BCM_pin_number)
