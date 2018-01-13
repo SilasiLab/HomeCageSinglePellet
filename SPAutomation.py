@@ -1,62 +1,9 @@
-import numpy as np
-import cv2
-import serial
-import time
-from time import sleep
-import Servo_Control
-import GPIO_Control
+import servo
+import camera 
+import RFID
+import time 
+from time import sleep 
 
-GPIO_Control.initGPIO()
-
-class RFIDReader(object):
-	
-	def __init__(self, serial_interface_path, baudrate, proximity_BCM_pin):
-
-		print ("Opening serial connection to /dev/ttyUSB0...")
-		self.RFID = serial.Serial(serial_interface_path, baudrate)
-		self.proximity_pin = proximity_BCM_pin
-		GPIO_Control.initGPIO()
-		GPIO_Control.configureGPIOPin(proximity_BCM_pin, 1)
-		print ("Serial connection established")
-
-
-	def proximityIsHigh(self):
-		return GPIO_Control.getPinState(self.proximity_pin)
-
-class Camera(object):
-	
-	def __init__(self, fourcc, camera_index):
-	
-		print("Opening connection to camera...")
-		self.fourcc = cv2.VideoWriter_fourcc(*'MJPG')
-		self.camera = cv2.VideoCapture(0)
-		print("Camera connection established")
-
-
-	def captureVideo(self, output_filename, fps, res_tuple, number_of_frames):
-	
-		camera_output = cv2.VideoWriter(output_filename, self.fourcc, fps, res_tuple)
-
-		for x in range(0, number_of_frames):
-			ret, frame = self.camera.read()
-			cv2.imshow("live_feed", frame)
-			if cv2.waitKey(1) & 0xFF == ord('q'):
-				break
-			else:
-				camera_output.write(frame)
-
-
-#TODO: merge this class with Servo_Control.py
-class Servo(object):
-	
-	def __init__(self, PWM_pin, position_increment_ms):
-	
-		self.PWM_pin = PWM_pin
-		self. position_increment_ms = position_increment_ms
-		Servo_Control.initServo(PWM_pin)
-
-	def setAngle(self, angle):
-		Servo_Control.setAngle(self.PWM_pin, self.position_increment_ms, angle)
 
 
 class AnimalProfile(object):
@@ -83,8 +30,12 @@ class AnimalProfile(object):
         self.session_history_directory = session_history_directory
 
 
+    # This function takes all the information required for an animal's session log entry, and then formats it.
+    # Once formatted, it writes the log entry to the animal's session_history log file. 
     def insertSessionEntry(self, start_time, end_time, number_of_pellets_displayed):
 
+
+        #TODO: Is there a better way to create + format strings?
 	session_path = self.session_history_directory + str(self.ID) + "_session_history.txt"
 	video_recording_path = self.session_history_directory + str(self.ID) + "_session" + str(self.session_count)
 	csv_entry = str(start_time) + "," + str(end_time) + "," + str(number_of_pellets_displayed) + "," + video_recording_path + "\n"
@@ -92,6 +43,9 @@ class AnimalProfile(object):
 	with open(session_path, "a") as session_history:
 		session_history.write(csv_entry)
 		self.session_count += 1
+
+
+
 
 
 class SessionController(object):
@@ -118,99 +72,119 @@ class SessionController(object):
 		self.RFID_reader = RFID_reader
 
 
-	# This function listens to the SessionController's serial_port and appends 
-	# each byte it receives to <RFID_code>. Once the "\r" terminating character 
-	# is received, RFID_code is returned.
-	def listenForRFID(self):
 
-		RFID_code = ""
-		print "Waiting for RF tag...\n"
-
-		while True:
 		
-			data = self.RFID_reader.RFID.read()
-
-			# RFID end character detected. Parse and return RFID.
-			if data == '\r':
-				RFID_code = RFID_code[2:len(RFID_code) - 1] #TODO: Parse RFID_code properly.
-				tag_detected_message = "RF tag detected: " + RFID_code
-				#print(tag_detected_message)
-				#print("Flushing serial buffer...")
-				self.RFID_reader.RFID.reset_input_buffer()
-				sleep(1)
-				#print("Serial buffer flush completed")
-				return RFID_code
-
-			# RFID end character not detected. Continue listening.
-			else:
-				RFID_code = RFID_code + data
 
 	# This function searches the SessionController's profile_list for a profile whose ID 
 	# matches the supplied RFID. If a profile is found, it is returned. If no profile is found,
-	# an error message is printed to stdout and -1 is returned.
+	# -1 is returned.
 	def searchForProfile(self, RFID):
 
 		# Search profile_list for AnimalProfile whose ID matches RFID
 		for profile in self.profile_list:
+
 			if profile.ID == RFID:
 				return profile
 			elif profile == self.profile_list[len(self.profile_list) - 1]:
-				print("\n-------------------------------------")
-				print("Id not recognized. Aborting session.")
-				print("-------------------------------------")
 				return -1
 
 
+        # This function starts an experiment session for the animal identified in the supplied <profile>. 
+        # 
+        # Note: (TODO) Since the "RFID-proximity-pin polling" and camera recording functions are on the same thread,
+        # we currently have to interrupt the camera recording in order to poll the proximity pin to check if the
+        # session should be terminated. Obviously, that sucks. The RFID proximity polling needs to be on it's own thread,
+        # so that when it detects the RFID tag leaving, it can pass a message to the experiment session thread to interrupt it
+        # and terminate the session. This function will need to be redesigned to facilitate this.
 	def startSession(self, profile):
 
-		print("\n------------------------------------------")
-		session_start_message = "Starting session for: " + profile.name +"\nID=" + profile.ID+"\nTraining Stage=" + str(profile.training_stage) + "\nSession Count=" + str(profile.session_count)
-		print(session_start_message)
 
 		session_start_time = time.time()	
-		while_counter = 0
+		subsession_counter = 0
 
 		while True:
-			check_tag_msg = "Tag state= " + str(self.RFID_reader.proximityIsHigh())
-			print(check_tag_msg)
-			if self.RFID_reader.proximityIsHigh():
-				self.servo.setAngle(90)
-				video_output_path = profile.session_history_directory +"/Videos/" + str(profile.ID) + "_session#_"  + str(profile.session_count) + "." + str(while_counter) + ".avi"
-				#FPS AND RES CONFIG
-				self.camera.captureVideo(video_output_path, 20.0, (640, 480), 200)
-				self.servo.setAngle(173)
-				while_counter += 1
-			else:
-				tag_moved_away_message = profile.name + "'s RF is no longer detected. Terminating session."
-				print(tag_moved_away_message)
-				break
 
-		session_end_time = time.time()	
-		profile.insertSessionEntry(session_start_time, session_end_time, while_counter)	
-		session_end_message = profile.name + "'s session has completed."
-		print(session_end_message)
-		print("------------------------------------------\n\n")
+                        # If RFID proximity pin returns high, then RFID tag is still present. Continue session. Else, stop session.
+			if self.RFID_reader.readProximityState()
+
+                            # Raise pellet arm
+			    self.servo.setAngle(10, 90)
+
+                            #TODO: <video_output_path> should not be constructed by startSession(). This path should be supplied by <AnimalProfile.profile>.
+			    video_output_path = profile.session_history_directory +"/Videos/" + str(profile.ID) + "_session#_"  + str(profile.session_count) + "." + str(while_counter) + ".avi"
+
+                            # Begin recording video
+			    self.camera.captureVideo(video_output_path, 200)
+
+                            # Lower pellet arm
+			    self.servo.setAngle(10, 173)
+			    subsession_counter += 1
+                    
+                            # Sleep to allow the PWM signal caused by servo.setAngle() to turn off.
+                            # For some reason the RFID proximity pin signal will be interrupted if the servo's
+                            # PWM signal is on. If we don't sleep here, the "if self.RFID_reader.readProximityState()"
+                            # line may return a false negative. 
+                            sleep(1)
+
+                        # Session has completed
+			else:
+                	    session_end_time = time.time()	
+			    break
+
+                # Log session info 
+		profile.insertSessionEntry(session_start_time, session_end_time, subsession_counter)	
+
+
+
+
+
+
+
+
+# Servo config
+servo_PWM_BCM_pin_number = 18
+
+# Camera config
+fourcc = "*MJPG"
+camera_index = 0
+camera_fps = 20.0
+camera_res = (640,480)
+
+# RFID config
+serial_inerface_path = "/dev/ttyUSB0"
+baudrate = 9600
+RFID_proximity_BCM_pin_number = 23
+
+# AnimalSession config
+session_save_path = "./AnimalSessions/"
+
+
+
+
 
 
 def main():
     
-	# Testing AnimalProfile functions
-	session_save_path = "./AnimalSessions/"
+	# Test animal profiles.
 	profile0 = AnimalProfile("0782B18622", "Jim Kirk", 0, 0, session_save_path)
 	profile1 = AnimalProfile("0782B182D6", "Yuri Gagarin", 0, 0, session_save_path)
 	profile2 = AnimalProfile("0782B17DE9", "Elon Musk", 0, 0, session_save_path)
 	profile3 = AnimalProfile("0782B18A1E", "Buzz Aldrin", 0, 0, session_save_path)
 	profile4 = AnimalProfile("5643564457", "Captain Picard", 0, 0, session_save_path)
-
 	profile_list = [profile0, profile1, profile2, profile3, profile4]
-	servo_1 = Servo(18, 10)
-	camera_1 = Camera('*MJPG', 0)
-	RFID_1 = RFIDReader("/dev/ttyUSB0", 9600, 23)
+
+        
+        # Initializing servo, camera and RFID reader and session controller.
+	servo_1 = servo.Servo(servo_PWM_BCM_pin_number)
+	camera_1 = camera.Camera(fourcc, camera_index, camera_fps, camera_res)
+	RFID_1 = RFID_Reader(serial_interface_path, baudrate, RFID_proximity_BCM_pin_number) 
 	session_controller = SessionController(profile_list, serial, servo_1, camera_1, RFID_1)
 
-	print("System ready\n\n")
+
+
+        # Main loop until I implement a GUI or something 
 	while True:
-		RFID_code = session_controller.listenForRFID()
+		RFID_code = session_controller.RFID_reader.listenForRFID()
 		profile = session_controller.searchForProfile(RFID_code)
 		session_controller.startSession(profile)
 		
