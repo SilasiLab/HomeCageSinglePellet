@@ -25,20 +25,14 @@ class RFID_Reader(object):
 
     def listenForRFID():
 
-        RFID_code = ""
+        RFID_code = []
+        byte = ''
 
-        while True:
-
+        while byte != '\r':
             byte = self.readByte()
+            RFID_code.append(byte)
 
-            if byte == '\r':
-
-                RFID_code = RFID_code[2:len(RFID_code) - 1] #TODO parse RFID code properly
-                self.serial_interface.reset_input_buffer()
-                sleep(1)
-                return RFID_code 
-            else:
-
-                RFID_code += byte
-
-
+        self.serial_interface.reset_input_buffer()
+        sleep(1)
+        
+        return ''.join(RFID_code[2:])
