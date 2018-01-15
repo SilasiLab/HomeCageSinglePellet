@@ -26,7 +26,7 @@ class AnimalProfile(object):
         self.ID = ID
         self.name = name
         self.training_stage = training_stage  
-	self.session_count = session_count
+		self.session_count = session_count
         self.session_history_directory = session_history_directory
 
 
@@ -34,15 +34,13 @@ class AnimalProfile(object):
     # Once formatted, it writes the log entry to the animal's session_history log file. 
     def insertSessionEntry(self, start_time, end_time, number_of_pellets_displayed):
 
+		session_path = "{}/{}_session_history.txt".format(self.session_history_directory, self.ID)
+		video_recording_path = "{}/{}_session{}".format(self.session_history_directory, self.ID, self.session_count)
+		csv_entry = "{},{},{},{}\n".format(start_time, end_time, number_of_pellets_displayed, video_recording_path)
 
-        #TODO: Is there a better way to create + format strings?
-	session_path = self.session_history_directory + str(self.ID) + "_session_history.txt"
-	video_recording_path = self.session_history_directory + str(self.ID) + "_session" + str(self.session_count)
-	csv_entry = str(start_time) + "," + str(end_time) + "," + str(number_of_pellets_displayed) + "," + video_recording_path + "\n"
-
-	with open(session_path, "a") as session_history:
-		session_history.write(csv_entry)
-		self.session_count += 1
+		with open(session_path, "a") as session_history:
+			session_history.write(csv_entry)
+			self.session_count += 1
 
 
 
@@ -72,9 +70,6 @@ class SessionController(object):
 		self.RFID_reader = RFID_reader
 
 
-
-		
-
 	# This function searches the SessionController's profile_list for a profile whose ID 
 	# matches the supplied RFID. If a profile is found, it is returned. If no profile is found,
 	# -1 is returned.
@@ -82,11 +77,10 @@ class SessionController(object):
 
 		# Search profile_list for AnimalProfile whose ID matches RFID
 		for profile in self.profile_list:
-
 			if profile.ID == RFID:
 				return profile
-			elif profile == self.profile_list[len(self.profile_list) - 1]:
-				return -1
+
+		return -1
 
 
         # This function starts an experiment session for the animal identified in the supplied <profile>. 
@@ -156,7 +150,7 @@ baudrate = 9600
 RFID_proximity_BCM_pin_number = 23
 
 # AnimalSession config
-session_save_path = "./AnimalSessions/"
+session_save_path = "./AnimalSessions"
 
 
 
@@ -165,13 +159,13 @@ session_save_path = "./AnimalSessions/"
 
 def main():
     
-	# Test animal profiles.
-	profile0 = AnimalProfile("0782B18622", "Jim Kirk", 0, 0, session_save_path)
-	profile1 = AnimalProfile("0782B182D6", "Yuri Gagarin", 0, 0, session_save_path)
-	profile2 = AnimalProfile("0782B17DE9", "Elon Musk", 0, 0, session_save_path)
-	profile3 = AnimalProfile("0782B18A1E", "Buzz Aldrin", 0, 0, session_save_path)
-	profile4 = AnimalProfile("5643564457", "Captain Picard", 0, 0, session_save_path)
-	profile_list = [profile0, profile1, profile2, profile3, profile4]
+	profile_list = [
+		AnimalProfile("0782B18622", "Jim Kirk", 0, 0, session_save_path),
+		AnimalProfile("0782B182D6", "Yuri Gagarin", 0, 0, session_save_path),
+		AnimalProfile("0782B17DE9", "Elon Musk", 0, 0, session_save_path),
+		AnimalProfile("0782B18A1E", "Buzz Aldrin", 0, 0, session_save_path),
+		AnimalProfile("5643564457", "Captain Picard", 0, 0, session_save_path)
+	]
 
         
         # Initializing servo, camera and RFID reader and session controller.
