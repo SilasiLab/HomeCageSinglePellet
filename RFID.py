@@ -15,15 +15,15 @@ class RFID_Reader(object):
         wiringpi.pullUpDnControl(proximity_pin_BCM_number, wiringpi.PUD_DOWN)
 
 
-    def readByte():
+    def readByte(self):
         return self.serial_interface.read()
 
 
-    def readProximityState():
+    def readProximityState(self):
         return wiringpi.digitalRead(self.proximity_pin_BCM_number)
 
 
-    def listenForRFID():
+    def listenForRFID(self):
 
         RFID_code = ""
 

@@ -12,16 +12,16 @@ class Camera(object):
         self.res_tuple = res_tuple
 
 
-    def captureVideo(self, output_filename, number_of_frames):
+    def captureVideo(self, output_filename):
 
         camera_output = cv2.VideoWriter(output_filename, self.fourcc, self.fps, self.res_tuple)
 
-        for x in range(0, number_of_frames):
+        while True:
 
-            ret, frame = self.camera.read()
-            cv2.imshow("live_feed", frame)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
-            else:
-                camera_output.write(frame)
+		ret, frame = self.camera.read()
+            	cv2.imshow("live_feed", frame)
+            	if cv2.waitKey(1) & 0xFF == ord('q'):
+                	break
+            	else:
+                	camera_output.write(frame)
 

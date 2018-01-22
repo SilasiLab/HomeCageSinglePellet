@@ -101,10 +101,10 @@ class SessionController(object):
 
 
 	    session_start_time = time.time()	
-
+	    print("starting session")
 
             # If IR beam is broken, assume animal is present and begin session. 
-	    if self.IR_beam_breaker.isBeamBroken()
+	    if self.IR_beam_breaker.isBeamBroken() == 1:
 
                 #TODO: <video_output_path> should not be constructed by startSession(). This path should be supplied by <AnimalProfile.profile>.
 	        video_output_path = profile.session_history_directory +"/Videos/" + str(profile.ID) + "_session#_"  + str(profile.session_count) + ".avi"
@@ -112,13 +112,22 @@ class SessionController(object):
                 # Begin recording video
 	       # self.camera.captureVideo(video_output_path, 200)
                 jobs = []
-                p = multiprocessing.Process(target=self.camera.captureVideo, args=(video_output_path, 200))
+                p = multiprocessing.Process(target=self.camera.captureVideo, args=(video_output_path,))
                 jobs.append(p)
+		print("starting process")
                 p.start()
+		sleep(60)
 
 
 
-            if self.IR_beam_breaker.isBeamBroken()
+
+
+
+
+
+
+
+            if self.IR_beam_breaker.isBeamBroken() == 1:
 
 
                 # Raise pellet arm
@@ -178,8 +187,8 @@ def main():
         
         # Initializing servo, camera and RFID reader and session controller.
 	servo_1 = servo.Servo(SERVO_PWM_BCM_PIN_NUMBER)
-	camera_1 = camera.Camera(FOURC, CAMERA_INDEX, CAMERA_FPS, CAMERA_RES)
-	RFID_1 = RFID_Reader(SERIAL_INTERFACE_PATH, BAUDRATE, RFID_PROXIMITY_BCM_PIN_NUMBER) 
+	camera_1 = camera.Camera(FOURCC, CAMERA_INDEX, CAMERA_FPS, CAMERA_RES)
+	RFID_1 = RFID.RFID_Reader(SERIAL_INTERFACE_PATH, BAUDRATE, RFID_PROXIMITY_BCM_PIN_NUMBER) 
         IR_1 = IR.IRBeamBreaker(PHOTO_DIODE_BCM_PIN_NUMBER)
 	session_controller = SessionController(profile_list, servo_1, camera_1, RFID_1, IR_1)
 
@@ -188,6 +197,7 @@ def main():
         # Main loop until I implement a GUI or something 
 	while True:
 		RFID_code = session_controller.RFID_reader.listenForRFID()
+		print(RFID_code)
 		profile = session_controller.searchForProfile(RFID_code)
 		session_controller.startSession(profile)
 		
