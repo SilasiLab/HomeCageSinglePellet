@@ -7,44 +7,31 @@ from time import sleep
 import multiprocessing
 from terminaltables import AsciiTable
 
+
+
 class AnimalProfile(object):
-   """ 
-        A complete profile for a specific animal. Each profile has a unique 
-        ID representing a particular animal. Each AnimalProfile has the following
-        properties:
 
-        Attributes:
-            ID: The ID of the animal who owns the profile. 
-            name: The name of the animal. 
-            training_stage: An integer representing the current stage of training the animal is at. 
-            session_count: An integer representing the numbers of sessions the animal has participated in.
-            session_history_directory: A file path pointing to where the profile's session_history file will be saved. 
-            video_save_directory: A file path point to where video for the profile will be saved. 
-    """
+	def __init__(self, ID, name, training_stage, session_count, session_history_directory, video_save_directory):
 
-    # Initializes instance variables for a particular AnimalProfile
-    def __init__(self, ID, name, training_stage, session_count, session_history_directory, video_save_directory):
-        
-        self.ID = ID
-        self.name = name
-        self.training_stage = training_stage  
-	self.session_count = session_count
-        self.session_history_directory = session_history_directory
-        self.video_save_directory = video_save_directory 
+		self.ID = ID
+		self.name = name
+		self.training_stage = training_stage  
+		self.session_count = session_count
+		self.session_history_directory = session_history_directory
+		self.video_save_directory = video_save_directory 
 
 
-    # This function takes all the information required for an animal's session log entry, and then formats it.
-    # Once formatted, it writes the log entry to the animal's session_history log file. 
-    def insertSessionEntry(self, start_time, end_time, num_pellets_presented):
+	# This function takes all the information required for an animal's session log entry, and then formats it.
+	# Once formatted, it writes the log entry to the animal's session_history log file. 
+	def insertSessionEntry(self, start_time, end_time, num_pellets_presented):
 
+		#TODO: Is there a better way to create + format strings?
+		session_path = self.session_history_directory + str(self.ID) + "_session_history.txt"
+		csv_entry = str(start_time) + "," + str(end_time) + "," + str(num_pellets_presented) + "," + self.video_save_directory + "\n"
 
-        #TODO: Is there a better way to create + format strings?
-	session_path = self.session_history_directory + str(self.ID) + "_session_history.txt"
-	csv_entry = str(start_time) + "," + str(end_time) + "," + str(num_pellets_presented) + "," + self.video_save_directory + "\n"
-
-	with open(session_path, "a") as session_history:
-		session_history.write(csv_entry)
-		self.session_count += 1
+		with open(session_path, "a") as session_history:
+			session_history.write(csv_entry)
+			self.session_count += 1
 
 
 
@@ -97,19 +84,30 @@ class SessionController(object):
         # A session is terminated when the IR beam is no longer broken.
 	def startSession(self, profile):
 
+	    if self.IR_beam_breaker.getBeamState() == 0:
 
-	    session_start_time = time.time()	
-	    video_output_path = profile.video_save_directory + str(profile.ID) + "_session#_"  + str(profile.session_count) + ".avi"
+		
+	   	session_start_time = time.time()
+	    	video_output_path = profile.video_save_directory + str(profile.ID) + "_session#_"  + str(profile.session_count) + ".avi"
 
-            # Fork process and begin recording video in the new process. 
-            jobs = []
-            p = multiprocessing.Process(target=self.camera.captureVideo, args=(video_output_path,))
-            jobs.append(p)
-            p.start()
+           	# Fork process and begin recording video on new process.
+	    	queue = multiprocessing.Queue()
+            	jobs = []
+            	p = multiprocessing.Process(target=self.camera.captureVideo, args=(video_output_path, queue,))
+            	jobs.append(p)
+            	p.start()
             
+	    else:
+		console_msg5 = profile.ID + " recognized but IR beam NOT broken.\nAborting session.\n\n"
+		print(console_msg5)
+		return 
+
+
+	    console_msg4 = "-------------------------------------------\n" + profile.ID + " recognized and IR beam broken.\nStarting session for " + profile.name
+	    print(console_msg4)
             num_pellets_presented = 0
             # While beam is broken, continue presenting pellets every 10s.
-            while !self.IR_beam_breaker.getBeamState():
+            while self.IR_beam_breaker.getBeamState() == 0:
 
                 # Lower pellet arm
 	        self.servo.setAngle(10, 173)
@@ -119,11 +117,29 @@ class SessionController(object):
                 self.servo.stopServo()
 
                 num_pellets_presented += 1
-                sleep(10)
 
+		# Temporary hack to deal with the fact that right now, we're sleeping for 10s
+		# between each pellet presentation. If the IR beam is reconnected during
+		# this 10s sleep, the session will not end immediately. So instead of sleeping
+		# for 10s straight, this block sleeps for 0.5s, then checks beam state, repeating
+		# until we've slept long enough. 
+		# TODO: fix this by monitoring beam state on a separate thread and passng a 
+		# session_termination message back to this thread when beam connection
+		# is re-established.
+		end_session = False
+                for x in range (0,19):
+			if self.IR_beam_breaker.getBeamState() == 1:
+				end_session = True
+				break
+			else:
+				sleep(0.5)
+		if end_session == True:
+			break
 
-            
-            p.terminate()
+	    console_msg2 ="Concluding session for " + profile.name +"\n-------------------------------------------" 
+	    print(console_msg2)
+	    queue.put("KILLSIGNAL")
+	    p.join()
             session_end_time = time.time()	
             # Log session info 
 	    profile.insertSessionEntry(session_start_time, session_end_time, num_pellets_presented)	
@@ -178,16 +194,17 @@ def main():
 	while True:
 
             # Block until an RFID tag is detected.
+	    print("Waiting for RF tag...")
 	    RFID_code = session_controller.RFID_reader.listenForRFID()
-
             # Attempt to find a profile matching the detected RFID.
 	    profile = session_controller.searchForProfile(RFID_code)
 
             # If a profile with a matching RFID is found, begin a session for that profile.
             if profile != -1:
 	        session_controller.startSession(profile)
-		
-
+	    else:
+		console_msg3 = RFID_code + " not recognized. Aborting session.\n\n"
+		print(console_msg3)
 
 if __name__ == "__main__":
     main()
