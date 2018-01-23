@@ -45,6 +45,7 @@ class Servo(object):
 		sleep(float(delay_period_ms)/1000.0)
 
 
-
+    def stopServo():
+        wiringpi.pwmWrite(self.PWM_pin, 0)
 
 

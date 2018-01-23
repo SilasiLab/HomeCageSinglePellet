@@ -115,6 +115,9 @@ class SessionController(object):
 	        self.servo.setAngle(10, 173)
                 # Raise pellet arm
 	        self.servo.setAngle(10, 90)
+                # Shut off servo
+                self.servo.stopServo()
+
                 num_pellets_presented += 1
                 sleep(10)
 
