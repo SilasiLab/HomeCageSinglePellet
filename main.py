@@ -5,10 +5,10 @@ import IR
 import time 
 from time import sleep 
 import multiprocessing
-
+from terminaltables import AsciiTable
 
 class AnimalProfile(object):
-    """
+   """ 
         A complete profile for a specific animal. Each profile has a unique 
         ID representing a particular animal. Each AnimalProfile has the following
         properties:
@@ -17,29 +17,30 @@ class AnimalProfile(object):
             ID: The ID of the animal who owns the profile. 
             name: The name of the animal. 
             training_stage: An integer representing the current stage of training the animal is at. 
-            session_history_directory: A file path to the directory containing all session_histories 
-            session_count: An integer representing number of sessions animal has participated in. 
+            session_count: An integer representing the numbers of sessions the animal has participated in.
+            session_history_directory: A file path pointing to where the profile's session_history file will be saved. 
+            video_save_directory: A file path point to where video for the profile will be saved. 
     """
 
     # Initializes instance variables for a particular AnimalProfile
-    def __init__(self, ID, name, training_stage, session_count, session_history_directory):
+    def __init__(self, ID, name, training_stage, session_count, session_history_directory, video_save_directory):
         
         self.ID = ID
         self.name = name
         self.training_stage = training_stage  
 	self.session_count = session_count
         self.session_history_directory = session_history_directory
+        self.video_save_directory = video_save_directory 
 
 
     # This function takes all the information required for an animal's session log entry, and then formats it.
     # Once formatted, it writes the log entry to the animal's session_history log file. 
-    def insertSessionEntry(self, start_time, end_time):
+    def insertSessionEntry(self, start_time, end_time, num_pellets_presented):
 
 
         #TODO: Is there a better way to create + format strings?
 	session_path = self.session_history_directory + str(self.ID) + "_session_history.txt"
-	video_recording_path = self.session_history_directory + str(self.ID) + "_session" + str(self.session_count)
-	csv_entry = str(start_time) + "," + str(end_time) + "," + video_recording_path + "\n"
+	csv_entry = str(start_time) + "," + str(end_time) + "," + str(num_pellets_presented) + "," + self.video_save_directory + "\n"
 
 	with open(session_path, "a") as session_history:
 		session_history.write(csv_entry)
@@ -84,69 +85,45 @@ class SessionController(object):
 		# Search profile_list for AnimalProfile whose ID matches RFID
 		for profile in self.profile_list:
 
-			if profile.ID == RFID:
-				return profile
-			elif profile == self.profile_list[len(self.profile_list) - 1]:
-				return -1
+		    if profile.ID == RFID:
+                        return profile
+                
+                return -1
 
 
-        # This function starts an experiment session for the animal identified in the supplied <profile>. 
-        # 
-        # Note: (TODO) Since the "RFID-proximity-pin polling" and camera recording functions are on the same thread,
-        # we currently have to interrupt the camera recording in order to poll the proximity pin to check if the
-        # session should be terminated. Obviously, that sucks. The RFID proximity polling needs to be on it's own thread,
-        # so that when it detects the RFID tag leaving, it can pass a message to the experiment session thread to interrupt it
-        # and terminate the session. This function will need to be redesigned to facilitate this.
+        # This function starts an experiment session for the animal identified in the supplied <profile>.
+        # A session consists of a video recording spanning the duration of the session, repeated food pellet
+        # presentatation every 10s, and various data logging for that session.
+        # A session is terminated when the IR beam is no longer broken.
 	def startSession(self, profile):
 
 
 	    session_start_time = time.time()	
-	    print("starting session")
+	    video_output_path = profile.video_save_directory + str(profile.ID) + "_session#_"  + str(profile.session_count) + ".avi"
 
-            # If IR beam is broken, assume animal is present and begin session. 
-	    if self.IR_beam_breaker.isBeamBroken() == 1:
-
-                #TODO: <video_output_path> should not be constructed by startSession(). This path should be supplied by <AnimalProfile.profile>.
-	        video_output_path = profile.session_history_directory +"/Videos/" + str(profile.ID) + "_session#_"  + str(profile.session_count) + ".avi"
-
-                # Begin recording video
-	       # self.camera.captureVideo(video_output_path, 200)
-                jobs = []
-                p = multiprocessing.Process(target=self.camera.captureVideo, args=(video_output_path,))
-                jobs.append(p)
-		print("starting process")
-                p.start()
-		sleep(60)
-
-
-
-
-
-
-
-
-
-
-            if self.IR_beam_breaker.isBeamBroken() == 1:
-
-
-                # Raise pellet arm
-	        self.servo.setAngle(10, 90)
-
+            # Fork process and begin recording video in the new process. 
+            jobs = []
+            p = multiprocessing.Process(target=self.camera.captureVideo, args=(video_output_path,))
+            jobs.append(p)
+            p.start()
+            
+            num_pellets_presented = 0
+            # While beam is broken, continue presenting pellets every 10s.
+            while !self.IR_beam_breaker.getBeamState():
 
                 # Lower pellet arm
 	        self.servo.setAngle(10, 173)
-                    
-                # Sleep to allow the PWM signal caused by servo.setAngle() to turn off.
-                # For some reason the RFID proximity pin signal will be interrupted if the servo's
-                # PWM signal is on. If we don't sleep here, the "if self.RFID_reader.readProximityState()"
-                # line may return a false negative. 
-                sleep(1)
+                # Raise pellet arm
+	        self.servo.setAngle(10, 90)
+                num_pellets_presented += 1
+                sleep(10)
 
-                session_end_time = time.time()	
 
-                # Log session info 
-	        profile.insertSessionEntry(session_start_time, session_end_time)	
+            
+            p.terminate()
+            session_end_time = time.time()	
+            # Log session info 
+	    profile.insertSessionEntry(session_start_time, session_end_time, num_pellets_presented)	
 
 
 
@@ -168,24 +145,25 @@ BAUDRATE = 9600
 RFID_PROXIMITY_BCM_PIN_NUMBER = 23
 # IR breaker config
 PHOTO_DIODE_BCM_PIN_NUMBER = 24
-# AnimalSession config
+# AnimalProfile config
 SESSION_SAVE_PATH = "./AnimalSessions/"
-
+VIDEO_SAVE_PATH = "./AnimalSessions/Videos/"
 
 
 
 def main():
-    
-	# Test animal profiles.
-	profile0 = AnimalProfile("0782B18622", "Jim Kirk", 0, 0, SESSION_SAVE_PATH)
-	profile1 = AnimalProfile("0782B182D6", "Yuri Gagarin", 0, 0, SESSION_SAVE_PATH)
-	profile2 = AnimalProfile("0782B17DE9", "Elon Musk", 0, 0, SESSION_SAVE_PATH)
-	profile3 = AnimalProfile("0782B18A1E", "Buzz Aldrin", 0, 0, SESSION_SAVE_PATH)
-	profile4 = AnimalProfile("5643564457", "Captain Picard", 0, 0, SESSION_SAVE_PATH)
+   
+
+
+        # Initializing animal profiles 
+	profile0 = AnimalProfile("0782B18622", "Jim Kirk", 0, 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)
+	profile1 = AnimalProfile("0782B182D6", "Yuri Gagarin", 0, 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)
+	profile2 = AnimalProfile("0782B17DE9", "Elon Musk", 0, 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)
+	profile3 = AnimalProfile("0782B18A1E", "Buzz Aldrin", 0, 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)
+	profile4 = AnimalProfile("5643564457", "Captain Picard", 0, 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)
 	profile_list = [profile0, profile1, profile2, profile3, profile4]
 
-        
-        # Initializing servo, camera and RFID reader and session controller.
+        # Initializing system components
 	servo_1 = servo.Servo(SERVO_PWM_BCM_PIN_NUMBER)
 	camera_1 = camera.Camera(FOURCC, CAMERA_INDEX, CAMERA_FPS, CAMERA_RES)
 	RFID_1 = RFID.RFID_Reader(SERIAL_INTERFACE_PATH, BAUDRATE, RFID_PROXIMITY_BCM_PIN_NUMBER) 
@@ -194,12 +172,17 @@ def main():
 
 
 
-        # Main loop until I implement a GUI or something 
 	while True:
-		RFID_code = session_controller.RFID_reader.listenForRFID()
-		print(RFID_code)
-		profile = session_controller.searchForProfile(RFID_code)
-		session_controller.startSession(profile)
+
+            # Block until an RFID tag is detected.
+	    RFID_code = session_controller.RFID_reader.listenForRFID()
+
+            # Attempt to find a profile matching the detected RFID.
+	    profile = session_controller.searchForProfile(RFID_code)
+
+            # If a profile with a matching RFID is found, begin a session for that profile.
+            if profile != -1:
+	        session_controller.startSession(profile)
 		
 
 

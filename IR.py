@@ -13,5 +13,5 @@ class IRBeamBreaker(object):
         wiringpi.pullUpDnControl(input_BCM_pin, wiringpi.PUD_UP)
 
 
-    def isBeamBroken(self):
+    def getBeamState(self):
         return wiringpi.digitalRead(self.photo_diode_input_pin)
