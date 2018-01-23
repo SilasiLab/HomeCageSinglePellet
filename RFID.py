@@ -34,6 +34,9 @@ class RFID_Reader(object):
             if byte == '\r':
 
                 RFID_code = RFID_code[2:len(RFID_code) - 1] #TODO parse RFID code properly
+		if len(RFID_code) > 10:
+			RFID_code = RFID_code[len(RFID_code) - 10:len(RFID_code)]
+
                 self.serial_interface.reset_input_buffer()
                 sleep(1)
                 return RFID_code 
