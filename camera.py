@@ -19,7 +19,8 @@ class Camera(object):
         while True:
 		
 		if queue.empty() == False:
-			msg = queue.get()
+			termination_msg = "Camera process termination: " + queue.get() 
+			print(termination_msg)
 			camera.release()
 			camera_output.release()
 			cv2.destroyAllWindows()

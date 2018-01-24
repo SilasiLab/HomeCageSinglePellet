@@ -23,11 +23,11 @@ class AnimalProfile(object):
 
 	# This function takes all the information required for an animal's session log entry, and then formats it.
 	# Once formatted, it writes the log entry to the animal's session_history log file. 
-	def insertSessionEntry(self, start_time, end_time, num_pellets_presented):
+	def insertSessionEntry(self, start_time, end_time):
 
 		#TODO: Is there a better way to create + format strings?
 		session_path = self.session_history_directory + str(self.ID) + "_session_history.txt"
-		csv_entry = str(start_time) + "," + str(end_time) + "," + str(num_pellets_presented) + "," + self.video_save_directory + "\n"
+		csv_entry = str(start_time) + "," + str(end_time) + "," + self.video_save_directory + "\n"
 
 		with open(session_path, "a") as session_history:
 			session_history.write(csv_entry)
@@ -121,19 +121,22 @@ class SessionController(object):
 
 
             # Once beam is reconnected. Send kill sig to all session processes and wait for them to terminate.
-	    camera_process_queue.put("KILLSIGNAL")
-            servo_process_queue.put("KILLSIGNAL")
+	    camera_process_queue.put("TERM")
+            servo_process_queue.put("TERM")
 	    
             camera_process.join()
             servo_process.join()
 
-            # Log session information
+            # Log session information.
             session_end_time = time.time()	
 	    profile.insertSessionEntry(session_start_time, session_end_time)	
 
+	    # Flush serial buffer incase RFID tag was read multiple times during this session.
+	    self.RFID_reader.flushRFIDBuffer()
+
             session_end_msg = profile.name + "'s session has completed\n-------------------------------------------\n" 
             print(session_end_msg)
-
+	    return 0
 
 
 

@@ -57,9 +57,12 @@ class Servo(object):
                 self.setAngle(10, 173)
                 self.setAngle(10, 90)
                 self.stopServo()
-                sleep(sleep_duration)
-            else:
-                signal = queue.get()
-                print(signal)
-                return 
+
+                for x in range (0, sleep_duration * 2):
+			if queue.empty():
+				sleep(0.5)
+			else:
+         			termination_msg = "Servo process termination: " + queue.get()
+        			print(termination_msg)
+        			return 
 

@@ -18,10 +18,11 @@ class RFID_Reader(object):
     def readByte(self):
         return self.serial_interface.read()
 
-
     def readProximityState(self):
         return wiringpi.digitalRead(self.proximity_pin_BCM_number)
 
+    def flushRFIDBuffer(self):
+	self.serial_interface.reset_input_buffer()
 
     def listenForRFID(self):
 
