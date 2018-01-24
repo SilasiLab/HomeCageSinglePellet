@@ -49,3 +49,17 @@ class Servo(object):
         wiringpi.pwmWrite(self.PWM_pin, 0)
 
 
+    def cycleServo(self, sleep_duration, queue):
+        
+        while True:
+
+            if queue.empty():
+                self.setAngle(10, 173)
+                self.setAngle(10, 90)
+                self.stopServo()
+                sleep(sleep_duration)
+            else:
+                signal = queue.get()
+                print(signal)
+                return 
+

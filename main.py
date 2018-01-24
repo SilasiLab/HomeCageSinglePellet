@@ -84,68 +84,55 @@ class SessionController(object):
         # A session is terminated when the IR beam is no longer broken.
 	def startSession(self, profile):
 
-	    if self.IR_beam_breaker.getBeamState() == 0:
+	    if self.IR_beam_breaker.getBeamState() != 0:
+
+            	console_err_msg1 = profile.ID + " recognized but IR beam NOT broken.\nAborting session.\n\n"
+		print(console_err_msg1)
+		return 
+            else:
+                session_start_msg = "-------------------------------------------\n" + "Starting session for " + profile.name
+	        print(session_start_msg)
+            
 
 		
-	   	session_start_time = time.time()
-	    	video_output_path = profile.video_save_directory + str(profile.ID) + "_session#_"  + str(profile.session_count) + ".avi"
-
-           	# Fork process and begin recording video on new process.
-	    	queue = multiprocessing.Queue()
-            	jobs = []
-            	p = multiprocessing.Process(target=self.camera.captureVideo, args=(video_output_path, queue,))
-            	jobs.append(p)
-            	p.start()
+	    session_start_time = time.time()
             
-	    else:
-		console_msg5 = profile.ID + " recognized but IR beam NOT broken.\nAborting session.\n\n"
-		print(console_msg5)
-		return 
+            #TODO video_output_path should be constructed by a member method of AnimalProfile.
+	    video_output_path = profile.video_save_directory + str(profile.ID) + "_session#_"  + str(profile.session_count) + ".avi"
 
+            # Fork processes for camera recording and for servo cycling.
+            jobs = []
 
-	    console_msg4 = "-------------------------------------------\n" + profile.ID + " recognized and IR beam broken.\nStarting session for " + profile.name
-	    print(console_msg4)
-            num_pellets_presented = 0
-            # While beam is broken, continue presenting pellets every 10s.
+	    camera_process_queue = multiprocessing.Queue()
+            camera_process = multiprocessing.Process(target=self.camera.captureVideo, args=(video_output_path, camera_process_queue,))
+            jobs.append(camera_process)
+            
+            servo_process_queue = multiprocessing.Queue()
+            servo_process = multiprocessing.Process(target=self.servo.cycleServo, args=(10, servo_process_queue,))
+            jobs.append(servo_process)
+            
+	    camera_process.start()
+            servo_process.start()
+
+            # While beam is still broken, continue session.
             while self.IR_beam_breaker.getBeamState() == 0:
+                    
+                    sleep(0.3)
 
-                # Lower pellet arm
-	        self.servo.setAngle(10, 173)
-                # Raise pellet arm
-	        self.servo.setAngle(10, 90)
-                # Shut off servo
-                self.servo.stopServo()
 
-                num_pellets_presented += 1
+            # Once beam is reconnected. Send kill sig to all session processes and wait for them to terminate.
+	    camera_process_queue.put("KILLSIGNAL")
+            servo_process_queue.put("KILLSIGNAL")
+	    
+            camera_process.join()
+            servo_process.join()
 
-		# Temporary hack to deal with the fact that right now, we're sleeping for 10s
-		# between each pellet presentation. If the IR beam is reconnected during
-		# this 10s sleep, the session will not end immediately. So instead of sleeping
-		# for 10s straight, this block sleeps for 0.5s, then checks beam state, repeating
-		# until we've slept long enough. 
-		# TODO: fix this by monitoring beam state on a separate thread and passng a 
-		# session_termination message back to this thread when beam connection
-		# is re-established.
-		end_session = False
-                for x in range (0,19):
-			if self.IR_beam_breaker.getBeamState() == 1:
-				end_session = True
-				break
-			else:
-				sleep(0.5)
-		if end_session == True:
-			break
-
-	    console_msg2 ="Concluding session for " + profile.name +"\n-------------------------------------------" 
-	    print(console_msg2)
-	    queue.put("KILLSIGNAL")
-	    p.join()
+            # Log session information
             session_end_time = time.time()	
-            # Log session info 
-	    profile.insertSessionEntry(session_start_time, session_end_time, num_pellets_presented)	
+	    profile.insertSessionEntry(session_start_time, session_end_time)	
 
-
-
+            session_end_msg = profile.name + "'s session has completed\n-------------------------------------------\n" 
+            print(session_end_msg)
 
 
 
@@ -203,8 +190,8 @@ def main():
             if profile != -1:
 	        session_controller.startSession(profile)
 	    else:
-		console_msg3 = RFID_code + " not recognized. Aborting session.\n\n"
-		print(console_msg3)
+		unrecognized_id_msg = RFID_code + " not recognized. Aborting session.\n\n"
+		print(unrecognized_id_msg)
 
 if __name__ == "__main__":
     main()
