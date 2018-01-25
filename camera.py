@@ -12,13 +12,19 @@ class Camera(object):
         self.res_tuple = res_tuple
 
 
-    def captureVideo(self, output_filename, queue):
+    def captureVideo(self, output_filename, queue, logger):
 
+        logger.info("Initializing cv2.VideoWriter")
         camera_output = cv2.VideoWriter(output_filename, self.fourcc, self.fps, self.res_tuple)
+
+        logger.info("Opening camera for cv2.VideoCapture")
 	camera = cv2.VideoCapture(self.camera_index)
+        capture_delay = 1.0 / self.fps 
+
         while True:
 		
 		if queue.empty() == False:
+                        logger.info("TERM signal recevied. Terminating process")
 			termination_msg = "Camera process termination: " + queue.get() 
 			print(termination_msg)
 			camera.release()
@@ -33,4 +39,4 @@ class Camera(object):
                 	break
             	else:
                 	camera_output.write(frame)
-
+                        sleep(capture_delay)

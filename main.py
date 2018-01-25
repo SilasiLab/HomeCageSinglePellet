@@ -5,7 +5,12 @@ import IR
 import time 
 from time import sleep 
 import multiprocessing
-from terminaltables import AsciiTable
+import logging
+
+logging.basicConfig(filename="logfile.log", level=logging.DEBUG)
+main_logger = logging.getLogger(__name__)
+servo_logger = logging.getLogger("servo.py")
+camera_logger = logging.getLogger("camera.py")
 
 
 
@@ -51,7 +56,6 @@ class SessionController(object):
                         IR_beam_breaker: An object that controls an IR beam breaker.
 	"""
 
-	# Initializes instance variables for the SessionController.
 	def __init__(self, profile_list, servo, camera, RFID_reader, IR_beam_breaker):
 
 		self.profile_list = profile_list 
@@ -74,7 +78,7 @@ class SessionController(object):
 
 		    if profile.ID == RFID:
                         return profile
-                
+
                 return -1
 
 
@@ -84,12 +88,17 @@ class SessionController(object):
         # A session is terminated when the IR beam is no longer broken.
 	def startSession(self, profile):
 
+            global main_logger
+
+            main_logger.info("Checking IR beam state")
 	    if self.IR_beam_breaker.getBeamState() != 0:
 
+                main_logger.info("IR beam not broken. Aborting session")
             	console_err_msg1 = profile.ID + " recognized but IR beam NOT broken.\nAborting session.\n\n"
 		print(console_err_msg1)
 		return 
             else:
+                main_logger.info("IR beam broken. Continuing session")
                 session_start_msg = "-------------------------------------------\n" + "Starting session for " + profile.name
 	        print(session_start_msg)
             
@@ -104,16 +113,21 @@ class SessionController(object):
             jobs = []
 
 	    camera_process_queue = multiprocessing.Queue()
-            camera_process = multiprocessing.Process(target=self.camera.captureVideo, args=(video_output_path, camera_process_queue,))
+            main_logger.info("Initializing camera process")
+            camera_process = multiprocessing.Process(target=self.camera.captureVideo, args=(video_output_path, camera_process_queue, camera_logger,))
             jobs.append(camera_process)
             
             servo_process_queue = multiprocessing.Queue()
-            servo_process = multiprocessing.Process(target=self.servo.cycleServo, args=(10, servo_process_queue,))
+            main.logger.info("Initializing servo process")
+            servo_process = multiprocessing.Process(target=self.servo.cycleServo, args=(10, servo_process_queue, servo_logger,))
             jobs.append(servo_process)
             
+            main_logger.info("Launching camera process")
 	    camera_process.start()
+            main_logger.info("Launching servo process")
             servo_process.start()
 
+            main_logger.info("Beginning IR beam state monitoring")
             # While beam is still broken, continue session.
             while self.IR_beam_breaker.getBeamState() == 0:
                     
@@ -121,16 +135,23 @@ class SessionController(object):
 
 
             # Once beam is reconnected. Send kill sig to all session processes and wait for them to terminate.
+            main_logger.info("Sending TERM signal to camera process")
 	    camera_process_queue.put("TERM")
+            main_logger.info("Sending TERM signal to servo process")
             servo_process_queue.put("TERM")
-	    
+
+            main_logger.info("Calling camera_process.join()")
             camera_process.join()
+            main_logger.info("Calling servo_process.join()")
             servo_process.join()
 
+
+            main_logger.info("Logging experiment data")
             # Log session information.
             session_end_time = time.time()	
 	    profile.insertSessionEntry(session_start_time, session_end_time)	
 
+            main_logger.info("Flushing serial buffer")
 	    # Flush serial buffer incase RFID tag was read multiple times during this session.
 	    self.RFID_reader.flushRFIDBuffer()
 
@@ -163,8 +184,7 @@ VIDEO_SAVE_PATH = "./AnimalSessions/Videos/"
 def main():
    
 
-
-        # Initializing animal profiles 
+        main_logger.info("Creating AnimalProfiles...")
 	profile0 = AnimalProfile("0782B18622", "Jim Kirk", 0, 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)
 	profile1 = AnimalProfile("0782B182D6", "Yuri Gagarin", 0, 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)
 	profile2 = AnimalProfile("0782B17DE9", "Elon Musk", 0, 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)
@@ -172,29 +192,44 @@ def main():
 	profile4 = AnimalProfile("5643564457", "Captain Picard", 0, 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)
 	profile_list = [profile0, profile1, profile2, profile3, profile4]
 
-        # Initializing system components
+
+        main_logger.info("Initializing servo")
 	servo_1 = servo.Servo(SERVO_PWM_BCM_PIN_NUMBER)
+        
+        main_logger.info("Initializing camera")
 	camera_1 = camera.Camera(FOURCC, CAMERA_INDEX, CAMERA_FPS, CAMERA_RES)
+
+        main_logger.info("Initializing RFID reader")
 	RFID_1 = RFID.RFID_Reader(SERIAL_INTERFACE_PATH, BAUDRATE, RFID_PROXIMITY_BCM_PIN_NUMBER) 
+
+        main_logger.info("Initializing IR beam breaker")
         IR_1 = IR.IRBeamBreaker(PHOTO_DIODE_BCM_PIN_NUMBER)
+
+        main_logger.info("Initializing SessionController")
 	session_controller = SessionController(profile_list, servo_1, camera_1, RFID_1, IR_1)
 
 
 
 	while True:
 
-            # Block until an RFID tag is detected.
+            main_logger.info("Waiting for RF tag")
 	    print("Waiting for RF tag...")
 	    RFID_code = session_controller.RFID_reader.listenForRFID()
+
+            main_logger.info("Searching for AnimalProfile with matching RFID")
             # Attempt to find a profile matching the detected RFID.
 	    profile = session_controller.searchForProfile(RFID_code)
 
             # If a profile with a matching RFID is found, begin a session for that profile.
             if profile != -1:
+                main_logger.info("Starting session")
 	        session_controller.startSession(profile)
 	    else:
+                main_logger.info("No AnimalProfile found with matching RFID. Aborting session")
 		unrecognized_id_msg = RFID_code + " not recognized. Aborting session.\n\n"
 		print(unrecognized_id_msg)
+
+
 
 if __name__ == "__main__":
     main()

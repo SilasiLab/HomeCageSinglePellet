@@ -49,12 +49,15 @@ class Servo(object):
         wiringpi.pwmWrite(self.PWM_pin, 0)
 
 
-    def cycleServo(self, sleep_duration, queue):
+    def cycleServo(self, sleep_duration, queue, logger):
         
         while True:
 
             if queue.empty():
+
+                # Lower hopper arm
                 self.setAngle(10, 173)
+                # Raise hopper arm
                 self.setAngle(10, 90)
                 self.stopServo()
 
@@ -62,7 +65,9 @@ class Servo(object):
 			if queue.empty():
 				sleep(0.5)
 			else:
+                                logger.info("TERM signal received. Terminating process")
+                                self.setAngle(10, 173)
          			termination_msg = "Servo process termination: " + queue.get()
         			print(termination_msg)
-        			return 
+        			return 0 
 
