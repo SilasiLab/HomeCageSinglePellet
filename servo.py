@@ -52,20 +52,26 @@ class Servo(object):
     def cycleServo(self, sleep_duration, queue, logger):
         
         while True:
-
+            logger.debug("Checking is queue is empty")
             if queue.empty():
 
+                logger.debug("Lowering hopper arm")
                 # Lower hopper arm
                 self.setAngle(10, 173)
+                logger.debug("Raising hopper arm")
                 # Raise hopper arm
                 self.setAngle(10, 90)
+                logger.debug("Killing PWM signal")
                 self.stopServo()
 
                 for x in range (0, sleep_duration * 2):
+                        logger.debug("Checking is queue is empty")
 			if queue.empty():
+                                logger.debug("Sleeping for 0.5s")
 				sleep(0.5)
 			else:
                                 logger.info("TERM signal received. Terminating process")
+                                logger.debug("Lowering hopper arm")
                                 self.setAngle(10, 173)
          			termination_msg = "Servo process termination: " + queue.get()
         			print(termination_msg)

@@ -167,7 +167,7 @@ SERVO_PWM_BCM_PIN_NUMBER = 18
 # Camera config
 FOURCC = "*MJPG"
 CAMERA_INDEX = 0
-CAMERA_FPS = 20.0
+CAMERA_FPS = 60.0
 CAMERA_RES = (640,480)
 # RFID config
 SERIAL_INTERFACE_PATH = "/dev/ttyUSB0"
@@ -185,11 +185,10 @@ def main():
    
 
         main_logger.info("Creating AnimalProfiles...")
-	profile0 = AnimalProfile("0782B18622", "Jim Kirk", 0, 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)
-	profile1 = AnimalProfile("0782B182D6", "Yuri Gagarin", 0, 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)
-	profile2 = AnimalProfile("0782B17DE9", "Elon Musk", 0, 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)
-	profile3 = AnimalProfile("0782B18A1E", "Buzz Aldrin", 0, 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)
-	profile4 = AnimalProfile("5643564457", "Captain Picard", 0, 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)
+	profile0 = AnimalProfile("0782B18367", "Jim Kirk", 0, 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)
+	profile1 = AnimalProfile("0782B1797D", "Yuri Gagarin", 0, 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)
+	profile2 = AnimalProfile("0782B191B5", "Elon Musk", 0, 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)
+	profile3 = AnimalProfile("0782B19BCF", "Buzz Aldrin", 0, 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)
 	profile_list = [profile0, profile1, profile2, profile3, profile4]
 
 
@@ -232,5 +231,3 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
-

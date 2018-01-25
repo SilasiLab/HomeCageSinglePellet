@@ -19,7 +19,6 @@ class Camera(object):
 
         logger.info("Opening camera for cv2.VideoCapture")
 	camera = cv2.VideoCapture(self.camera_index)
-        capture_delay = 1.0 / self.fps 
 
         while True:
 		
@@ -39,4 +38,3 @@ class Camera(object):
                 	break
             	else:
                 	camera_output.write(frame)
-                        sleep(capture_delay)
