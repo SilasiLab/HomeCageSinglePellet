@@ -44,9 +44,11 @@ class AnimalProfile(object):
 
 class SessionController(object):
 	"""
-		A  controller for all sessions that occur within the system. A "session" is defined as everything that happens when an animal
-		is in proximity to the RFID reader. A session is started when an animal comes into proximity of the RFID reader and is
-		ended when the animal leaves proximity of the RFID reader. A SessionController has the following properties:
+		A controller for all sessions that occur within the system. A "session" is defined as everything that happens while an animal is in the
+                experiment tube. A session is started when an animal first breaks the IR beam AND then triggers the RFID reader (Note: Triggering
+                the RFID reader alone will not start a session. The IR beam must be broken first. This is intentional as the IR beam is for pressence 
+                detection while the RFID reader is only for identification). The session will continue until the IR beam is reconnected. 
+                A SessionController has the following properties:
 	
 		Attributes:
 			profile_list: A list containing all animal profiles. 
@@ -73,7 +75,6 @@ class SessionController(object):
 	# -1 is returned.
 	def searchForProfile(self, RFID):
 
-		# Search profile_list for AnimalProfile whose ID matches RFID
 		for profile in self.profile_list:
 
 		    if profile.ID == RFID:
@@ -83,12 +84,15 @@ class SessionController(object):
 
 
         # This function starts an experiment session for the animal identified in the supplied <profile>.
-        # A session consists of a video recording spanning the duration of the session, repeated food pellet
-        # presentatation every 10s, and various data logging for that session.
-        # A session is terminated when the IR beam is no longer broken.
+        # A session is only started if the IR beam is broken and only continues while this remains true.
+        # Each session forks a process that records video for the duration of the session and forks
+        # another process which controls the servo for the duration of the session. Each session
+        # will also log data about itself. As soon as the session detects the IR beam reconnect,
+        # a destruct signal will be sent to all forked processes and this function will wait to join
+        # with those processes before concluding the session.
+        #TODO: This function seems really bloated. Try to break it down into smaller pieces.
 	def startSession(self, profile):
 
-            global main_logger
 
             main_logger.info("Checking IR beam state")
 	    if self.IR_beam_breaker.getBeamState() != 0:
@@ -103,7 +107,6 @@ class SessionController(object):
 	        print(session_start_msg)
             
 
-		
 	    session_start_time = time.time()
             
             #TODO video_output_path should be constructed by a member method of AnimalProfile.
@@ -191,22 +194,16 @@ def main():
 	profile3 = AnimalProfile("0782B19BCF", "Buzz Aldrin", 0, 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)
 	profile_list = [profile0, profile1, profile2, profile3, profile4]
 
-
         main_logger.info("Initializing servo")
 	servo_1 = servo.Servo(SERVO_PWM_BCM_PIN_NUMBER)
-        
         main_logger.info("Initializing camera")
 	camera_1 = camera.Camera(FOURCC, CAMERA_INDEX, CAMERA_FPS, CAMERA_RES)
-
         main_logger.info("Initializing RFID reader")
 	RFID_1 = RFID.RFID_Reader(SERIAL_INTERFACE_PATH, BAUDRATE, RFID_PROXIMITY_BCM_PIN_NUMBER) 
-
         main_logger.info("Initializing IR beam breaker")
         IR_1 = IR.IRBeamBreaker(PHOTO_DIODE_BCM_PIN_NUMBER)
-
         main_logger.info("Initializing SessionController")
 	session_controller = SessionController(profile_list, servo_1, camera_1, RFID_1, IR_1)
-
 
 
 	while True:
@@ -231,3 +228,4 @@ def main():
 
 
 if __name__ == "__main__":
+    main()

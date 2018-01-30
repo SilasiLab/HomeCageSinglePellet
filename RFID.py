@@ -34,10 +34,18 @@ class RFID_Reader(object):
 
             if byte == '\r':
 
-                RFID_code = RFID_code[2:len(RFID_code) - 1] #TODO parse RFID code properly
+                # Parse RF message to extract 10 byte RFID
+
+                # First 2 bytes are always garbage, so discard them.
+                RFID_code = RFID_code[2:len(RFID_code) - 1] 
+                # RFID tag scans sometimes return different numbers of bytes. The extra bytes
+                # are always at the start of the message. To deal with this, if the RFID is not
+                # 10 bytes after the above step, cleave the message again to take the last 10 bytes of it.
 		if len(RFID_code) > 10:
 			RFID_code = RFID_code[len(RFID_code) - 10:len(RFID_code)]
 
+                
+                # Flush the buffer because multiple unwanted tag reads can occur and they will accumulate in the buffer.
                 self.serial_interface.reset_input_buffer()
                 sleep(1)
                 return RFID_code 

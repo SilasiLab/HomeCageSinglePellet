@@ -25,7 +25,7 @@ class Servo(object):
 
 
 
-    # This function increments the servo's position once ever <delay_period_ms>
+    # This function increments the servo's position once every <delay_period_ms>
     # until it reaches <target_position>.
     def setAngle (self, delay_period_ms, target_position):
 	
@@ -65,7 +65,7 @@ class Servo(object):
                 self.stopServo()
 
                 for x in range (0, sleep_duration * 2):
-                        logger.debug("Checking is queue is empty")
+                        logger.debug("Checking if queue is empty")
 			if queue.empty():
                                 logger.debug("Sleeping for 0.5s")
 				sleep(0.5)

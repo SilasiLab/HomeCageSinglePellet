@@ -16,25 +16,25 @@ class Camera(object):
 
         logger.info("Initializing cv2.VideoWriter")
         camera_output = cv2.VideoWriter(output_filename, self.fourcc, self.fps, self.res_tuple)
-
         logger.info("Opening camera for cv2.VideoCapture")
 	camera = cv2.VideoCapture(self.camera_index)
 
         while True:
 		
-		if queue.empty() == False:
-                        logger.info("TERM signal recevied. Terminating process")
-			termination_msg = "Camera process termination: " + queue.get() 
-			print(termination_msg)
-			camera.release()
-			camera_output.release()
-			cv2.destroyAllWindows()
-			return
+	    if not queue.empty():
+
+		msg = queue.get()
+                if msg == "TERM":
+                    logger.info("TERM message received. Cleaning up and then terminating process")
+		    camera.release()
+		    camera_output.release()
+		    cv2.destroyAllWindows()
+		    return 0
+            else:
 
 		ret, frame = camera.read()
-
             	cv2.imshow("live_feed", frame)
             	if cv2.waitKey(1) & 0xFF == ord('q'):
-                	break
+                    break 
             	else:
-                	camera_output.write(frame)
+                    camera_output.write(frame)
