@@ -2,6 +2,7 @@ import servo
 import camera 
 import RFID
 import IR 
+import objectDetector
 import time 
 from time import sleep 
 import multiprocessing
@@ -114,15 +115,15 @@ class SessionController(object):
 
             # Fork processes for camera recording and for servo cycling.
             jobs = []
-
+            servo_process_queue = multiprocessing.Queue()
 	    camera_process_queue = multiprocessing.Queue()
+
             main_logger.info("Initializing camera process")
-            camera_process = multiprocessing.Process(target=self.camera.captureVideo, args=(video_output_path, camera_process_queue, camera_logger,))
+            camera_process = multiprocessing.Process(target=self.camera.captureVideo, args=(video_output_path, camera_process_queue, servo_process_queue, camera_logger,))
             jobs.append(camera_process)
             
-            servo_process_queue = multiprocessing.Queue()
             main.logger.info("Initializing servo process")
-            servo_process = multiprocessing.Process(target=self.servo.cycleServo, args=(10, servo_process_queue, servo_logger,))
+            servo_process = multiprocessing.Process(target=self.servo.cycleServo, args=(servo_process_queue, servo_logger,))
             jobs.append(servo_process)
             
             main_logger.info("Launching camera process")
@@ -178,6 +179,12 @@ BAUDRATE = 9600
 RFID_PROXIMITY_BCM_PIN_NUMBER = 23
 # IR breaker config
 PHOTO_DIODE_BCM_PIN_NUMBER = 24
+# ObjectDetector config
+PRIMARY_CASCADE = "./hopper_arm_pellet.xml"
+roi_x = 0
+roi_y = 0
+roi_w = 0
+roi_h = 0
 # AnimalProfile config
 SESSION_SAVE_PATH = "./AnimalSessions/"
 VIDEO_SAVE_PATH = "./AnimalSessions/Videos/"
@@ -192,12 +199,16 @@ def main():
 	profile1 = AnimalProfile("0782B1797D", "Yuri Gagarin", 0, 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)
 	profile2 = AnimalProfile("0782B191B5", "Elon Musk", 0, 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)
 	profile3 = AnimalProfile("0782B19BCF", "Buzz Aldrin", 0, 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)
-	profile_list = [profile0, profile1, profile2, profile3, profile4]
+	profile_list = [profile0, profile1, profile2, profile3]
 
         main_logger.info("Initializing servo")
 	servo_1 = servo.Servo(SERVO_PWM_BCM_PIN_NUMBER)
+
+        main_logger.info("Initializing ObjectDetector")
+        obj_detector_1 = objectDetector.ObjectDetector(PRIMARY_CASCADE, roi_x, roi_y, roi_w, roi_h)
         main_logger.info("Initializing camera")
-	camera_1 = camera.Camera(FOURCC, CAMERA_INDEX, CAMERA_FPS, CAMERA_RES)
+	camera_1 = camera.Camera(FOURCC, CAMERA_INDEX, CAMERA_FPS, CAMERA_RES, obj_detector_1)
+
         main_logger.info("Initializing RFID reader")
 	RFID_1 = RFID.RFID_Reader(SERIAL_INTERFACE_PATH, BAUDRATE, RFID_PROXIMITY_BCM_PIN_NUMBER) 
         main_logger.info("Initializing IR beam breaker")

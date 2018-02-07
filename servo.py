@@ -19,7 +19,7 @@ class Servo(object):
 
         wiringpi.pwmWrite(PWM_BCM_pin, self.initial_position)
         sleep(1)
-
+        wiringpi.pwmWrite(self.PWM_pin, 0)
 
 
 
@@ -49,31 +49,35 @@ class Servo(object):
         wiringpi.pwmWrite(self.PWM_pin, 0)
 
 
-    def cycleServo(self, sleep_duration, queue, logger):
+    def cycleServo(self, queue, logger):
         
         while True:
-            logger.debug("Checking is queue is empty")
+            
             if queue.empty():
 
-                logger.debug("Lowering hopper arm")
-                # Lower hopper arm
-                self.setAngle(10, 173)
-                logger.debug("Raising hopper arm")
-                # Raise hopper arm
-                self.setAngle(10, 90)
-                logger.debug("Killing PWM signal")
-                self.stopServo()
+                sleep(0.3)
 
-                for x in range (0, sleep_duration * 2):
-                        logger.debug("Checking if queue is empty")
-			if queue.empty():
-                                logger.debug("Sleeping for 0.5s")
-				sleep(0.5)
-			else:
-                                logger.info("TERM signal received. Terminating process")
-                                logger.debug("Lowering hopper arm")
-                                self.setAngle(10, 173)
-         			termination_msg = "Servo process termination: " + queue.get()
-        			print(termination_msg)
-        			return 0 
+	    else:
 
+                msg = queue.get()
+                if msg == "GETPELLET":
+
+                    logger.debug("Lowering hopper arm")
+                    # Lower hopper arm
+                    self.setAngle(10, 173)
+                    logger.debug("Raising hopper arm")
+                    # Raise hopper arm
+                    self.setAngle(10, 90)
+                    logger.debug("Killing PWM signal")
+                    self.stopServo()
+            
+                elif msg == "TERM":
+
+                    logger.info("TERM signal received. Terminating process")
+                    logger.debug("Lowering hopper arm")
+                    self.setAngle(10, 173)
+                    logger.debug("Killing PWM signal")
+                    self.stopServo()
+                    termination_msg = "Servo process termination: " + queue.get()
+                    print(termination_msg)
+                    return 0 
