@@ -33,7 +33,7 @@ class Camera(object):
 
                     pellet_not_present_frame_counter += 1
                     
-                    if pellet_not_present_frame_counter >= 60:
+                    if pellet_not_present_frame_counter >= 90:
                         
                         servo_queue.put("GETPELLET")
                         pellet_not_present_frame_counter = 0
@@ -53,7 +53,7 @@ class Camera(object):
 
 	        msg = queue.get()
                 if msg == "TERM":
-
+		    print("CAMERA: TERM RECEIVED")
                     logger.info("TERM message received. Cleaning up and then terminating process")
 		    camera.release()
 		    camera_output.release()

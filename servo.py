@@ -73,11 +73,10 @@ class Servo(object):
             
                 elif msg == "TERM":
 
+		    print("SERVO: TERM RECEIVED")
                     logger.info("TERM signal received. Terminating process")
                     logger.debug("Lowering hopper arm")
                     self.setAngle(10, 173)
                     logger.debug("Killing PWM signal")
                     self.stopServo()
-                    termination_msg = "Servo process termination: " + queue.get()
-                    print(termination_msg)
-                    return 0 
+		    return 0

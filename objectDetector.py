@@ -18,7 +18,7 @@ class ObjectDetector(object):
 
     def __init__(self, primary_cascade, x, y, w, h):
 
-        pellet_cascade = cv2.CascadeClassifier(primary_cascade)
+        self.pellet_cascade = cv2.CascadeClassifier(primary_cascade)
         self.roi_x = x
         self.roi_y = y
         self.roi_w = w
@@ -36,7 +36,7 @@ class ObjectDetector(object):
         # Grayscale to reduce number of channels to save on CPU cycles during frame scan 
         gray = cv2.cvtColor(cropped, cv2.COLOR_BGR2GRAY)
         # Run haar-cascade on cropped/grayscaled image
-        pellets = pellet_cascade.detectMultiScale(gray, 1.2, 10)
+        pellets = self.pellet_cascade.detectMultiScale(gray, 1.2, 6)
 
         # Draw a rectangle around each object identified by haar-cascade
         for (x,y,w,h) in pellets:

@@ -122,7 +122,7 @@ class SessionController(object):
             camera_process = multiprocessing.Process(target=self.camera.captureVideo, args=(video_output_path, camera_process_queue, servo_process_queue, camera_logger,))
             jobs.append(camera_process)
             
-            main.logger.info("Initializing servo process")
+            main_logger.info("Initializing servo process")
             servo_process = multiprocessing.Process(target=self.servo.cycleServo, args=(servo_process_queue, servo_logger,))
             jobs.append(servo_process)
             
@@ -146,9 +146,10 @@ class SessionController(object):
 
             main_logger.info("Calling camera_process.join()")
             camera_process.join()
+            print("JOINED CAMERA")
             main_logger.info("Calling servo_process.join()")
             servo_process.join()
-
+            print("JOINED SERVO")
 
             main_logger.info("Logging experiment data")
             # Log session information.
@@ -181,13 +182,17 @@ RFID_PROXIMITY_BCM_PIN_NUMBER = 23
 PHOTO_DIODE_BCM_PIN_NUMBER = 24
 # ObjectDetector config
 PRIMARY_CASCADE = "./hopper_arm_pellet.xml"
-roi_x = 0
-roi_y = 0
-roi_w = 0
-roi_h = 0
+roi_x = 277
+roi_y = 294
+roi_w = 109
+roi_h =  133
+
+
 # AnimalProfile config
 SESSION_SAVE_PATH = "./AnimalSessions/"
 VIDEO_SAVE_PATH = "./AnimalSessions/Videos/"
+
+
 
 
 
@@ -199,7 +204,8 @@ def main():
 	profile1 = AnimalProfile("0782B1797D", "Yuri Gagarin", 0, 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)
 	profile2 = AnimalProfile("0782B191B5", "Elon Musk", 0, 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)
 	profile3 = AnimalProfile("0782B19BCF", "Buzz Aldrin", 0, 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)
-	profile_list = [profile0, profile1, profile2, profile3]
+	profile4 = AnimalProfile("0782B18A1E", "Test Tag", 0, 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)
+	profile_list = [profile0, profile1, profile2, profile3, profile4]
 
         main_logger.info("Initializing servo")
 	servo_1 = servo.Servo(SERVO_PWM_BCM_PIN_NUMBER)
