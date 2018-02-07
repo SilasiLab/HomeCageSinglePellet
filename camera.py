@@ -12,13 +12,13 @@ class Camera(object):
         self.res_tuple = res_tuple
         self.object_detector = object_detector 
 
-    def captureVideo(self, output_filename, queue, servo_queue, logger):
+    def captureVideo(self, output_filename, queue, servo_queue, main_queue, logger):
 
         logger.info("Initializing cv2.VideoWriter")
         camera_output = cv2.VideoWriter(output_filename, self.fourcc, self.fps, self.res_tuple)
         logger.info("Opening camera for cv2.VideoCapture")
 	camera = cv2.VideoCapture(self.camera_index)
-
+	trial_counter = 0
         pellet_not_present_frame_counter = 0
 
         while True:
@@ -33,9 +33,10 @@ class Camera(object):
 
                     pellet_not_present_frame_counter += 1
                     
-                    if pellet_not_present_frame_counter >= 90:
+                    if pellet_not_present_frame_counter >= 60:
                         
                         servo_queue.put("GETPELLET")
+			trial_counter += 1
                         pellet_not_present_frame_counter = 0
 
                 elif detection[1] >= 1:
@@ -58,5 +59,6 @@ class Camera(object):
 		    camera.release()
 		    camera_output.release()
 		    cv2.destroyAllWindows()
+		    main_queue.put(trial_counter)
 		    return 0
            

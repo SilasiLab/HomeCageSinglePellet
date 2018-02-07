@@ -29,11 +29,11 @@ class AnimalProfile(object):
 
 	# This function takes all the information required for an animal's session log entry, and then formats it.
 	# Once formatted, it writes the log entry to the animal's session_history log file. 
-	def insertSessionEntry(self, start_time, end_time):
+	def insertSessionEntry(self, start_time, end_time, trial_count):
 
 		#TODO: Is there a better way to create + format strings?
 		session_path = self.session_history_directory + str(self.ID) + "_session_history.txt"
-		csv_entry = str(start_time) + "," + str(end_time) + "," + self.video_save_directory + "\n"
+		csv_entry = str(start_time) + "," + str(end_time) + "," + self.video_save_directory + "," + str(trial_count) + "\n"
 
 		with open(session_path, "a") as session_history:
 			session_history.write(csv_entry)
@@ -117,9 +117,10 @@ class SessionController(object):
             jobs = []
             servo_process_queue = multiprocessing.Queue()
 	    camera_process_queue = multiprocessing.Queue()
+	    main_process_queue = multiprocessing.Queue()
 
             main_logger.info("Initializing camera process")
-            camera_process = multiprocessing.Process(target=self.camera.captureVideo, args=(video_output_path, camera_process_queue, servo_process_queue, camera_logger,))
+            camera_process = multiprocessing.Process(target=self.camera.captureVideo, args=(video_output_path, camera_process_queue, servo_process_queue, main_process_queue, camera_logger,))
             jobs.append(camera_process)
             
             main_logger.info("Initializing servo process")
@@ -153,8 +154,9 @@ class SessionController(object):
 
             main_logger.info("Logging experiment data")
             # Log session information.
-            session_end_time = time.time()	
-	    profile.insertSessionEntry(session_start_time, session_end_time)	
+            session_end_time = time.time()
+	    trial_count = int(main_process_queue.get())
+	    profile.insertSessionEntry(session_start_time, session_end_time, trial_count)	
 
             main_logger.info("Flushing serial buffer")
 	    # Flush serial buffer incase RFID tag was read multiple times during this session.
@@ -189,8 +191,8 @@ roi_h =  133
 
 
 # AnimalProfile config
-SESSION_SAVE_PATH = "./AnimalSessions/"
-VIDEO_SAVE_PATH = "./AnimalSessions/Videos/"
+SESSION_SAVE_PATH = "/media/pi/GS 2TB/AnimalSessions/"
+VIDEO_SAVE_PATH = "/media/pi/GS 2TB/AnimalSessions/Videos/"
 
 
 
