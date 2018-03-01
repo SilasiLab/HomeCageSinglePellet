@@ -36,7 +36,7 @@ class ObjectDetector(object):
         # Grayscale to reduce number of channels to save on CPU cycles during frame scan 
         gray = cv2.cvtColor(cropped, cv2.COLOR_BGR2GRAY)
         # Run haar-cascade on cropped/grayscaled image
-        pellets = self.pellet_cascade.detectMultiScale(gray, 1.2, 6)
+        pellets = self.pellet_cascade.detectMultiScale(gray, 1.2, 10)
 
         # Draw a rectangle around each object identified by haar-cascade
         for (x,y,w,h) in pellets:

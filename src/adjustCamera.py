@@ -12,7 +12,9 @@ while True:
 	elif cv2.waitKey(1) & 0xFF == ord('s'):
 
 		r = cv2.selectROI(frame)
-		print(r[0])
-		print(r[1])
-		print(r[2])
-		print(r[3])
+		with open("../config/config.txt", 'w') as file:
+			file.write(str(r[0]) + "\n")
+			file.write(str(r[1]) + "\n")
+			file.write(str(r[2]) + "\n")
+			file.write(str(r[3]) + "\n")
+			print("ROI configuration has been updated")

@@ -8,8 +8,8 @@ class Servo(object):
     def __init__(self,PWM_BCM_pin):
             
         self.PWM_pin = PWM_BCM_pin
-        self.initial_position = 173
-        self.current_position = 173
+        self.initial_position = 157
+        self.current_position = 157
         
         wiringpi.wiringPiSetupGpio()
         wiringpi.pinMode(PWM_BCM_pin, wiringpi.GPIO.PWM_OUTPUT)
@@ -51,11 +51,13 @@ class Servo(object):
 
     def cycleServo(self, queue, logger):
         
+	self.setAngle(5,75)
+        self.stopServo()
         while True:
             
             if queue.empty():
 
-                sleep(0.3)
+                sleep(0.2)
 
 	    else:
 
@@ -64,10 +66,10 @@ class Servo(object):
 
                     logger.debug("Lowering hopper arm")
                     # Lower hopper arm
-                    self.setAngle(10, 173)
+                    self.setAngle(2, 157)
                     logger.debug("Raising hopper arm")
                     # Raise hopper arm
-                    self.setAngle(10, 90)
+                    self.setAngle(5, 75)
                     logger.debug("Killing PWM signal")
                     self.stopServo()
             
@@ -76,7 +78,11 @@ class Servo(object):
 		    print("SERVO: TERM RECEIVED")
                     logger.info("TERM signal received. Terminating process")
                     logger.debug("Lowering hopper arm")
-                    self.setAngle(10, 173)
+                    self.setAngle(2, 157)
                     logger.debug("Killing PWM signal")
                     self.stopServo()
 		    return 0
+
+
+
+

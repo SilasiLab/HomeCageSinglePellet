@@ -33,7 +33,7 @@ class Camera(object):
 
                     pellet_not_present_frame_counter += 1
                     
-                    if pellet_not_present_frame_counter >= 60:
+                    if pellet_not_present_frame_counter >= 35:
                         
                         servo_queue.put("GETPELLET")
 			trial_counter += 1

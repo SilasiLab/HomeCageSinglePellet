@@ -8,7 +8,7 @@ from time import sleep
 import multiprocessing
 import logging
 
-logging.basicConfig(filename="logfile.log", level=logging.DEBUG)
+logging.basicConfig(filename="../logs/logfile.log", level=logging.DEBUG)
 main_logger = logging.getLogger(__name__)
 servo_logger = logging.getLogger("servo.py")
 camera_logger = logging.getLogger("camera.py")
@@ -183,13 +183,13 @@ RFID_PROXIMITY_BCM_PIN_NUMBER = 23
 # IR breaker config
 PHOTO_DIODE_BCM_PIN_NUMBER = 24
 # ObjectDetector config
-PRIMARY_CASCADE = "./hopper_arm_pellet.xml"
-roi_x = 277
-roi_y = 294
-roi_w = 109
-roi_h =  133
-
-
+PRIMARY_CASCADE = "../config/hopper_arm_pellet.xml"
+with open("../config/config.txt") as config:
+	roi_x = int(config.readline())
+	roi_y = int(config.readline())
+	roi_w = int(config.readline())
+	roi_h = int(config.readline())
+config.close()
 # AnimalProfile config
 SESSION_SAVE_PATH = "/media/pi/GS 2TB/AnimalSessions/"
 VIDEO_SAVE_PATH = "/media/pi/GS 2TB/AnimalSessions/Videos/"
