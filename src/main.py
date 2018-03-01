@@ -10,8 +10,6 @@ import logging
 
 logging.basicConfig(filename="../logs/logfile.log", level=logging.DEBUG)
 main_logger = logging.getLogger(__name__)
-servo_logger = logging.getLogger("servo.py")
-camera_logger = logging.getLogger("camera.py")
 
 
 
@@ -94,77 +92,64 @@ class SessionController(object):
         #TODO: This function seems really bloated. Try to break it down into smaller pieces.
 	def startSession(self, profile):
 
+		if self.IR_beam_breaker.getBeamState() != 0:
 
-            main_logger.info("Checking IR beam state")
-	    if self.IR_beam_breaker.getBeamState() != 0:
+			console_err_msg1 = profile.ID + " recognized but IR beam NOT broken.\nAborting session.\n\n"
+			print(console_err_msg1)
+			return 
+		else:
 
-                main_logger.info("IR beam not broken. Aborting session")
-            	console_err_msg1 = profile.ID + " recognized but IR beam NOT broken.\nAborting session.\n\n"
-		print(console_err_msg1)
-		return 
-            else:
-                main_logger.info("IR beam broken. Continuing session")
-                session_start_msg = "-------------------------------------------\n" + "Starting session for " + profile.name
-	        print(session_start_msg)
+			session_start_msg = "-------------------------------------------\n" + "Starting session for " + profile.name
+			print(session_start_msg)
+			session_start_time = time.time()
+        
+        
             
+        #TODO video_output_path should be constructed by a member method of AnimalProfile.
+		video_output_path = profile.video_save_directory + str(profile.ID) + "_session#_"  + str(profile.session_count) + ".avi"
 
-	    session_start_time = time.time()
+		# Fork processes for camera recording and for servo cycling.
+		jobs = []
+		servo_process_queue = multiprocessing.Queue()
+		camera_process_queue = multiprocessing.Queue()
+		main_process_queue = multiprocessing.Queue()
+
+		camera_process = multiprocessing.Process(target=self.camera.captureVideo, args=(video_output_path, camera_process_queue, servo_process_queue, main_process_queue,))
+		jobs.append(camera_process)
             
-            #TODO video_output_path should be constructed by a member method of AnimalProfile.
-	    video_output_path = profile.video_save_directory + str(profile.ID) + "_session#_"  + str(profile.session_count) + ".avi"
+		servo_process = multiprocessing.Process(target=self.servo.cycleServo, args=(servo_process_queue,))
+		jobs.append(servo_process)
+           
+		camera_process.start()
+		servo_process.start()
 
-            # Fork processes for camera recording and for servo cycling.
-            jobs = []
-            servo_process_queue = multiprocessing.Queue()
-	    camera_process_queue = multiprocessing.Queue()
-	    main_process_queue = multiprocessing.Queue()
 
-            main_logger.info("Initializing camera process")
-            camera_process = multiprocessing.Process(target=self.camera.captureVideo, args=(video_output_path, camera_process_queue, servo_process_queue, main_process_queue, camera_logger,))
-            jobs.append(camera_process)
-            
-            main_logger.info("Initializing servo process")
-            servo_process = multiprocessing.Process(target=self.servo.cycleServo, args=(servo_process_queue, servo_logger,))
-            jobs.append(servo_process)
-            
-            main_logger.info("Launching camera process")
-	    camera_process.start()
-            main_logger.info("Launching servo process")
-            servo_process.start()
-
-            main_logger.info("Beginning IR beam state monitoring")
-            # While beam is still broken, continue session.
-            while self.IR_beam_breaker.getBeamState() == 0:
+		# While beam is still broken, continue session.
+		while self.IR_beam_breaker.getBeamState() == 0:
                     
-                    sleep(0.3)
+			sleep(0.3)
 
 
-            # Once beam is reconnected. Send kill sig to all session processes and wait for them to terminate.
-            main_logger.info("Sending TERM signal to camera process")
-	    camera_process_queue.put("TERM")
-            main_logger.info("Sending TERM signal to servo process")
-            servo_process_queue.put("TERM")
+		# Once beam is reconnected. Send kill sig to all session processes and wait for them to terminate.
+		camera_process_queue.put("TERM")
+		servo_process_queue.put("TERM")
+		camera_process.join()
+		print("JOINED CAMERA")
+		servo_process.join()
+		print("JOINED SERVO")
 
-            main_logger.info("Calling camera_process.join()")
-            camera_process.join()
-            print("JOINED CAMERA")
-            main_logger.info("Calling servo_process.join()")
-            servo_process.join()
-            print("JOINED SERVO")
 
-            main_logger.info("Logging experiment data")
-            # Log session information.
-            session_end_time = time.time()
-	    trial_count = int(main_process_queue.get())
-	    profile.insertSessionEntry(session_start_time, session_end_time, trial_count)	
+		# Log session information.
+		session_end_time = time.time()
+		trial_count = int(main_process_queue.get())
+		profile.insertSessionEntry(session_start_time, session_end_time, trial_count)	
 
-            main_logger.info("Flushing serial buffer")
-	    # Flush serial buffer incase RFID tag was read multiple times during this session.
-	    self.RFID_reader.flushRFIDBuffer()
 
-            session_end_msg = profile.name + "'s session has completed\n-------------------------------------------\n" 
-            print(session_end_msg)
-	    return 0
+		# Flush serial buffer incase RFID tag was read multiple times during this session.
+		self.RFID_reader.flushRFIDBuffer()
+		session_end_msg = profile.name + "'s session has completed\n-------------------------------------------\n" 
+		print(session_end_msg)
+		return 0
 
 
 
@@ -191,8 +176,8 @@ with open("../config/config.txt") as config:
 	roi_h = int(config.readline())
 config.close()
 # AnimalProfile config
-SESSION_SAVE_PATH = "/media/pi/GS 2TB/AnimalSessions/"
-VIDEO_SAVE_PATH = "/media/pi/GS 2TB/AnimalSessions/Videos/"
+SESSION_SAVE_PATH = "/home/pi/HomeCageSinglePellet/AnimalSessions/"
+VIDEO_SAVE_PATH = "/home/pi/HomeCageSinglePellet/AnimalSessions/Videos/"
 
 
 
@@ -201,48 +186,39 @@ VIDEO_SAVE_PATH = "/media/pi/GS 2TB/AnimalSessions/Videos/"
 def main():
    
 
-        main_logger.info("Creating AnimalProfiles...")
+
 	profile0 = AnimalProfile("0782B18367", "Jim Kirk", 0, 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)
 	profile1 = AnimalProfile("0782B1797D", "Yuri Gagarin", 0, 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)
 	profile2 = AnimalProfile("0782B191B5", "Elon Musk", 0, 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)
 	profile3 = AnimalProfile("0782B19BCF", "Buzz Aldrin", 0, 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)
-	profile4 = AnimalProfile("0782B18A1E", "Test Tag", 0, 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)
+	profile4 = AnimalProfile("0782B189DD", "Test Tag", 0, 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)
 	profile_list = [profile0, profile1, profile2, profile3, profile4]
 
-        main_logger.info("Initializing servo")
+
 	servo_1 = servo.Servo(SERVO_PWM_BCM_PIN_NUMBER)
-
-        main_logger.info("Initializing ObjectDetector")
-        obj_detector_1 = objectDetector.ObjectDetector(PRIMARY_CASCADE, roi_x, roi_y, roi_w, roi_h)
-        main_logger.info("Initializing camera")
+	obj_detector_1 = objectDetector.ObjectDetector(PRIMARY_CASCADE, roi_x, roi_y, roi_w, roi_h)
 	camera_1 = camera.Camera(FOURCC, CAMERA_INDEX, CAMERA_FPS, CAMERA_RES, obj_detector_1)
-
-        main_logger.info("Initializing RFID reader")
 	RFID_1 = RFID.RFID_Reader(SERIAL_INTERFACE_PATH, BAUDRATE, RFID_PROXIMITY_BCM_PIN_NUMBER) 
-        main_logger.info("Initializing IR beam breaker")
-        IR_1 = IR.IRBeamBreaker(PHOTO_DIODE_BCM_PIN_NUMBER)
-        main_logger.info("Initializing SessionController")
+	IR_1 = IR.IRBeamBreaker(PHOTO_DIODE_BCM_PIN_NUMBER)
 	session_controller = SessionController(profile_list, servo_1, camera_1, RFID_1, IR_1)
 
 
 	while True:
 
-            main_logger.info("Waiting for RF tag")
-	    print("Waiting for RF tag...")
-	    RFID_code = session_controller.RFID_reader.listenForRFID()
+		print("Waiting for RF tag...")
+		RFID_code = session_controller.RFID_reader.listenForRFID()
 
-            main_logger.info("Searching for AnimalProfile with matching RFID")
-            # Attempt to find a profile matching the detected RFID.
-	    profile = session_controller.searchForProfile(RFID_code)
+		# Attempt to find a profile matching the detected RFID.
+		profile = session_controller.searchForProfile(RFID_code)
 
-            # If a profile with a matching RFID is found, begin a session for that profile.
-            if profile != -1:
-                main_logger.info("Starting session")
-	        session_controller.startSession(profile)
-	    else:
-                main_logger.info("No AnimalProfile found with matching RFID. Aborting session")
-		unrecognized_id_msg = RFID_code + " not recognized. Aborting session.\n\n"
-		print(unrecognized_id_msg)
+		# If a profile with a matching RFID is found, begin a session for that profile.
+		if profile != -1:
+
+			session_controller.startSession(profile)
+		else:
+
+			unrecognized_id_msg = RFID_code + " not recognized. Aborting session.\n\n"
+			print(unrecognized_id_msg)
 
 
 

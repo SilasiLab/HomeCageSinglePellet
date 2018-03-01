@@ -29,59 +29,53 @@ class Servo(object):
     # until it reaches <target_position>.
     def setAngle (self, delay_period_ms, target_position):
 	
-	number_of_pulses = abs(target_position - self.current_position)
+		number_of_pulses = abs(target_position - self.current_position)
 
+		if self.current_position < target_position:
+			
+			for x in range (number_of_pulses):
+				wiringpi.pwmWrite(self.PWM_pin, self.current_position)
+				self.current_position += 1
+				sleep(float(delay_period_ms)/1000.0)
+		elif self.current_position > target_position:
 
-	if self.current_position < target_position:
-	    for x in range (number_of_pulses):
-		wiringpi.pwmWrite(self.PWM_pin, self.current_position)
-		self.current_position += 1
-		sleep(float(delay_period_ms)/1000.0)
-	elif self.current_position > target_position:
-
-	    for x in range (number_of_pulses):
-		wiringpi.pwmWrite(self.PWM_pin, self.current_position)
-		self.current_position -= 1
-		sleep(float(delay_period_ms)/1000.0)
+			for x in range (number_of_pulses):
+				wiringpi.pwmWrite(self.PWM_pin, self.current_position)
+				self.current_position -= 1
+				sleep(float(delay_period_ms)/1000.0)
 
 
     def stopServo(self):
         wiringpi.pwmWrite(self.PWM_pin, 0)
 
 
-    def cycleServo(self, queue, logger):
+    def cycleServo(self, queue):
         
-	self.setAngle(5,75)
-        self.stopServo()
-        while True:
+		self.setAngle(5,75)
+		self.stopServo()
+		while True:
             
-            if queue.empty():
+			if queue.empty():
 
-                sleep(0.2)
+				sleep(0.2)
 
-	    else:
+			else:
 
-                msg = queue.get()
-                if msg == "GETPELLET":
+				msg = queue.get()
+				if msg == "GETPELLET":
 
-                    logger.debug("Lowering hopper arm")
-                    # Lower hopper arm
-                    self.setAngle(2, 157)
-                    logger.debug("Raising hopper arm")
-                    # Raise hopper arm
-                    self.setAngle(5, 75)
-                    logger.debug("Killing PWM signal")
-                    self.stopServo()
+					# Lower hopper arm
+					self.setAngle(2, 157)
+					# Raise hopper arm
+					self.setAngle(5, 75)
+					self.stopServo()
             
-                elif msg == "TERM":
+				elif msg == "TERM":
 
-		    print("SERVO: TERM RECEIVED")
-                    logger.info("TERM signal received. Terminating process")
-                    logger.debug("Lowering hopper arm")
-                    self.setAngle(2, 157)
-                    logger.debug("Killing PWM signal")
-                    self.stopServo()
-		    return 0
+					print("SERVO: TERM RECEIVED")
+					self.setAngle(2, 157)
+					self.stopServo()
+					return 0
 
 
 

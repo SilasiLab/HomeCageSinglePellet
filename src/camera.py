@@ -12,53 +12,54 @@ class Camera(object):
         self.res_tuple = res_tuple
         self.object_detector = object_detector 
 
-    def captureVideo(self, output_filename, queue, servo_queue, main_queue, logger):
 
-        logger.info("Initializing cv2.VideoWriter")
-        camera_output = cv2.VideoWriter(output_filename, self.fourcc, self.fps, self.res_tuple)
-        logger.info("Opening camera for cv2.VideoCapture")
-	camera = cv2.VideoCapture(self.camera_index)
-	trial_counter = 0
-        pellet_not_present_frame_counter = 0
 
-        while True:
+
+    def captureVideo(self, output_filename, queue, servo_queue, main_queue):
+
+		camera_output = cv2.VideoWriter(output_filename, self.fourcc, self.fps, self.res_tuple)
+		camera = cv2.VideoCapture(self.camera_index)
+		trial_counter = 0
+		pellet_not_present_frame_counter = 0
+
+		while True:
 		
-	    if queue.empty():
+			if queue.empty():
  
-		ret, frame = camera.read()
-                # Run object detection on frame and send signal to servo process if pellet needs replacing 
-                detection = self.object_detector.detectCascade(frame)
+				ret, frame = camera.read()
+				# Run object detection on frame and send signal to servo process if pellet needs replacing 
+				detection = self.object_detector.detectCascade(frame)
 
-                if detection[1] == 0:
+				if detection[1] == 0:
 
-                    pellet_not_present_frame_counter += 1
+					pellet_not_present_frame_counter += 1
                     
-                    if pellet_not_present_frame_counter >= 35:
+					if pellet_not_present_frame_counter >= 35:
                         
-                        servo_queue.put("GETPELLET")
-			trial_counter += 1
-                        pellet_not_present_frame_counter = 0
+						servo_queue.put("GETPELLET")
+						trial_counter += 1
+						pellet_not_present_frame_counter = 0
 
-                elif detection[1] >= 1:
+				elif detection[1] >= 1:
                     
-                    pellet_not_present_frame_counter = 0
+					pellet_not_present_frame_counter = 0
 
 
+				cv2.imshow("live_feed", detection[0])
+				if cv2.waitKey(1) & 0xFF == ord('q'):
+					
+					break 
+				else:
+					
+					camera_output.write(frame)
+			else:
 
-            	cv2.imshow("live_feed", detection[0])
-            	if cv2.waitKey(1) & 0xFF == ord('q'):
-                    break 
-            	else:
-                    camera_output.write(frame)
-            else:
-
-	        msg = queue.get()
-                if msg == "TERM":
-		    print("CAMERA: TERM RECEIVED")
-                    logger.info("TERM message received. Cleaning up and then terminating process")
-		    camera.release()
-		    camera_output.release()
-		    cv2.destroyAllWindows()
-		    main_queue.put(trial_counter)
-		    return 0
+				msg = queue.get()
+				if msg == "TERM":
+					print("CAMERA: TERM RECEIVED")
+					camera.release()
+					camera_output.release()
+					cv2.destroyAllWindows()
+					main_queue.put(trial_counter)
+					return 0
            
