@@ -115,36 +115,31 @@ class SessionController(object):
 		# Fork processes for camera recording and for servo cycling.
 		jobs = []
 		servo_process_queue = multiprocessing.Queue()
-		stepper_process_queue = multiprocessing.Queue()
 		camera_process_queue = multiprocessing.Queue()
 		main_process_queue = multiprocessing.Queue()
 
 		camera_process = multiprocessing.Process(target=self.camera.captureVideo, args=(video_output_path, camera_process_queue, servo_process_queue, main_process_queue,))
 		jobs.append(camera_process)
-            
-		stepper_process = multiprocessing.Process(target=self.stepper_controller.initDaemon, args=(stepper_process_queue,))
-		jobs.append(stepper_process)
 		
 		servo_process = multiprocessing.Process(target=self.servo.cycleServo, args=(servo_process_queue,))
 		jobs.append(servo_process)
            
 		camera_process.start()
 		servo_process.start()
-		stepper_process.start()
 
 
 		# Adjust bed position based on mouse profile information
 		if profile.training_stage == 1:
-			stepper_process_queue.put("0POS1")
+			self.stepper_controller.queue.put("0POS1")
 			
 		elif profile.training_stage == 2:
-			stepper_process_queue.put("0POS2")
+			self.stepper_controller.queue.put("0POS2")
 			
 		elif profile.training_stage == 3:
-			stepper_process_queue.put("0POS3")
+			self.stepper_controller.queue.put("0POS3")
 			
 		elif profile.training_stage == 4:
-			stepper_process_queue.put("0POS4")			
+			self.stepper_controller.queue.put("0POS4")			
 
 
 		#if profile.dominant_hand == "LEFT":
@@ -162,14 +157,11 @@ class SessionController(object):
 		# Once beam is reconnected. Send kill sig to all session processes and wait for them to terminate.
 		camera_process_queue.put("TERM")
 		servo_process_queue.put("TERM")
-		stepper_process_queue.put("TERM")
 		
 		camera_process.join()
 		print("JOINED CAMERA")
 		servo_process.join()
 		print("JOINED SERVO")
-		stepper_process.join()
-		print("JOINED STEPPER")
 
 
 		# Log session information.
@@ -226,14 +218,18 @@ def main():
 	profile1 = AnimalProfile("0782B1797D", "Yuri Gagarin", 0, "LEFT", 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)
 	profile2 = AnimalProfile("0782B191B5", "Elon Musk", 0, "RIGHT", 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)
 	profile3 = AnimalProfile("0782B19BCF", "Buzz Aldrin", 0, "RIGHT", 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)
-	profile4 = AnimalProfile("0782B189DD", "Test Tag", 1, "LEFT", 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)
-	profile_list = [profile0, profile1, profile2, profile3, profile4]
+	profile4 = AnimalProfile("0782B189DD", "Test Tag1", 1, "LEFT", 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)
+	profile5 = AnimalProfile("0782B19226", "Test Tag2", 2, "RIGHT", 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)	
+	profile6 = AnimalProfile("0782B18783", "Test Tag3", 3, "RIGHT", 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)
+	profile7 = AnimalProfile("0782B1884C", "Test Tag4", 4, "LEFT", 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)
+	
+	profile_list = [profile0, profile1, profile2, profile3, profile4, profile5, profile6, profile7]
 
 
 	servo_1 = servo.Servo(SERVO_PWM_BCM_PIN_NUMBER)
 	stepper_controller = stepper.StepperController()
-	stepper_controller.init_stepper(pulse_pins_x)
-	stepper_controller.init_stepper(pulse_pins_y)
+	stepper_controller.initStepper(pulse_pins_x)
+	stepper_controller.initStepper(pulse_pins_y)
 	obj_detector_1 = objectDetector.ObjectDetector(PRIMARY_CASCADE, roi_x, roi_y, roi_w, roi_h)
 	camera_1 = camera.Camera(FOURCC, CAMERA_INDEX, CAMERA_FPS, CAMERA_RES, obj_detector_1)
 	RFID_1 = RFID.RFID_Reader(SERIAL_INTERFACE_PATH, BAUDRATE, RFID_PROXIMITY_BCM_PIN_NUMBER) 
@@ -241,6 +237,12 @@ def main():
 	session_controller = SessionController(profile_list, servo_1, stepper_controller, camera_1, RFID_1, IR_1)
 
 
+	jobs = []
+	stepper_process = multiprocessing.Process(target=stepper_controller.initDaemon, args=())
+	jobs.append(stepper_process)
+	stepper_process.start()
+	
+	
 	while True:
 		
 		print("Waiting for RF tag...")
