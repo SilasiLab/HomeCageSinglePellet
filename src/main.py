@@ -33,7 +33,7 @@ class AnimalProfile(object):
 
 		#TODO: Is there a better way to create + format strings?
 		session_path = self.session_history_directory + str(self.ID) + "_session_history.txt"
-		csv_entry = str(start_time) + "," + str(end_time) + "," + self.video_save_directory + "," + str(trial_count) + "\n"
+		csv_entry = str(self.session_count) + "," + str(self.name) + "," + str(trial_count) + "," + str(start_time) + "," + str(end_time) + "," + str(self.training_stage) + "," + str(self.dominant_hand)  + "\n"
 
 		with open(session_path, "a") as session_history:
 			session_history.write(csv_entry)
@@ -55,7 +55,7 @@ class SessionController(object):
 			profile_list: A list containing all animal profiles. 
 			servo: An object that controls a servo.
 			stepper_controller: An object that controls stepper motors.
-			camera: An object that controls a camera.
+			camera: An object that controls a camera. 
 			RFID_reader: An object that controls an RFID reader.
                         IR_beam_breaker: An object that controls an IR beam breaker.
 	"""
@@ -152,16 +152,14 @@ class SessionController(object):
 
 		# While beam is still broken, continue session.
 		while self.IR_beam_breaker.getBeamState() == 0:
-			sleep(0.3)
+			sleep(0.2)
 
 		# Once beam is reconnected. Send kill sig to all session processes and wait for them to terminate.
 		camera_process_queue.put("TERM")
 		servo_process_queue.put("TERM")
 		
 		camera_process.join()
-		print("JOINED CAMERA")
 		servo_process.join()
-		print("JOINED SERVO")
 
 
 		# Log session information.
