@@ -212,16 +212,17 @@ VIDEO_SAVE_PATH = "/home/pi/HomeCageSinglePellet/AnimalSessions/Videos/"
 def main():
    
 
-	profile0 = AnimalProfile("0782B18367", "Jim Kirk", 0, "LEFT", 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)
-	profile1 = AnimalProfile("0782B1797D", "Yuri Gagarin", 0, "LEFT", 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)
-	profile2 = AnimalProfile("0782B191B5", "Elon Musk", 0, "RIGHT", 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)
-	profile3 = AnimalProfile("0782B19BCF", "Buzz Aldrin", 0, "RIGHT", 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)
-	profile4 = AnimalProfile("0782B189DD", "Test Tag1", 1, "LEFT", 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)
-	profile5 = AnimalProfile("0782B19226", "Test Tag2", 2, "RIGHT", 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)	
-	profile6 = AnimalProfile("0782B18783", "Test Tag3", 3, "RIGHT", 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)
-	profile7 = AnimalProfile("0782B1884C", "Test Tag4", 4, "LEFT", 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)
+	profile0 = AnimalProfile("0782B18367", "Jim Kirk", 1, "LEFT", 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)
+	profile1 = AnimalProfile("0782B1797D", "Yuri Gagarin", 1, "LEFT", 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)
+	profile2 = AnimalProfile("0782B191B5", "Elon Musk", 1, "RIGHT", 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)
+	profile3 = AnimalProfile("0782B19BCF", "Buzz Aldrin", 1, "RIGHT", 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)
+	profile4 = AnimalProfile("0782B18A1E", "Test Tag0", 1, "RIGHT", 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)
+	profile5 = AnimalProfile("0782B189DD", "Test Tag1", 1, "LEFT", 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)
+	profile6 = AnimalProfile("0782B19226", "Test Tag2", 2, "RIGHT", 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)	
+	profile7 = AnimalProfile("0782B18783", "Test Tag3", 3, "RIGHT", 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)
+	profile8 = AnimalProfile("0782B1884C", "Test Tag4", 4, "LEFT", 0, SESSION_SAVE_PATH, VIDEO_SAVE_PATH)
 	
-	profile_list = [profile0, profile1, profile2, profile3, profile4, profile5, profile6, profile7]
+	profile_list = [profile0, profile1, profile2, profile3, profile4, profile5, profile6, profile7, profile8]
 
 
 	servo_1 = servo.Servo(SERVO_PWM_BCM_PIN_NUMBER)

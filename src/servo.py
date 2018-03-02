@@ -71,9 +71,7 @@ class Servo(object):
 					self.stopServo()
             
 				elif msg == "TERM":
-
-					print("SERVO: TERM RECEIVED")
-					self.setAngle(2, 157)
+					self.setAngle(2, 127)
 					self.stopServo()
 					return 0
 

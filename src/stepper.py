@@ -136,4 +136,3 @@ class StepperController(object):
 										
 					print("stepper_controller_daemon: TERM sig received")
 					return 0
-		

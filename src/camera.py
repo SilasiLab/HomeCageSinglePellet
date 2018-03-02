@@ -56,7 +56,6 @@ class Camera(object):
 
 				msg = queue.get()
 				if msg == "TERM":
-					print("CAMERA: TERM RECEIVED")
 					camera.release()
 					camera_output.release()
 					cv2.destroyAllWindows()
