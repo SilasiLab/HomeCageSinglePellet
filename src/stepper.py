@@ -1,7 +1,7 @@
 import wiringpi
 from time import sleep
 import multiprocessing
-		
+import random
 
 class StepperController(object):
 
@@ -109,22 +109,27 @@ class StepperController(object):
 			else:
 				
 				msg = self.queue.get()
+				
+				# TODO: Temp random y-distance changing for testing xy-bed. Remove after testing.
+				# Note: Make sure you change the updateStepperPos() parameters below back to real values
+				# after removing <random_y_dist>
+				random_y_dist = random.randint(0,4000)					
 					
 				if msg == "0POS1":
 					print("Updating pellet presentation y-distance to position 1")
-					self.updateStepperPos(0, 1000)
+					self.updateStepperPos(0, random_y_dist)
 					
 				elif msg == "0POS2":
 					print("Updating pellet presentation y-distance to position 2")					
-					self.updateStepperPos(0, 2000)
+					self.updateStepperPos(0, random_y_dist)
 					
 				elif msg == "0POS3":		
 					print("Updating pellet presentation y-distance to position 3")					
-					self.updateStepperPos(0, 3000)
+					self.updateStepperPos(0, random_y_dist)
 										
 				elif msg == "0POS4":
 					print("Updating pellet presentation y-distance to position 4")					
-					self.updateStepperPos(0, 4000)
+					self.updateStepperPos(0, random_y_dist)
 										
 				elif msg == "1LEFT":
 					self.updateStepperPos(1, 1000)					

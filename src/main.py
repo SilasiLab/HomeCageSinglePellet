@@ -15,54 +15,90 @@ import os
 logging.basicConfig(filename="../logs/logfile.log", level=logging.DEBUG)
 main_logger = logging.getLogger(__name__)
 
+
+
+
 def loadAnimalProfiles(profile_save_directory):
     
-    profiles = os.listdir(profile_save_directory)
+    # Get list of profile folders
+	profile_names = os.listdir(profile_save_directory)
+	profiles = []
+	
+	for profile in profile_names:
+		
+		# Build save file path
+		load_file = profile_save_directory + profile + "/" + profile + "_save.txt"
+		profile_state = []
+		
+		# Open the save file
+		try:
+			load = open(load_file, 'r') 
+		except IOError:
+			print "Could not open AnimalProfile save file!"
+		
+		# Read all lines from save file and strip them
+		with load:
+			profile_state = load.readlines()
+		profile_state = [x.strip() for x in profile_state]
+		
+		# Create AnimalProfile object using loaded data and put it in profile list
+		ID = profile_state[0]
+		name = profile_state[1]
+		training_stage = profile_state[2]
+		dominant_hand = profile_state[3]	
+		session_count = profile_state[4]
+		animal_profile_directory = profile_state[5]
+		temp = AnimalProfile(ID, name, training_stage, dominant_hand, session_count, animal_profile_directory, False)
+		profiles.append(temp)
+		
+		
+	return profiles
+		
 
-    for profile in profiles:
-        print(profile)
-
+		
 
 class AnimalProfile(object):
 
-	def __init__(self, ID, name, training_stage, dominant_hand, session_count, profile_save_directory):
+	def __init__(self, ID, name, training_stage, dominant_hand, session_count, profile_save_directory, is_new):
 
-	        self.ID = ID
-		self.name = name
-		self.training_stage = training_stage
-		self.dominant_hand = dominant_hand
-		self.session_count = session_count
+		self.ID = str(ID)
+		self.name = str(name)
+		self.training_stage = int(training_stage)
+		self.dominant_hand = str(dominant_hand)
+		self.session_count = int(session_count)
+		
+		if is_new:
+			self.animal_profile_directory = profile_save_directory + name + "/"
+		else:
+			self.animal_profile_directory = profile_save_directory
+			
+		self.video_save_directory = self.animal_profile_directory + "Videos/"
+		self.log_save_directory = self.animal_profile_directory + "Logs/"
+		
+		if is_new:
 
+			if not os.path.isdir(self.animal_profile_directory):
+				os.makedirs(self.animal_profile_directory)
 
-		self.animal_profile_directory = profile_save_directory + name + "/"
-                if not os.path.isdir(animal_profile_directory):
-                    os.makedirs(self.animal_profile_directory)
+			if not os.path.isdir(self.video_save_directory):
+				os.makedirs(self.video_save_directory)
 
-                self.video_save_directory = self.animal_profile_directory + "Videos/"
-                if not os.path.isdir(self.video_save_directory):
-                    os.makedirs(self.video_save_directory)
-
-                self.log_save_directory = self.animal_profile_directory + "Logs/"
-                if not os.path.isdir(self.log_save_directory):
-                    os.makedirs(self.log_save_directory)
-
-
-        def saveProfile(self):
-
-                save_file_path = self.animal_profile_directory + str(self.name) + "_save.txt"
-
-                with open(save_file_path, 'w') as save:
-
-                    save.write(str(self.ID) + "\n")
-                    save.write(str(self.name) + "\n")
-                    save.write(str(self.training_stage) + "\n")
-                    save.write(str(self.dominant_hand) + "\n")
-                    save.write(str(self.session_count) + "\n")
-                    save.wirte(str(self.animal_profile_directory) + "\n")
-                    save.write(str(self.video_save_directory) + "\n")
-                    save.write(str(self.log_save_directory) + "\n")
+			if not os.path.isdir(self.log_save_directory):
+				os.makedirs(self.log_save_directory)
 
 
+	def saveProfile(self):
+
+		save_file_path = self.animal_profile_directory + str(self.name) + "_save.txt"
+
+		with open(save_file_path, 'w') as save:
+
+			save.write(str(self.ID) + "\n")
+			save.write(str(self.name) + "\n")
+			save.write(str(self.training_stage) + "\n")
+			save.write(str(self.dominant_hand) + "\n")
+			save.write(str(self.session_count) + "\n")
+			save.write(str(self.animal_profile_directory) + "\n")
 
 
 	# This function takes all the information required for an animal's session log entry, and then formats it.
@@ -74,12 +110,10 @@ class AnimalProfile(object):
 		csv_entry = str(self.session_count) + "," + str(self.name) + "," + str(self.ID) + "," + str(trial_count) + "," + str(start_time) + "," + str(end_time) + "," + str(self.training_stage) + "," + str(self.dominant_hand)  + "\n"
 
 		with open(session_history, "a") as log:
-			log.closewrite(csv_entry)
-			self.session_count += 1
+			log.write(csv_entry)
 
 
-        
-
+ 
 
 class SessionController(object):
 	"""
@@ -190,12 +224,14 @@ class SessionController(object):
 
 		# While beam is still broken, continue session.
 		while self.IR_beam_breaker.getBeamState() == 0:
+		
 			sleep(0.2)
+
+
 
 		# Once beam is reconnected. Send kill sig to all session processes and wait for them to terminate.
 		camera_process_queue.put("TERM")
 		servo_process_queue.put("TERM")
-		
 		camera_process.join()
 		servo_process.join()
 
@@ -203,8 +239,9 @@ class SessionController(object):
 		# Log session information.
 		session_end_time = time.time()
 		trial_count = int(main_process_queue.get())
+		profile.session_count += 1
 		profile.insertSessionEntry(session_start_time, session_end_time, trial_count)	
-
+		profile.saveProfile()
 
 		# Flush serial buffer incase RFID tag was read multiple times during this session.
 		self.RFID_reader.flushRFIDBuffer()
@@ -240,28 +277,36 @@ with open("../config/config.txt") as config:
 	roi_h = int(config.readline())
 config.close()
 # AnimalProfile config
-PROFILE_SAVE_DIRECTORY = "/home/pi/HomeCageSinglePellet/AnimalProfiles/"
-
+PROFILE_SAVE_DIRECTORY = "../AnimalProfiles/"
 
 
 
 
 def main():
-   
 
-	profile0 = AnimalProfile("0782B18367", "Jim Kirk", 1, "LEFT", 0, PROFILE_SAVE_DIRECTORY)
-        profile1 = AnimalProfile("0782B1797D", "Yuri Gagarin", 1, "LEFT", 0, PROFILE_SAVE_DIRECTORY)
-        profile2 = AnimalProfile("0782B191B5", "Elon Musk", 1, "RIGHT", 0, PROFILE_SAVE_DIRECTORY)
-	profile3 = AnimalProfile("0782B19BCF", "Buzz Aldrin", 1, "RIGHT", 0, PROFILE_SAVE_DIRECTORY)
-	profile4 = AnimalProfile("0782B18A1E", "Test Tag0", 1, "RIGHT", 0, PROFILE_SAVE_DIRECTORY)
-	profile5 = AnimalProfile("0782B189DD", "Test Tag1", 1, "LEFT", 0, PROFILE_SAVE_DIRECTORY)
-	profile6 = AnimalProfile("0782B19226", "Test Tag2", 2, "RIGHT", 0, PROFILE_SAVE_DIRECTORY)	
-	profile7 = AnimalProfile("0782B18783", "Test Tag3", 3, "RIGHT", 0, PROFILE_SAVE_DIRECTORY)
-	profile8 = AnimalProfile("0782B1884C", "Test Tag4", 4, "LEFT", 0, PROFILE_SAVE_DIRECTORY)
+# Uncomment these to generate new profiles
+#	profile0 = AnimalProfile("0782B18367", "Jim Kirk", 1, "LEFT", 0, PROFILE_SAVE_DIRECTORY, True)
+#	profile1 = AnimalProfile("0782B1797D", "Yuri Gagarin", 1, "LEFT", 0, PROFILE_SAVE_DIRECTORY, True)
+#	profile2 = AnimalProfile("0782B191B5", "Elon Musk", 1, "RIGHT", 0, PROFILE_SAVE_DIRECTORY, True)
+#	profile3 = AnimalProfile("0782B19BCF", "Buzz Aldrin", 1, "RIGHT", 0, PROFILE_SAVE_DIRECTORY, True)
+#	profile4 = AnimalProfile("0782B18A1E", "Test Tag0", 1, "RIGHT", 0, PROFILE_SAVE_DIRECTORY, True)
+#	profile5 = AnimalProfile("0782B189DD", "Test Tag1", 1, "LEFT", 0, PROFILE_SAVE_DIRECTORY, True)
+#	profile6 = AnimalProfile("0782B19226", "Test Tag2", 2, "RIGHT", 0, PROFILE_SAVE_DIRECTORY, True)	
+#	profile7 = AnimalProfile("0782B18783", "Test Tag3", 3, "RIGHT", 0, PROFILE_SAVE_DIRECTORY, True)
+#	profile8 = AnimalProfile("0782B1884C", "Test Tag4", 4, "LEFT", 0, PROFILE_SAVE_DIRECTORY, True)	
+#	profile0.saveProfile()
+#	profile1.saveProfile()
+#	profile2.saveProfile()
+#	profile3.saveProfile()
+#	profile4.saveProfile()
+#	profile5.saveProfile()
+#	profile6.saveProfile()
+#	profile7.saveProfile()
+#	profile8.saveProfile()
+#	exit()
+
+	profile_list = loadAnimalProfiles(PROFILE_SAVE_DIRECTORY)
 	
-	profile_list = [profile0, profile1, profile2, profile3, profile4, profile5, profile6, profile7, profile8]
-
-
 	servo_1 = servo.Servo(SERVO_PWM_BCM_PIN_NUMBER)
 	stepper_controller = stepper.StepperController()
 	stepper_controller.initStepper(pulse_pins_x)
