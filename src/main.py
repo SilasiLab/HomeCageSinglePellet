@@ -24,7 +24,7 @@ reconstructed profiles as a list of AnimalProfiles.
 Note: This function works by assuming the directory structure of each AnimalProfile
 is consistent and the required save.txt files are present, i.e:
 
-<profile_save_directory
+<profile_save_directory>
    -
    - ProfileName
        -
