@@ -1,10 +1,11 @@
 import wiringpi
 from time import sleep
 import multiprocessing
-import random
 
 class StepperController(object):
 
+	# Each inner list contains the output values for the 4 signal
+	# pins of a stepper for taking 1 step.
 	halfstep_forward = [
 			[1,0,0,0],
 			[1,1,0,0],
@@ -38,7 +39,10 @@ class StepperController(object):
 		wiringpi.wiringPiSetupGpio()
 		self.queue = multiprocessing.Queue()
 
-
+	# Stepper initialization consists of setting the stepper's signal <control_pins> to output mode
+	# and placing <control_pins> into a list. The stepper's <current_position> and <target_position>
+	# are also both set to 0. This means that when a stepper is initialized, it's current position in real
+	# space will be considered the origin.
 	def initStepper(self, control_pins):
 
 		for pin in control_pins:
@@ -51,6 +55,8 @@ class StepperController(object):
 
 
 	# This function rotates <stepper> <forward> for <steps>.
+	# The stepper's signal pins will be turned off when the movement
+	# is complete.
 	def moveStepper(self, stepper, forward, steps):
 
 		if forward:
@@ -76,6 +82,10 @@ class StepperController(object):
 		dist = self.stepper_target_distances_to_origin[stepper] - self.stepper_distances_to_origin[stepper]
 		return dist
 
+	# This function moves a particular <stepper> to a <target> position.
+	# It does this by calculating the distance from <current_position>
+	# to <target_position> to determine the number and direction of steps
+	# required to bridge that distance. It then feeds that information to moveStepper().
 	def updateStepperPos(self, stepper, target):
 
 		self.stepper_target_distances_to_origin[stepper] = target

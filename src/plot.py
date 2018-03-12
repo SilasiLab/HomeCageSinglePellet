@@ -10,6 +10,11 @@ import os
 import sys
 
 
+"""
+	BEWARE: This script was written quickly with little thought. Dependency hell below. Changing 1 thing may break something
+	else that is seemingly unrelated. Editing not reccomended.
+"""
+
 #------------------------Load Profile csv logs and preprocess them------------------------------------
 # Get profile names
 profile_names = os.listdir("../AnimalProfiles/")
@@ -36,12 +41,12 @@ for path in log_paths:
 	result = np.array(x).astype("str")
 
 
-	# Filter out test tag log files 
+	# Filter out test tag log files
 	if result[0][1][0:8] == "Test Tag":
 		continue
 	else:
 		logs.append(result)
-		
+
 
 
 
@@ -75,7 +80,7 @@ while True:
 	elif menu == 2:
 
 		other_time_thing = int(input("How many hours would you like to graph?: "))
-		hour_s = 3600	
+		hour_s = 3600
 		time_thing = hour_s
 		break
 
@@ -91,7 +96,7 @@ for i in range(len(logs)):
 	log_indexes = []
 
 	for row in range (len(profile_datetimes[i])):
-   	
+
 
 
 		timestamp1 = float(logs[i][row][4])
@@ -123,7 +128,7 @@ for profile in profile_datetimes:
 
 	profile_session_durations.append(temp_timedeltas)
 	temp_timedeltas = []
-	
+
 
 
 #------------------------------------------------------------------------------------------------------
@@ -143,7 +148,7 @@ for i in range(len(logs)):
 
 		y_temp.append(int(logs[i][x][3]))
 		x_temp.append(profile_datetimes[i][x][0])
-	
+
 	profile_y_vals.append(y_temp)
 	profile_x_vals.append(x_temp)
 	y_temp = []
@@ -206,7 +211,7 @@ for i in range(len(logs)):
 	current_y = []
 
 	for x in range(len(indexes[i])):
-    
+
 		current_x.append(profile_x_vals[i][indexes[i][x]])
 		current_y.append(profile_y_vals[i][indexes[i][x]])
 		ax.plot(current_x,current_y, line_styles[i])
@@ -220,7 +225,7 @@ for i in range(len(logs)):
 	current_y = []
 
 	for x in range(len(indexes[i])):
-    
+
 		current_x.append(profile_x_vals[i][indexes[i][x]])
 		current_y.append(profile_session_durations[i][indexes[i][x]])
 		ax2.plot(current_x,current_y, line_styles[i])

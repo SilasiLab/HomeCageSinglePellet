@@ -8,7 +8,7 @@ while True:
 	ret,frame = camera.read()
 	cv2.imshow("feed", frame)
 	if cv2.waitKey(1) & 0xFF == ord('q'):
-        	break 
+        	break
 	elif cv2.waitKey(1) & 0xFF == ord('s'):
 
 		r = cv2.selectROI(frame)

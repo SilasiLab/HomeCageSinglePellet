@@ -140,6 +140,11 @@ class AnimalProfile(object):
 			save.write(str(self.animal_profile_directory) + "\n")
 
 
+    # Generates the path where the video for the next session will be stored
+    def genVideoPath():
+        return str(self.video_save_directory) + str(self.name) + "_session#_" + str(self.session_count) + ".avi"
+
+
 	# This function takes all the information required for an animal's session log entry, and then formats it.
 	# Once formatted, it appens the log entry to the animal's session_history.csv file.
 	def insertSessionEntry(self, start_time, end_time, trial_count):
@@ -220,9 +225,8 @@ class SessionController(object):
 
 
 
-		#TODO video_output_path should be constructed by a member method of AnimalProfile.
 		profile.session_count += 1
-		video_output_path = profile.video_save_directory + str(profile.name) + "_session#_"  + str(profile.session_count) + ".avi"
+		video_output_path = profile.genVideoPath()
 
 		# Fork processes for camera recording and for servo cycling.
 		jobs = []
@@ -370,7 +374,7 @@ def main():
 
     # Entry point of the system. This block waits for an RFID to enter the <SERIAL_INTERFACE_PATH> buffer.
     # Once it receives an RFID, it parses it and searches for a profile with a matching RFID. If a profile
-    # is found, it starts a session for that profile. If not profile is found, it goes back to listening for
+    # is found, it starts a session for that profile. If no profile is found, it goes back to listening for
     # an RFID.
 	while True:
 
