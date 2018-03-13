@@ -16,22 +16,22 @@ logging.basicConfig(filename="../logs/logfile.log", level=logging.DEBUG)
 main_logger = logging.getLogger(__name__)
 
 
-"""
-This function generates a list of AnimalProfiles found inside <profile_save_directory>.
-It then reads the save.txt file for each profile found, and uses the information
-in that file to reconstruct the AnimalProfile object. It returns all the
-reconstructed profiles as a list of AnimalProfiles.
-Note: This function works by assuming the directory structure of each AnimalProfile
-is consistent and the required save.txt files are present, i.e:
 
-<profile_save_directory>
-   -
-   - ProfileName
-       -
-       - Logs
-       - Videos
-       - save.txt
-"""
+#This function generates a list of AnimalProfiles found inside <profile_save_directory>.
+#It then reads the save.txt file for each profile found, and uses the information
+#in that file to reconstruct the AnimalProfile object. It returns all the
+#reconstructed profiles as a list of AnimalProfiles.
+#Note: This function works by assuming the directory structure of each AnimalProfile
+#is consistent and the required save.txt files are present, i.e:
+#
+# <profile_save_directory>
+#   -
+#   - ProfileName
+#       -
+#       - Logs
+#       - Videos
+#       - save.txt
+
 def loadAnimalProfiles(profile_save_directory):
 
     # Get list of profile folders
@@ -72,24 +72,24 @@ def loadAnimalProfiles(profile_save_directory):
 
 
 class AnimalProfile(object):
-    """
-        A profile containing all information related to a particular animal. When a new animal is added to the system,
-        an AnimalProfile should be created for that animal. This profile will be used by the rest
-        of the system for any operation pertaining to the animal (data logging, identification, etc). When the application closes,
-        saveProfile() should be called on each profile in the system. A global loadProfiles() function is used to load/reconstruct
-        each profile at load time. Each AnimalProfile has the following properties:
 
-        Attributes:
-            ID: A unique identification number for the animal. In our case this number will be the RFID of the RF tag implanted in the animal.
-            name: The name of the animal
-            training_stage: An integer representing which stage of training the animal is at.
-            dominant_hand: String representing the dominant hand of the animal.
-            session_count: The number of Sessions the animal has participated in. In our system, this is the number of times the animal has
-                            entered the experiment tube.
-            animal_profile_directory: A path to the root folder where AnimalProfile's are stored.
-            video_save_directory: A path to where the videos for this animal are stored. This path will be inside [./<animal_profile_directory>/<animal_name>/]
-            log_save_directory: A path to where the logs for this animal are stored. This pathh will be inside [./<animal_profile_directory/<animal_name/]
-    """
+    #    A profile containing all information related to a particular animal. When a new animal is added to the system,
+    #    an AnimalProfile should be created for that animal. This profile will be used by the rest
+    #    of the system for any operation pertaining to the animal (data logging, identification, etc). When the application closes,
+    #    saveProfile() should be called on each profile in the system. A global loadProfiles() function is used to load/reconstruct
+    #    each profile at load time. Each AnimalProfile has the following properties:
+	#
+    #    Attributes:
+    #        ID: A unique identification number for the animal. In our case this number will be the RFID of the RF tag implanted in the animal.
+    #        name: The name of the animal
+    #        training_stage: An integer representing which stage of training the animal is at.
+    #        dominant_hand: String representing the dominant hand of the animal.
+    #        session_count: The number of Sessions the animal has participated in. In our system, this is the number of times the animal has
+    #                        entered the experiment tube.
+    #        animal_profile_directory: A path to the root folder where AnimalProfile's are stored.
+    #        video_save_directory: A path to where the videos for this animal are stored. This path will be inside [./<animal_profile_directory>/<animal_name>/]
+    #        log_save_directory: A path to where the logs for this animal are stored. This pathh will be inside [./<animal_profile_directory/<animal_name/]
+    
 
 
 
@@ -101,9 +101,7 @@ class AnimalProfile(object):
 		self.dominant_hand = str(dominant_hand)
 		self.session_count = int(session_count)
 
-        # Everything that's in this function and below this comment is Dependency Hell.
-        # The save/load system is poorly designed and changing anything in the block below will
-        # probably break it. Good luck.
+
 		if is_new:
 			self.animal_profile_directory = profile_save_directory + name + "/"
 		else:
@@ -141,8 +139,8 @@ class AnimalProfile(object):
 
 
     # Generates the path where the video for the next session will be stored
-    def genVideoPath():
-        return str(self.video_save_directory) + str(self.name) + "_session#_" + str(self.session_count) + ".avi"
+	def genVideoPath(self):
+		return str(self.video_save_directory) + str(self.name) + "_session#_" + str(self.session_count) + ".avi"
 
 
 	# This function takes all the information required for an animal's session log entry, and then formats it.
@@ -223,7 +221,7 @@ class SessionController(object):
 			print(session_start_msg)
 			session_start_time = time.time()
 			human_readable_start_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime(session_start_time))
-			print("Start Time: {}".format(human_readable__start_time))
+			print("Start Time: {}".format(human_readable_start_time))
 
 
 
@@ -285,7 +283,7 @@ class SessionController(object):
 		# Log session information.
 		session_end_time = time.time()
 		human_readable_end_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime(session_end_time))
-		print("End Time: {}".format(human_readable_end_time)
+		print("End Time: {}".format(human_readable_end_time))
 		trial_count = int(main_process_queue.get())
 		profile.insertSessionEntry(session_start_time, session_end_time, trial_count)
 		profile.saveProfile()
@@ -324,7 +322,7 @@ with open("../config/config.txt") as config:
 	roi_h = int(config.readline())
 config.close()
 # AnimalProfile config
-PROFILE_SAVE_DIRECTORY = "/pi/media/GS 2TB/AnimalProfiles/"
+PROFILE_SAVE_DIRECTORY = "/media/pi/GS 2TB/AnimalProfiles/"
 
 
 
@@ -338,9 +336,9 @@ def main():
 #	profile3 = AnimalProfile("0782B180C4", "43036_MOUSE4", 1, "RIGHT", 0, PROFILE_SAVE_DIRECTORY, True)
 #	profile4 = AnimalProfile("0782B18A1E", "Test Tag0", 1, "RIGHT", 0, PROFILE_SAVE_DIRECTORY, True)
 #	profile5 = AnimalProfile("0782B189DD", "Test Tag1", 1, "LEFT", 0, PROFILE_SAVE_DIRECTORY, True)
-#	profile6 = AnimalProfile("0782B19226", "Test Tag2", 2, "RIGHT", 0, PROFILE_SAVE_DIRECTORY, True)
-#	profile7 = AnimalProfile("0782B18783", "Test Tag3", 3, "RIGHT", 0, PROFILE_SAVE_DIRECTORY, True)
-#	profile8 = AnimalProfile("0782B1884C", "Test Tag4", 4, "LEFT", 0, PROFILE_SAVE_DIRECTORY, True)
+#	profile6 = AnimalProfile("0782B19226", "Test Tag2", 1, "RIGHT", 0, PROFILE_SAVE_DIRECTORY, True)
+#	profile7 = AnimalProfile("0782B18783", "Test Tag3", 1, "RIGHT", 0, PROFILE_SAVE_DIRECTORY, True)
+#	profile8 = AnimalProfile("0782B1884C", "Test Tag4", 1, "LEFT", 0, PROFILE_SAVE_DIRECTORY, True)
 #	profile0.saveProfile()
 #	profile1.saveProfile()
 #	profile2.saveProfile()
@@ -396,4 +394,4 @@ def main():
 
 # Python convention for launching main() function.
 if __name__ == "__main__":
-    main()
+	main()

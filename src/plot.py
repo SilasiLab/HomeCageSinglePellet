@@ -17,12 +17,12 @@ import sys
 
 #------------------------Load Profile csv logs and preprocess them------------------------------------
 # Get profile names
-profile_names = os.listdir("../AnimalProfiles/")
+profile_names = os.listdir("/media/pi/GS 2TB/AnimalProfiles/")
 
 # Generate paths to each profile's csv log file
 log_paths = []
 for profile in profile_names:
-	path_temp = "../AnimalProfiles/" + str(profile) +"/Logs/" + str(profile) +"_session_history.csv"
+	path_temp = "/media/pi/GS 2TB/AnimalProfiles/" + str(profile) +"/Logs/" + str(profile) +"_session_history.csv"
 	log_paths.append(path_temp)
 
 
@@ -155,8 +155,8 @@ for i in range(len(logs)):
 	x_temp = []
 
 # Load session durations into y axis and session start time stamps into x axis
-profile_session_durations = profile_session_durations
-profile_x_vals = profile_x_vals
+# y = profile_session_durations
+# x = profile_x_vals
 
 
 
