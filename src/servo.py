@@ -56,7 +56,7 @@ class Servo(object):
     # for instructions. 
     def cycleServo(self, queue):
 
-		self.setAngle(5,75)
+		self.setAngle(5,85)
 		self.stopServo()
 		while True:
 
@@ -70,12 +70,12 @@ class Servo(object):
 				if msg == "GETPELLET":
 
 					# Lower hopper arm
-					self.setAngle(2, 157)
+					self.setAngle(3, 157)
 					# Raise hopper arm
-					self.setAngle(5, 75)
+					self.setAngle(5, 85)
 					self.stopServo()
 
 				elif msg == "TERM":
-					self.setAngle(2, 127)
+					self.setAngle(3, 157)
 					self.stopServo()
 					return 0

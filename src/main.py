@@ -222,6 +222,8 @@ class SessionController(object):
 			session_start_msg = "-------------------------------------------\n" + "Starting session for " + profile.name
 			print(session_start_msg)
 			session_start_time = time.time()
+			human_readable_start_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime(session_start_time))
+			print("Start Time: {}".format(human_readable__start_time))
 
 
 
@@ -282,6 +284,8 @@ class SessionController(object):
 
 		# Log session information.
 		session_end_time = time.time()
+		human_readable_end_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime(session_end_time))
+		print("End Time: {}".format(human_readable_end_time)
 		trial_count = int(main_process_queue.get())
 		profile.insertSessionEntry(session_start_time, session_end_time, trial_count)
 		profile.saveProfile()
@@ -320,7 +324,7 @@ with open("../config/config.txt") as config:
 	roi_h = int(config.readline())
 config.close()
 # AnimalProfile config
-PROFILE_SAVE_DIRECTORY = "../AnimalProfiles/"
+PROFILE_SAVE_DIRECTORY = "/pi/media/GS 2TB/AnimalProfiles/"
 
 
 
@@ -328,10 +332,10 @@ PROFILE_SAVE_DIRECTORY = "../AnimalProfiles/"
 def main():
 
 # Uncomment these to generate new profiles
-#	profile0 = AnimalProfile("0782B18367", "Jim Kirk", 1, "LEFT", 0, PROFILE_SAVE_DIRECTORY, True)
-#	profile1 = AnimalProfile("0782B1797D", "Yuri Gagarin", 1, "LEFT", 0, PROFILE_SAVE_DIRECTORY, True)
-#	profile2 = AnimalProfile("0782B191B5", "Elon Musk", 1, "RIGHT", 0, PROFILE_SAVE_DIRECTORY, True)
-#	profile3 = AnimalProfile("0782B19BCF", "Buzz Aldrin", 1, "RIGHT", 0, PROFILE_SAVE_DIRECTORY, True)
+#	profile0 = AnimalProfile("0782B190A4", "43036_MOUSE1", 1, "LEFT", 0, PROFILE_SAVE_DIRECTORY, True)
+#	profile1 = AnimalProfile("0782B18BBF", "43036_MOUSE2", 1, "LEFT", 0, PROFILE_SAVE_DIRECTORY, True)
+#	profile2 = AnimalProfile("0782B194F0", "43036_MOUSE3", 1, "RIGHT", 0, PROFILE_SAVE_DIRECTORY, True)
+#	profile3 = AnimalProfile("0782B180C4", "43036_MOUSE4", 1, "RIGHT", 0, PROFILE_SAVE_DIRECTORY, True)
 #	profile4 = AnimalProfile("0782B18A1E", "Test Tag0", 1, "RIGHT", 0, PROFILE_SAVE_DIRECTORY, True)
 #	profile5 = AnimalProfile("0782B189DD", "Test Tag1", 1, "LEFT", 0, PROFILE_SAVE_DIRECTORY, True)
 #	profile6 = AnimalProfile("0782B19226", "Test Tag2", 2, "RIGHT", 0, PROFILE_SAVE_DIRECTORY, True)
