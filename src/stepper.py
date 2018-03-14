@@ -68,7 +68,7 @@ class StepperController(object):
 			for halfstep in range(8):
 				for pin in range(4):
 					wiringpi.digitalWrite(self.stepper_pulse_pins[stepper][pin], pulses[halfstep][pin])
-				sleep(0.001)
+				sleep(0.0007)
 
 		for pin in self.stepper_pulse_pins[stepper]:
 			wiringpi.digitalWrite(pin,0)
