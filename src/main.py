@@ -6,6 +6,7 @@ import stepper
 import objectDetector
 import time
 from time import sleep
+from datetime import datetime
 import multiprocessing
 import logging
 import os
@@ -82,23 +83,23 @@ class AnimalProfile(object):
     #    Attributes:
     #        ID: A unique identification number for the animal. In our case this number will be the RFID of the RF tag implanted in the animal.
     #        name: The name of the animal
-    #        training_stage: An integer representing which stage of training the animal is at.
-    #        dominant_hand: String representing the dominant hand of the animal.
+    #        difficulty_dist_mm: An integer representing the distance from the tube to the presented pellet in mm.
+    #        dominant_hand_dist_mm: An integer representing how far to either side the pellet will be presented in mm.
     #        session_count: The number of Sessions the animal has participated in. In our system, this is the number of times the animal has
     #                        entered the experiment tube.
     #        animal_profile_directory: A path to the root folder where AnimalProfile's are stored.
     #        video_save_directory: A path to where the videos for this animal are stored. This path will be inside [./<animal_profile_directory>/<animal_name>/]
     #        log_save_directory: A path to where the logs for this animal are stored. This pathh will be inside [./<animal_profile_directory/<animal_name/]
-    
 
 
 
-	def __init__(self, ID, name, training_stage, dominant_hand, session_count, profile_save_directory, is_new):
+
+	def __init__(self, ID, name, difficulty_dist_mm, dominant_hand_dist_mm, session_count, profile_save_directory, is_new):
 
 		self.ID = str(ID)
 		self.name = str(name)
-		self.training_stage = int(training_stage)
-		self.dominant_hand = str(dominant_hand)
+		self.difficulty_dist_mm = int(difficulty_dist_mm)
+		self.dominant_hand_dist_mm = str(dominant_hand_dist_mm)
 		self.session_count = int(session_count)
 
 
@@ -132,8 +133,8 @@ class AnimalProfile(object):
 
 			save.write(str(self.ID) + "\n")
 			save.write(str(self.name) + "\n")
-			save.write(str(self.training_stage) + "\n")
-			save.write(str(self.dominant_hand) + "\n")
+			save.write(str(self.difficulty_dist_mm) + "\n")
+			save.write(str(self.dominant_hand_dist_mm) + "\n")
 			save.write(str(self.session_count) + "\n")
 			save.write(str(self.animal_profile_directory) + "\n")
 
@@ -144,12 +145,19 @@ class AnimalProfile(object):
 
 
 	# This function takes all the information required for an animal's session log entry, and then formats it.
-	# Once formatted, it appens the log entry to the animal's session_history.csv file.
+	# Once formatted, it appends the log entry to the animal's session_history.csv file.
 	def insertSessionEntry(self, start_time, end_time, trial_count):
 
 		#TODO: Is there a better way to create + format strings?
 		session_history = self.log_save_directory + str(self.name) + "_session_history.csv"
-		csv_entry = str(self.session_count) + "," + str(self.name) + "," + str(self.ID) + "," + str(trial_count) + "," + str(start_time) + "," + str(end_time) + "," + str(self.training_stage) + "," + str(self.dominant_hand)  + "\n"
+		datetime_UTC_start = datetime.utcfromtimestamp(start_time)
+		datetime_UTC_end = datetime.utcfromtimestamp(end_time)
+		start_date = (str(datetime_UTC_start.date()))
+		start_time = (str(datetime_UTC_start.time()))
+		end_date = (str(datetime_UTC_end.date()))
+		end_time = (str(datetime_UTC_end.time()))
+		csv_entry = str(self.session_count) + "," + str(self.name) + "," + str(self.ID) + "," + str(trial_count) + "," + str(self.difficulty_dist_mm) + "," +
+		 			str(self.dominant_hand_dist_mm)  + "," + start_date + "," + start_time + "," + end_date + "," + end_time + "\n"
 
 		with open(session_history, "a") as log:
 			log.write(csv_entry)
@@ -168,17 +176,19 @@ class SessionController(object):
 		Attributes:
 			profile_list: A list containing all animal profiles.
 			servo: An object that controls a servo.
-			stepper_controller: An object that controls stepper motors.
+			stepper_controller_x: An object that controls the stepper motor for the x plane.
+			stepper_controller_y: An object that controls the stepper motor for the y plane.
 			camera: An object that controls a camera.
 			RFID_reader: An object that controls an RFID reader.
             IR_beam_breaker: An object that controls an IR beam breaker.
 	"""
 
-	def __init__(self, profile_list, servo, stepper_controller, camera, RFID_reader, IR_beam_breaker):
+	def __init__(self, profile_list, servo, stepper_controller_x, stepper_controller_y, camera, RFID_reader, IR_beam_breaker):
 
 		self.profile_list = profile_list
 		self.servo = servo
-		self.stepper_controller = stepper_controller
+		self.stepper_controller_x = stepper_controller_x
+		self.stepper_controller_y = stepper_controller_y
 		self.camera = camera
 		self.RFID_reader = RFID_reader
 		self.IR_beam_breaker = IR_beam_breaker
@@ -243,27 +253,12 @@ class SessionController(object):
 		camera_process.start()
 		servo_process.start()
 
-
-		# Adjust bed position based on mouse profile information
-		if profile.training_stage == 1:
-			self.stepper_controller.queue.put("0POS1")
-
-		elif profile.training_stage == 2:
-			self.stepper_controller.queue.put("0POS2")
-
-		elif profile.training_stage == 3:
-			self.stepper_controller.queue.put("0POS3")
-
-		elif profile.training_stage == 4:
-			self.stepper_controller.queue.put("0POS4")
-
-
-		#if profile.dominant_hand == "LEFT":
-		#	stepper_process_queue.put("1LEFT")
-
-		#elif profile.dominant_hand == "RIGHT":
-		#	stepper_process_queue.put("1RIGHT")
-
+		# Send msg to StepperController to adjust x position according to profile.training_stage
+		x_msg = "POS" + int(profile.dominant_hand_dist_mm)
+		self.stepper_controller_x.queue.put(x_msg)
+		# Send msg to StepperController to adjust y position according to profile.dominant_hand
+		y_msg = "POS" + int(profile.difficulty_dist_mm)
+		self.stepper_controller_y.queue.put(y_msg)
 
 
 		# While beam is still broken, continue session.
@@ -273,7 +268,9 @@ class SessionController(object):
 
 
 
-		# Once beam is reconnected. Send kill sig to all session processes and wait for them to terminate.
+		# Once beam is reconnected. Send kill/pause sig to all session processes and wait for them to terminate/pause.
+		self.stepper_controller_x.queue.put("INTM")
+		self.stepper_controller_y.queue.put("INTM")
 		camera_process_queue.put("TERM")
 		servo_process_queue.put("TERM")
 		camera_process.join()
@@ -296,12 +293,12 @@ class SessionController(object):
 
 
 
-
 # Servo config
 SERVO_PWM_BCM_PIN_NUMBER = 18
 # Stepper config
-pulse_pins_x = [7,11,13,15]
-pulse_pins_y = [7,11,13,15]
+PULSE_PINS_X = [7,11,13,15]
+PULSE_PINS_Y = [7,11,13,15]
+STEPS_MM_RATIO = 450
 # Camera config
 FOURCC = "*MJPG"
 CAMERA_INDEX = 0
@@ -330,15 +327,15 @@ PROFILE_SAVE_DIRECTORY = "/media/pi/GS 2TB/AnimalProfiles/"
 def main():
 
 # Uncomment these to generate new profiles
-#	profile0 = AnimalProfile("0782B190A4", "43036_MOUSE1", 1, "LEFT", 0, PROFILE_SAVE_DIRECTORY, True)
-#	profile1 = AnimalProfile("0782B18BBF", "43036_MOUSE2", 1, "LEFT", 0, PROFILE_SAVE_DIRECTORY, True)
-#	profile2 = AnimalProfile("0782B194F0", "43036_MOUSE3", 1, "RIGHT", 0, PROFILE_SAVE_DIRECTORY, True)
-#	profile3 = AnimalProfile("0782B180C4", "43036_MOUSE4", 1, "RIGHT", 0, PROFILE_SAVE_DIRECTORY, True)
-#	profile4 = AnimalProfile("0782B18A1E", "Test Tag0", 1, "RIGHT", 0, PROFILE_SAVE_DIRECTORY, True)
-#	profile5 = AnimalProfile("0782B189DD", "Test Tag1", 1, "LEFT", 0, PROFILE_SAVE_DIRECTORY, True)
-#	profile6 = AnimalProfile("0782B19226", "Test Tag2", 1, "RIGHT", 0, PROFILE_SAVE_DIRECTORY, True)
-#	profile7 = AnimalProfile("0782B18783", "Test Tag3", 1, "RIGHT", 0, PROFILE_SAVE_DIRECTORY, True)
-#	profile8 = AnimalProfile("0782B1884C", "Test Tag4", 1, "LEFT", 0, PROFILE_SAVE_DIRECTORY, True)
+#	profile0 = AnimalProfile("0782B190A4", "43036_MOUSE1", 1, 1, 0, PROFILE_SAVE_DIRECTORY, True)
+#	profile1 = AnimalProfile("0782B18BBF", "43036_MOUSE2", 1, 1, 0, PROFILE_SAVE_DIRECTORY, True)
+#	profile2 = AnimalProfile("0782B194F0", "43036_MOUSE3", 1, 1, 0, PROFILE_SAVE_DIRECTORY, True)
+#	profile3 = AnimalProfile("0782B180C4", "43036_MOUSE4", 1, 1, 0, PROFILE_SAVE_DIRECTORY, True)
+#	profile4 = AnimalProfile("0782B18A1E", "Test Tag0", 1, 1, 0, PROFILE_SAVE_DIRECTORY, True)
+#	profile5 = AnimalProfile("0782B189DD", "Test Tag1", 1, 1, 0, PROFILE_SAVE_DIRECTORY, True)
+#	profile6 = AnimalProfile("0782B19226", "Test Tag2", 1, 1, 0, PROFILE_SAVE_DIRECTORY, True)
+#	profile7 = AnimalProfile("0782B18783", "Test Tag3", 1, 1, 0, PROFILE_SAVE_DIRECTORY, True)
+#	profile8 = AnimalProfile("0782B1884C", "Test Tag4", 1, 1, 0, PROFILE_SAVE_DIRECTORY, True)
 #	profile0.saveProfile()
 #	profile1.saveProfile()
 #	profile2.saveProfile()
@@ -354,25 +351,27 @@ def main():
     # Initialize every system component
 	profile_list = loadAnimalProfiles(PROFILE_SAVE_DIRECTORY)
 	servo_1 = servo.Servo(SERVO_PWM_BCM_PIN_NUMBER)
-	stepper_controller = stepper.StepperController()
-	stepper_controller.initStepper(pulse_pins_x)
-	stepper_controller.initStepper(pulse_pins_y)
+	stepper_controller_x = stepper.StepperController(PULSE_PINS_X, STEPS_MM_RATIO)
+	stepper_controller_y = stepper.StepperController(PULSE_PINS_Y, STEPS_MM_RATIO)
 	obj_detector_1 = objectDetector.ObjectDetector(PRIMARY_CASCADE, roi_x, roi_y, roi_w, roi_h)
 	camera_1 = camera.Camera(FOURCC, CAMERA_INDEX, CAMERA_FPS, CAMERA_RES, obj_detector_1)
 	RFID_1 = RFID.RFID_Reader(SERIAL_INTERFACE_PATH, BAUDRATE, RFID_PROXIMITY_BCM_PIN_NUMBER)
 	IR_1 = IR.IRBeamBreaker(PHOTO_DIODE_BCM_PIN_NUMBER)
-	session_controller = SessionController(profile_list, servo_1, stepper_controller, camera_1, RFID_1, IR_1)
+	session_controller = SessionController(profile_list, servo_1, stepper_controller_x, stepper_controller_y, camera_1, RFID_1, IR_1)
 
 
 
     # TODO: Servos and cameras should be controlled the same way as steppers are, shown below. Switch them to long lived
     #       processes that are controlled via message passing queues.
     #
-    # Start Stepper Motor daemon
+    # Start Stepper Motor daemons
 	jobs = []
-	stepper_process = multiprocessing.Process(target=stepper_controller.initDaemon, args=())
-	jobs.append(stepper_process)
-	stepper_process.start()
+	stepper_x_process = multiprocessing.Process(target=stepper_controller_x.initDaemon, args=())
+	stepper_y_process = multiprocessing.Process(target=stepper_controller_y.initDaemon, args=())
+	jobs.append(stepper_x_process)
+	jobs.append(stepper_y_process)
+	stepper_x_process.start()
+	stepper_y_process.start()
 
     # Entry point of the system. This block waits for an RFID to enter the <SERIAL_INTERFACE_PATH> buffer.
     # Once it receives an RFID, it parses it and searches for a profile with a matching RFID. If a profile
