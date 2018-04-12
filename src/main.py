@@ -146,18 +146,15 @@ class AnimalProfile(object):
 
 	# This function takes all the information required for an animal's session log entry, and then formats it.
 	# Once formatted, it appends the log entry to the animal's session_history.csv file.
-	def insertSessionEntry(self, start_time, end_time, trial_count):
+	def insertSessionEntry(self, start_timestamp, end_timestamp, trial_count):
 
 		#TODO: Is there a better way to create + format strings?
 		session_history = self.log_save_directory + str(self.name) + "_session_history.csv"
-		datetime_UTC_start = datetime.utcfromtimestamp(start_time)
-		datetime_UTC_end = datetime.utcfromtimestamp(end_time)
-		start_date = (str(datetime_UTC_start.date()))
-		start_time = (str(datetime_UTC_start.time()))
-		end_date = (str(datetime_UTC_end.date()))
-		end_time = (str(datetime_UTC_end.time()))
-		csv_entry = str(self.session_count) + "," + str(self.name) + "," + str(self.ID) + "," + str(trial_count) + "," + str(self.difficulty_dist_mm) + "," +
-		 			str(self.dominant_hand_dist_mm)  + "," + start_date + "," + start_time + "," + end_date + "," + end_time + "\n"
+		start_date = time.strftime("%d-%b-%Y", time.localtime(start_timestamp))
+		start_time = time.strftime("%H:%M:%S", time.localtime(start_timestamp))
+		end_date = time.strftime("%d-%b-%Y", time.localtime(end_timestamp))
+		end_time = time.strftime("%H:%M:%S", time.localtime(end_timestamp))
+		csv_entry = str(self.session_count) + "," + str(self.name) + "," + str(self.ID) + "," + str(trial_count) + "," + str(self.difficulty_dist_mm) + "," + str(self.dominant_hand_dist_mm)  + "," + start_date + "," + start_time + "," + end_date + "," + end_time + "\n"
 
 		with open(session_history, "a") as log:
 			log.write(csv_entry)
@@ -254,10 +251,10 @@ class SessionController(object):
 		servo_process.start()
 
 		# Send msg to StepperController to adjust x position according to profile.training_stage
-		x_msg = "POS" + int(profile.dominant_hand_dist_mm)
+		x_msg = "POS" + str(profile.dominant_hand_dist_mm)
 		self.stepper_controller_x.queue.put(x_msg)
 		# Send msg to StepperController to adjust y position according to profile.dominant_hand
-		y_msg = "POS" + int(profile.difficulty_dist_mm)
+		y_msg = "POS" + str(profile.difficulty_dist_mm)
 		self.stepper_controller_y.queue.put(y_msg)
 
 
@@ -265,7 +262,6 @@ class SessionController(object):
 		while self.IR_beam_breaker.getBeamState() == 0:
 
 			sleep(0.2)
-
 
 
 		# Once beam is reconnected. Send kill/pause sig to all session processes and wait for them to terminate/pause.
@@ -297,8 +293,8 @@ class SessionController(object):
 SERVO_PWM_BCM_PIN_NUMBER = 18
 # Stepper config
 PULSE_PINS_X = [7,11,13,15]
-PULSE_PINS_Y = [7,11,13,15]
-STEPS_MM_RATIO = 450
+PULSE_PINS_Y = [14,25,27,22]
+STEPS_MM_RATIO = 700
 # Camera config
 FOURCC = "*MJPG"
 CAMERA_INDEX = 0
@@ -307,9 +303,9 @@ CAMERA_RES = (640,480)
 # RFID config
 SERIAL_INTERFACE_PATH = "/dev/ttyUSB0"
 BAUDRATE = 9600
-RFID_PROXIMITY_BCM_PIN_NUMBER = 23
+RFID_PROXIMITY_BCM_PIN_NUMBER = 24
 # IR breaker config
-PHOTO_DIODE_BCM_PIN_NUMBER = 24
+PHOTO_DIODE_BCM_PIN_NUMBER = 23
 # ObjectDetector config
 PRIMARY_CASCADE = "../config/hopper_arm_pellet.xml"
 with open("../config/config.txt") as config:
@@ -319,7 +315,7 @@ with open("../config/config.txt") as config:
 	roi_h = int(config.readline())
 config.close()
 # AnimalProfile config
-PROFILE_SAVE_DIRECTORY = "/media/pi/GS 2TB/AnimalProfiles/"
+PROFILE_SAVE_DIRECTORY = "/home/pi/Desktop/AnimalProfiles/"
 
 
 
@@ -331,7 +327,7 @@ def main():
 #	profile1 = AnimalProfile("0782B18BBF", "43036_MOUSE2", 1, 1, 0, PROFILE_SAVE_DIRECTORY, True)
 #	profile2 = AnimalProfile("0782B194F0", "43036_MOUSE3", 1, 1, 0, PROFILE_SAVE_DIRECTORY, True)
 #	profile3 = AnimalProfile("0782B180C4", "43036_MOUSE4", 1, 1, 0, PROFILE_SAVE_DIRECTORY, True)
-#	profile4 = AnimalProfile("0782B18A1E", "Test Tag0", 1, 1, 0, PROFILE_SAVE_DIRECTORY, True)
+#	profile4 = AnimalProfile("0782B18783", "Test Tag0", 1, 1, 0, PROFILE_SAVE_DIRECTORY, True)
 #	profile5 = AnimalProfile("0782B189DD", "Test Tag1", 1, 1, 0, PROFILE_SAVE_DIRECTORY, True)
 #	profile6 = AnimalProfile("0782B19226", "Test Tag2", 1, 1, 0, PROFILE_SAVE_DIRECTORY, True)
 #	profile7 = AnimalProfile("0782B18783", "Test Tag3", 1, 1, 0, PROFILE_SAVE_DIRECTORY, True)

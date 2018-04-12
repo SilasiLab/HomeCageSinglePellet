@@ -69,7 +69,7 @@ class StepperController(object):
 			for halfstep in range(8):
 				for pin in range(4):
 					wiringpi.digitalWrite(self.stepper_pulse_pins[pin], pulses[halfstep][pin])
-				sleep(0.0007)
+				sleep(0.001)
 			steps_taken += 1
 
 			# Poll queue after every 8 halfsteps for interrupt msg.
@@ -83,7 +83,7 @@ class StepperController(object):
 		for pin in self.stepper_pulse_pins:
 			wiringpi.digitalWrite(pin,0)
 
-		return 0
+		return steps_taken
 
 	# This function calculates the number of steps required to move
 	# a stepper motor from it's current position to it's target position.
@@ -102,11 +102,13 @@ class StepperController(object):
 		travel_distance = self.calcPosUpdtDist()
 
 		if travel_distance >= 0:
-			steps_taken = self.moveStepper(True, travel_distance)
+			steps_taken = self.moveStepper(False, travel_distance)
 			self.stepper_distance_to_origin += steps_taken
+			print(self.stepper_distance_to_origin)
 		else:
-			steps_taken = self.moveStepper(False, travel_distance *-1)
+			steps_taken = self.moveStepper(True, travel_distance *-1)
 			self.stepper_distance_to_origin -= steps_taken
+			print(self.stepper_distance_to_origin)
 
 
 	# This function is used as an entry point when starting
@@ -121,7 +123,7 @@ class StepperController(object):
 	# 	pulses for the stepper control pins for the duration of the movement.
 
 	def initDaemon(self):
-
+		
 		while True:
 
 			if self.queue.empty():
@@ -134,12 +136,20 @@ class StepperController(object):
 				# The "POS" message expects a number immediately after POS representing the
 				# target distance (in mm) from the origin. E.G: POS3 would be 3mm from the origin.
 				if msg[0:3] == "POS":
+					
 					target_s = len(msg)
 					target = int(msg[3:target_s])
 					target = target * self.steps_mm_ratio
 					self.updateStepperPos(target)
-
+					
+				elif msg[0:3] == "POS":
+					
+					target_s = len(msg)
+					target = int(msg[3:target_s])
+					target = target * self.steps_mm_ratio
+					self.updateStepperPos(target)					
 
 				elif msg == "TERM":
+					
 					print("stepper_controller_daemon: TERM sig received")
 					return 0
