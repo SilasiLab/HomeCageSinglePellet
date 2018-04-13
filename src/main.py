@@ -60,11 +60,13 @@ def loadAnimalProfiles(profile_save_directory):
 		# Create AnimalProfile object using loaded data and put it in profile list
 		ID = profile_state[0]
 		name = profile_state[1]
-		difficulty_dist_mm = profile_state[2]
-		dominant_hand_dist_mm = profile_state[3]
-		session_count = profile_state[4]
-		animal_profile_directory = profile_state[5]
-		temp = AnimalProfile(ID, name, difficulty_dist_mm, dominant_hand_dist_mm, session_count, animal_profile_directory, False)
+		mouseNumber = profile_state[2]
+		cageNumber = profile_state[3]
+		difficulty_dist_mm = profile_state[4]
+		dominant_hand_dist_mm = profile_state[5]
+		session_count = profile_state[6]
+		animal_profile_directory = profile_state[7]
+		temp = AnimalProfile(ID, name, mouseNumber, cageNumber, difficulty_dist_mm, dominant_hand_dist_mm, session_count, animal_profile_directory, False)
 		profiles.append(temp)
 
 
@@ -84,6 +86,8 @@ class AnimalProfile(object):
     #    Attributes:
     #        ID: A unique identification number for the animal. In our case this number will be the RFID of the RF tag implanted in the animal.
     #        name: The name of the animal
+	#		 mouseNumber: The number of the animal in it's cage (0-5).
+	#		 cageNumber: The cage number of the animal.
     #        difficulty_dist_mm: An integer representing the distance from the tube to the presented pellet in mm.
     #        dominant_hand_dist_mm: An integer representing how far to either side the pellet will be presented in mm.
     #        session_count: The number of Sessions the animal has participated in. In our system, this is the number of times the animal has
@@ -95,10 +99,12 @@ class AnimalProfile(object):
 
 
 
-	def __init__(self, ID, name, difficulty_dist_mm, dominant_hand_dist_mm, session_count, profile_save_directory, is_new):
+	def __init__(self, ID, name, mouseNumber, cageNumber, difficulty_dist_mm, dominant_hand_dist_mm, session_count, profile_save_directory, is_new):
 
 		self.ID = str(ID)
 		self.name = str(name)
+		self.mouseNumber = str(mouseNumber)
+		self.cageNumber = str(cageNumber)
 		self.difficulty_dist_mm = int(difficulty_dist_mm)
 		self.dominant_hand_dist_mm = str(dominant_hand_dist_mm)
 		self.session_count = int(session_count)
@@ -134,6 +140,8 @@ class AnimalProfile(object):
 
 			save.write(str(self.ID) + "\n")
 			save.write(str(self.name) + "\n")
+			save.write(str(self.mouseNumber) + "\n")
+			save.write(str(self.cageNumber) + "\n")
 			save.write(str(self.difficulty_dist_mm) + "\n")
 			save.write(str(self.dominant_hand_dist_mm) + "\n")
 			save.write(str(self.session_count) + "\n")
@@ -324,15 +332,15 @@ PROFILE_SAVE_DIRECTORY = "/home/pi/Desktop/AnimalProfiles/"
 def main():
 
 # Uncomment these to generate new profiles
-#	profile0 = AnimalProfile("0782B190A4", "43036_MOUSE1", 1, 1, 0, PROFILE_SAVE_DIRECTORY, True)
-#	profile1 = AnimalProfile("0782B18BBF", "43036_MOUSE2", 1, 1, 0, PROFILE_SAVE_DIRECTORY, True)
-#	profile2 = AnimalProfile("0782B194F0", "43036_MOUSE3", 1, 1, 0, PROFILE_SAVE_DIRECTORY, True)
-#	profile3 = AnimalProfile("0782B180C4", "43036_MOUSE4", 1, 1, 0, PROFILE_SAVE_DIRECTORY, True)
-#	profile4 = AnimalProfile("0782B18783", "Test Tag0", 1, 1, 0, PROFILE_SAVE_DIRECTORY, True)
-#	profile5 = AnimalProfile("0782B189DD", "Test Tag1", 1, 1, 0, PROFILE_SAVE_DIRECTORY, True)
-#	profile6 = AnimalProfile("0782B19226", "Test Tag2", 1, 1, 0, PROFILE_SAVE_DIRECTORY, True)
-#	profile7 = AnimalProfile("0782B18783", "Test Tag3", 1, 1, 0, PROFILE_SAVE_DIRECTORY, True)
-#	profile8 = AnimalProfile("0782B1884C", "Test Tag4", 1, 1, 0, PROFILE_SAVE_DIRECTORY, True)
+#	profile0 = AnimalProfile("0782B190A4", "43036_MOUSE1", 1, 43036, 1, 1, 0, PROFILE_SAVE_DIRECTORY, True)
+#	profile1 = AnimalProfile("0782B18BBF", "43036_MOUSE2", 2, 43036, 1, 1, 0, PROFILE_SAVE_DIRECTORY, True)
+#	profile2 = AnimalProfile("0782B194F0", "43036_MOUSE3", 3, 43036, 1, 1, 0, PROFILE_SAVE_DIRECTORY, True)
+#	profile3 = AnimalProfile("0782B180C4", "43036_MOUSE4", 4, 43036, 1, 1, 0, PROFILE_SAVE_DIRECTORY, True)
+#	profile4 = AnimalProfile("0782B18783", "Test Tag0", 0, 43036, 1, 1, 0, PROFILE_SAVE_DIRECTORY, True)
+#	profile5 = AnimalProfile("0782B189DD", "Test Tag1", 0, 0, 1, 1, 0, PROFILE_SAVE_DIRECTORY, True)
+#	profile6 = AnimalProfile("0782B19226", "Test Tag2", 0, 0, 1, 1, 0, PROFILE_SAVE_DIRECTORY, True)
+#	profile7 = AnimalProfile("0782B18783", "Test Tag3", 0, 0, 1, 1, 0, PROFILE_SAVE_DIRECTORY, True)
+#	profile8 = AnimalProfile("0782B1884C", "Test Tag4", 0, 0, 1, 1, 0, PROFILE_SAVE_DIRECTORY, True)
 #	profile0.saveProfile()
 #	profile1.saveProfile()
 #	profile2.saveProfile()
