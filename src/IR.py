@@ -1,6 +1,5 @@
 import wiringpi
 
-
 class IRBeamBreaker(object):
 
 
@@ -21,7 +20,3 @@ class IRBeamBreaker(object):
     # the IR beam being broken or unbroken.
     def getBeamState(self):
         return wiringpi.digitalRead(self.photo_diode_input_pin)
-
-
-
-

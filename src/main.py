@@ -4,6 +4,7 @@ import RFID
 import IR
 import stepper
 import objectDetector
+import gui
 import time
 from time import sleep
 from datetime import datetime
@@ -59,11 +60,11 @@ def loadAnimalProfiles(profile_save_directory):
 		# Create AnimalProfile object using loaded data and put it in profile list
 		ID = profile_state[0]
 		name = profile_state[1]
-		training_stage = profile_state[2]
-		dominant_hand = profile_state[3]
+		difficulty_dist_mm = profile_state[2]
+		dominant_hand_dist_mm = profile_state[3]
 		session_count = profile_state[4]
 		animal_profile_directory = profile_state[5]
-		temp = AnimalProfile(ID, name, training_stage, dominant_hand, session_count, animal_profile_directory, False)
+		temp = AnimalProfile(ID, name, difficulty_dist_mm, dominant_hand_dist_mm, session_count, animal_profile_directory, False)
 		profiles.append(temp)
 
 
@@ -293,8 +294,8 @@ class SessionController(object):
 SERVO_PWM_BCM_PIN_NUMBER = 18
 # Stepper config
 PULSE_PINS_X = [7,11,13,15]
-PULSE_PINS_Y = [14,25,27,22]
-STEPS_MM_RATIO = 700
+PULSE_PINS_Y = [1,16,20,21]
+STEPS_MM_RATIO = 450
 # Camera config
 FOURCC = "*MJPG"
 CAMERA_INDEX = 0
@@ -356,7 +357,6 @@ def main():
 	session_controller = SessionController(profile_list, servo_1, stepper_controller_x, stepper_controller_y, camera_1, RFID_1, IR_1)
 
 
-
     # TODO: Servos and cameras should be controlled the same way as steppers are, shown below. Switch them to long lived
     #       processes that are controlled via message passing queues.
     #
@@ -368,6 +368,11 @@ def main():
 	jobs.append(stepper_y_process)
 	stepper_x_process.start()
 	stepper_y_process.start()
+
+	# Start GUI
+	gui_process = multiprocessing.Process(target=gui.start_gui_loop, args=(PROFILE_SAVE_DIRECTORY,))
+	jobs.append(gui_process)
+	gui_process.start()
 
     # Entry point of the system. This block waits for an RFID to enter the <SERIAL_INTERFACE_PATH> buffer.
     # Once it receives an RFID, it parses it and searches for a profile with a matching RFID. If a profile
