@@ -73,6 +73,31 @@ class GUI:
 			self.profileStates.append([x.strip() for x in profileState])
 			
 	
+	def save_animal_profile(self, profileIndex):
+		
+		with open(self.profileSaveFilePaths[profileIndex], 'w') as save:
+
+			save.write(str(self.profileStates[profileIndex][0]) + "\n")
+			save.write(str(self.profileStates[profileIndex][1]) + "\n")
+			save.write(str(self.profileStates[profileIndex][2]) + "\n")
+			save.write(str(self.profileStates[profileIndex][3]) + "\n")
+			save.write(str(self.profileStates[profileIndex][4]) + "\n")
+			save.write(str(self.profileStates[profileIndex][5]) + "\n")
+			save.write(str(self.profileStates[profileIndex][6]) + "\n")
+			save.write(str(self.profileStates[profileIndex][7]) + "\n")
+	
+	
+	# Search for correct profileState by <mouseNumber>
+	def find_profile_state_index(self, mouseNumber):
+		
+		for x in range(0,len(self.profileStates)):
+			
+			if mouseNumber == int(self.profileStates[x][2]):
+						
+				return x
+		
+		return -1
+		
 		
 	def select_mouse1_button_onClick(self):
 		
@@ -109,13 +134,21 @@ class GUI:
 		
 	def update_button_onClick(self):
 		
-		if self.currentMouse != 0:
+		if self.currentMouse > 0 and self.currentMouse <= 4:
 			
-			for profile in self.profileStates:
-				print(profile)
+			profileIndex = self.find_profile_state_index(self.currentMouse)
+			
+			if profileIndex == -1:
 				
-			self.update_label.config(text="Pellet presentation distance \n for Mouse " + str(self.currentMouse) + " has been updated to " + str(self.scale.get()) + "mm!")
-			
+				print("Error: Could not find profile for Mouse " + str(self.currentMouse))
+				return -1
+				
+			else:
+				
+				self.profileStates[profileIndex][4] = self.scale.get()
+				self.save_animal_profile(profileIndex)
+				self.update_label.config(text="Pellet presentation distance \n for Mouse " + str(self.profileStates[profileIndex][2]) + " has been updated to " + str(self.profileStates[profileIndex][4]) + "mm!")
+
 
 # Entry point of GUI initialization. This function is outside of the GUI class
 # so that it can be called by multiprocessing without having to construct a GUI 

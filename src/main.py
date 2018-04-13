@@ -210,10 +210,10 @@ class SessionController(object):
 
 		for profile in self.profile_list:
 
-		    if profile.ID == RFID:
-                        return profile
+			if profile.ID == RFID:
+				return profile
 
-                return -1
+		return -1
 
 
     # This function starts an experiment session for the animal identified in the supplied <profile>.
