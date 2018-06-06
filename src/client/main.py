@@ -15,16 +15,17 @@ FOURCC = "*XVID"
 CAMERA_INDEX = 0
 CAMERA_FPS = 30.0
 CAMERA_RES = (640,480)
+PTGREY_OUTPUT_FULL_PATH = "/home/julian/Desktop/HomeCageSinglePellet/AnimalProfiles/"
 # ObjectDetector config
-PRIMARY_CASCADE = "../config/hopper_arm_pellet.xml"
-with open("../config/config.txt") as config:
+PRIMARY_CASCADE = "../../config/hopper_arm_pellet.xml"
+with open("../../config/config.txt") as config:
 	roi_x = int(config.readline())
 	roi_y = int(config.readline())
 	roi_w = int(config.readline())
 	roi_h = int(config.readline())
 config.close()
 # AnimalProfile config
-PROFILE_SAVE_DIRECTORY = "../AnimalProfiles/"
+PROFILE_SAVE_DIRECTORY = "../../AnimalProfiles/"
 
 
 
@@ -242,7 +243,7 @@ class SessionController(object):
 		self.arduino_client.serialInterface.write(stepperMsg.encode())
 
 		# Start ptgrey process
-		p = Popen(['../../bin/SessionVideo', str("/home/julian/HomeCageSinglePelletPort/AnimalProfiles/") +str(profile.name) + str("/Videos/") + str(profile.session_count)], stdin=PIPE)
+		p = Popen(['../../bin/SessionVideo', PTGREY_OUTPUT_FULL_PATH +str(profile.name) + str("/Videos/") + str(profile.session_count)], stdin=PIPE)
 
 		# Fork process for camera recording
 		jobs = []

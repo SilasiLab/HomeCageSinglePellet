@@ -1,0 +1,24 @@
+
+1. Ubuntu v16.04 LTS: Kernel version 4.4.19-35 or later
+
+2. Python v3.5.2
+   - pySerial
+   - numpy v1.13.2
+   - OpenCV v3.4.1
+   - tkinter v8.6
+
+3. FLIR Spinnaker SDK v1.10.31
+   - libavcodec-ffmpeg56
+   - libavformat-ffmpeg56
+   - libswscale-ffmpeg3
+   - libswresample-ffmpeg1
+   - libavutil-ffmpeg54
+   - libgtkmm-2.4-dev
+   - libusb-1.0-0
+
+For the above Spinnaker dependencies in Ubuntu run:
+    sudo apt-get install libavcodec-ffmpeg56 libavformat-ffmpeg56 \
+    libswscale-ffmpeg3 libswresample-ffmpeg1 libavutil-ffmpeg54 libusb-1.0-0
+
+
+4. Arduino IDE v1.8.5
