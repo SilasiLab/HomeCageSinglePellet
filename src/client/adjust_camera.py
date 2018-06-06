@@ -11,6 +11,7 @@ while True:
         	break
 	elif cv2.waitKey(1) & 0xFF == ord('s'):
 
+		# TODO: cv2.selectROI not working on ubuntu with opencv 3.1??
 		r = cv2.selectROI(frame)
 		with open("../config/config.txt", 'w') as file:
 			file.write(str(r[0]) + "\n")

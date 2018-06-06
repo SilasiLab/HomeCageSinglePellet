@@ -11,7 +11,7 @@ class ObjectDetector(object):
         Each instance of this class is given a cascade.xml file. This file represents a cascade that has
         been trained to identify a particular object. This file is supplied to the image detection
         algorithm to describe to it what it is looking for. To change what you're trying to detect,
-        simply supply a new cascade.xml file. 
+        simply supply a new cascade.xml file.
     """
 
 
