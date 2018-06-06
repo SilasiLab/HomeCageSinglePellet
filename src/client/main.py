@@ -242,7 +242,7 @@ class SessionController(object):
 		self.arduino_client.serialInterface.write(stepperMsg.encode())
 
 		# Start ptgrey process
-		p = Popen(['/usr/src/spinnaker/bin/SessionVideo', str("/home/julian/HomeCageSinglePelletPort/AnimalProfiles/") +str(profile.name) + str("/Videos/") + str(profile.session_count)], stdin=PIPE)
+		p = Popen(['../../bin/SessionVideo', str("/home/julian/HomeCageSinglePelletPort/AnimalProfiles/") +str(profile.name) + str("/Videos/") + str(profile.session_count)], stdin=PIPE)
 
 		# Fork process for camera recording
 		jobs = []
