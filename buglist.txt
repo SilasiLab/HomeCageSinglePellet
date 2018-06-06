@@ -1,1 +1,0 @@
-1. At the start of each session, during ~ the first second of each video, the video seems to lag/cut out for half a second. It happens at ~the same time in each video. Best guess is when the servo process is being created is causes the camera process to lag a bit. Switching to long-lived processes with start/stop messages may fix this.
