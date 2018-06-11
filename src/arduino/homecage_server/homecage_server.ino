@@ -2,9 +2,9 @@
 #include "Servo2.h"
 
 
-//----------------------------------------------------------------
-const int servo1Pin = 11;
-const int servo2Pin = 10;
+// Config
+const int servo1Pin = 10;
+const int servo2Pin = 9;
 int servo1Pos = -1;
 int servo2Pos = -1;
 typedef enum {left,right} whichServo;
@@ -21,7 +21,6 @@ SoftwareSerial mySerial(8,5);
 String RFID_String = "";
 typedef enum {complete,wait,empty } RFID_Flag_t;
 RFID_Flag_t RFID_Flag = empty;
-
 
 int stepperDistFromOrigin = -1;
 double stepsToMmRatio = 450;
@@ -47,12 +46,12 @@ int zeroServos() {
 
   // Lower servo1
   servo.attach(servo1Pin);
-  for (int i = 180; i >= 55; i -= 1) {
+  for (int i = 5; i <= 100; i += 1) {
     servo.write(i);
     delay(5);
   }
   delay(50);
-  servo1Pos = 55;
+  servo1Pos = 100;
   servo.detach();
 
   // Lower servo2
@@ -76,37 +75,52 @@ int displayPellet(whichServo side) {
   int pos;
   
   if(side == left){
+    
     pin = servo1Pin;
     pos = servo1Pos;
+
+    // Lower arm to grab pellet.
+    servo.attach(pin);
+    for (int i = pos; i <= 100; i += 1) {
+      servo.write(i);
+      delay(5);
+      pos += 1;
+    }   
+
+    // Raise arm to display pellet
+    for (int i = pos; i >= 5; i -= 1) {
+      servo.write(i);
+      delay(5);
+      pos -= 1;
+    }
+
+    servo1Pos = pos;
+     
   }
   else if(side == right){
     pin = servo2Pin;
     pos = servo2Pos;
-  }
 
-  // Lower arm to grab pellet.
-  servo.attach(pin);
-  for (int i = pos; i >= 55; i -= 1) {
-    servo.write(i);
-    delay(5);
-    pos -= 1;
-  }   
+    // Lower arm to grab pellet.
+    servo.attach(pin);
+    for (int i = pos; i >= 55; i -= 1) {
+      servo.write(i);
+      delay(5);
+      pos -= 1;
+    }   
 
-  // Raise arm to display pellet
-  for (int i = pos; i <= 180; i += 1) {
-    servo.write(i);
-    delay(5);
-    pos += 1;
-  } 
-  servo.detach(); 
+    // Raise arm to display pellet
+    for (int i = pos; i <= 175; i += 1) {
+      servo.write(i);
+      delay(5);
+      pos += 1;
+    }
 
-  if(side == left){
-    servo1Pos = pos;
-  }
-  else if(side == right){
     servo2Pos = pos;
+    
   }
 
+  servo.detach(); 
   return 0;
 }
 
@@ -336,6 +350,9 @@ int startSession() {
 
 void loop() { 
 
+  displayPellet(left);
+  displayPellet(right);
+ delay(5000);
   
   // If IR beam is broken, enter RFID listening state. 
   if(!IRState) {

@@ -261,6 +261,7 @@ class SessionController(object):
 
 			# Check if camera has sent message to queue, if it has, and it's a GETPEL message,
 			# forward the GETPEL message to the server.
+			# TODO: This is terrible. rewrite it.
 			if main_process_queue.empty():
 				pass
 			else:
