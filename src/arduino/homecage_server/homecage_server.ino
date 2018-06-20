@@ -14,7 +14,7 @@ const int switchPin = 2;
 const int IRBreakerPin = 3;
 const int ptgreyGPIOSignalPin = A1;
 
-volatile byte switchState;
+volatile byte switchState = digitalRead(switchPin);
 volatile byte IRState;
 
 SoftwareSerial mySerial(8,5); 
@@ -46,7 +46,7 @@ int zeroServos() {
 
   // Lower servo1
   servo.attach(servo1Pin);
-  for (int i = 5; i <= 100; i += 1) {
+  for (int i = 30; i <= 120; i += 1) {
     servo.write(i);
     delay(5);
   }
@@ -56,7 +56,7 @@ int zeroServos() {
 
   // Lower servo2
   servo.attach(servo2Pin);
-  for (int i = 180; i >= 55; i -= 1) {
+  for (int i = 180; i >= 50; i -= 1) {
     servo.write(i);
     delay(5);
   }
@@ -81,14 +81,14 @@ int displayPellet(whichServo side) {
 
     // Lower arm to grab pellet.
     servo.attach(pin);
-    for (int i = pos; i <= 100; i += 1) {
+    for (int i = pos; i <= 120; i += 1) {
       servo.write(i);
       delay(5);
       pos += 1;
     }   
 
     // Raise arm to display pellet
-    for (int i = pos; i >= 5; i -= 1) {
+    for (int i = pos; i >= 0; i -= 1) {
       servo.write(i);
       delay(5);
       pos -= 1;
@@ -103,14 +103,14 @@ int displayPellet(whichServo side) {
 
     // Lower arm to grab pellet.
     servo.attach(pin);
-    for (int i = pos; i >= 55; i -= 1) {
+    for (int i = pos; i >= 50; i -= 1) {
       servo.write(i);
       delay(5);
       pos -= 1;
     }   
 
     // Raise arm to display pellet
-    for (int i = pos; i <= 175; i += 1) {
+    for (int i = pos; i <= 190; i += 1) {
       servo.write(i);
       delay(5);
       pos += 1;
@@ -129,7 +129,7 @@ int displayPellet(whichServo side) {
 int zeroStepper() {
 
   digitalWrite(A3, LOW);
-
+  delay(100);
   while(!switchState){
 
     digitalWrite(A4, HIGH);
@@ -305,7 +305,7 @@ int startSession() {
           
           switch(stepperDist){
             case('0'):
-              moveStepper(0);
+              zeroStepper();
               break;
             case('1'):
               moveStepper(stepsToMmRatio * 1);
@@ -336,6 +336,7 @@ int startSession() {
     
   }
 
+  zeroServos();
   // Flush serial buffer.
   while(Serial.read() >= 0) {
     continue;
@@ -349,10 +350,6 @@ int startSession() {
 
 
 void loop() { 
-
-  displayPellet(left);
-  displayPellet(right);
- delay(5000);
   
   // If IR beam is broken, enter RFID listening state. 
   if(!IRState) {

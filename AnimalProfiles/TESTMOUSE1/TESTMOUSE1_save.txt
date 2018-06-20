@@ -2,7 +2,7 @@
 TESTMOUSE1
 1
 99999
-5
+3
 LEFT
-57
+40
 ../../AnimalProfiles/TESTMOUSE1/

@@ -4,5 +4,5 @@
 43036
 0
 RIGHT
-50
+37
 ../../AnimalProfiles/43036_MOUSE2/

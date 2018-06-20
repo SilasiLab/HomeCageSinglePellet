@@ -241,6 +241,7 @@ class SessionController(object):
 		self.arduino_client.serialInterface.write(b'3')
 		stepperMsg = str(profile.difficulty_dist_mm)
 		self.arduino_client.serialInterface.write(stepperMsg.encode())
+		sleep(1)
 
 		# Start ptgrey process
 		p = Popen(['../../bin/SessionVideo', PTGREY_OUTPUT_FULL_PATH +str(profile.name) + str("/Videos/") + str(profile.session_count)], stdin=PIPE)
@@ -307,8 +308,8 @@ class SessionController(object):
 def main():
 
 # Uncomment these to generate new profiles
-#	profile0 = AnimalProfile("00782B192268", "TESTMOUSE1", 1, 99999, 1, "LEFT", 0, PROFILE_SAVE_DIRECTORY, True)
-#	profile1 = AnimalProfile("00782B1884CF", "43036_MOUSE2", 2, 43036, 0, "RIGHT", 0, PROFILE_SAVE_DIRECTORY, True)
+#	profile0 = AnimalProfile("00782B192268", "TESTMOUSE1", 1, 99999, 3, "LEFT", 0, PROFILE_SAVE_DIRECTORY, True)
+#	profile1 = AnimalProfile("00782B1884CF", "43036_MOUSE2", 2, 43036, 1, "RIGHT", 0, PROFILE_SAVE_DIRECTORY, True)
 #	profile2 = AnimalProfile("0782B194F0", "43036_MOUSE3", 3, 43036, 1, 1, 0, PROFILE_SAVE_DIRECTORY, True)
 #	profile3 = AnimalProfile("0782B180C4", "43036_MOUSE4", 4, 43036, 1, 1, 0, PROFILE_SAVE_DIRECTORY, True)
 #	profile4 = AnimalProfile("0782B18783", "Test Tag0", 0, 43036, 1, 1, 0, PROFILE_SAVE_DIRECTORY, True)

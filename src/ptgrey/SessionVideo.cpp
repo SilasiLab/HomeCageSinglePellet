@@ -250,10 +250,12 @@ int result = 0;
 
 cout << endl << "*** IMAGE ACQUISITION ***" << endl << endl;
 
-pCam->Height.SetValue(480);
-pCam->Width.SetValue(640);
+pCam->Height.SetValue(720);
+pCam->Width.SetValue(600);
+pCam->OffsetX.SetValue(320);
+pCam->OffsetY.SetValue(100);
 pCam->AcquisitionFrameRateEnable.SetValue(true);
-pCam->AcquisitionFrameRate.SetValue(float(150.00));
+pCam->AcquisitionFrameRate.SetValue(float(135.00));
 
 CEnumerationPtr exposureAuto = nodeMap.GetNode("ExposureAuto");
 exposureAuto->SetIntValue(exposureAuto->GetEntryByName("Off")->GetValue());
