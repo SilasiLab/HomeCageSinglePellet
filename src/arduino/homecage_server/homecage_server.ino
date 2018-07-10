@@ -23,7 +23,7 @@ typedef enum {complete,wait,empty } RFID_Flag_t;
 RFID_Flag_t RFID_Flag = empty;
 
 int stepperDistFromOrigin = -1;
-double stepsToMmRatio = 450;
+double stepsToMmRatio = 420;
 
 
 // Hardware interrupt handler for switch pin
@@ -36,7 +36,6 @@ void handleSwitchChange() {
 void handleIRChange() {
 
   IRState = digitalRead(IRBreakerPin);
-  digitalWrite(ledPin,IRState);
 }
 
 
@@ -247,11 +246,13 @@ void listenForRFID() {
 
 bool authRFID() {
 
+  digitalWrite(ledPin,LOW);  
+
   Serial.print(RFID_String);
   
   char authByte;
   
-  while(!IRState) {
+  while(true) {
 
     if(Serial.available() > 0) {
       
@@ -259,26 +260,22 @@ bool authRFID() {
     }
     
     if(authByte == 'A') {
-      
+
       return true;
     }
-    else if (authByte == 'B' ) {
-      
+    else if (authByte == 'Y' ) {
+      digitalWrite(ledPin,HIGH);
       return false;
     }
 
   }
-
-
-  return false;
 }
 
 
 
 int startSession() {
 
-
-  while(!IRState) {
+  while(!digitalRead(IRBreakerPin)) {
 
     char cmd;
     char stepperDist;
@@ -336,14 +333,17 @@ int startSession() {
     
   }
 
+
+  char termCmd;
+  // Send session end message.
+  Serial.write("TERM\n");
+
   zeroServos();
   // Flush serial buffer.
   while(Serial.read() >= 0) {
     continue;
   }
 
-  // Send session end message.
-  Serial.write("TERM\n");
   return 0;
 }
 
@@ -352,14 +352,14 @@ int startSession() {
 void loop() { 
   
   // If IR beam is broken, enter RFID listening state. 
-  if(!IRState) {
+  if(!digitalRead(IRBreakerPin)) {
 
       // Flush RFID serial buffer...serial.flush() not working...
       while(mySerial.read() >= 0) {
         continue;
       }
       
-      while(RFID_Flag != complete && !IRState) {
+      while(RFID_Flag != complete && !digitalRead(IRBreakerPin)) {
          listenForRFID();     
       }
 

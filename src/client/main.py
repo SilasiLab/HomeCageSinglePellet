@@ -15,7 +15,7 @@ FOURCC = "*XVID"
 CAMERA_INDEX = 0
 CAMERA_FPS = 30.0
 CAMERA_RES = (640,480)
-PTGREY_OUTPUT_FULL_PATH = "/home/julian/Desktop/HomeCageSinglePellet/AnimalProfiles/"
+PTGREY_OUTPUT_FULL_PATH = "/media/silasi/GS 2TB/HomeCageSinglePellet/AnimalProfiles/"
 # ObjectDetector config
 PRIMARY_CASCADE = "../../config/hopper_arm_pellet.xml"
 with open("../../config/config.txt") as config:
@@ -25,7 +25,7 @@ with open("../../config/config.txt") as config:
 	roi_h = int(config.readline())
 config.close()
 # AnimalProfile config
-PROFILE_SAVE_DIRECTORY = "../../AnimalProfiles/"
+PROFILE_SAVE_DIRECTORY = "/media/silasi/GS 2TB/HomeCageSinglePellet/AnimalProfiles/"
 
 
 
@@ -226,7 +226,7 @@ class SessionController(object):
     # with those processes before concluding the session.
 	#TODO: This function is really bloated. Should be broken into 4-5 smaller functions.
 	def startSession(self, profile):
-
+	
 
 		session_start_msg = "-------------------------------------------\n" + "Starting session for " + profile.name
 		print(session_start_msg)
@@ -254,36 +254,54 @@ class SessionController(object):
 		jobs.append(camera_process)
 		camera_process.start()
 
+		
 
 		# Main session loop. Runs until it receives TERM sig from server. Polls
 		# the camera queue for GETPEL messages and forwards to server if it receives one.
-		#
+		if profile.dominant_hand == "LEFT":
+			self.arduino_client.serialInterface.write(b'1')
+		elif profile.dominant_hand == "RIGHT":
+			self.arduino_client.serialInterface.write(b'2')
+
+		trial_count = 1
+		now = time.time()
+
 		while True:
 
-			# Check if camera has sent message to queue, if it has, and it's a GETPEL message,
-			# forward the GETPEL message to the server.
-			# TODO: This is terrible. rewrite it.
-			if main_process_queue.empty():
-				pass
-			else:
-				camera_process_msg = main_process_queue.get()
-				if camera_process_msg == "GETPEL":
-					if profile.dominant_hand == "LEFT":
-						self.arduino_client.serialInterface.write(b'1')
-					elif profile.dominant_hand == "RIGHT":
-						self.arduino_client.serialInterface.write(b'2')
+			if(time.time() - now > 7):
+				if profile.dominant_hand == "LEFT":
+					self.arduino_client.serialInterface.write(b'1')
+				elif profile.dominant_hand == "RIGHT":
+					self.arduino_client.serialInterface.write(b'2')
+				now = time.time()
+				trial_count += 1
 
 			# Check if message has arrived from server, if it has, check if it is a TERM message.
 			if self.arduino_client.serialInterface.in_waiting > 0:
 				serial_msg = self.arduino_client.serialInterface.readline().rstrip().decode()
 				if serial_msg == "TERM":
-					break
-
-
+					
+					with open('LOG.txt', 'a')as log:
+						now = time.time()
+						now = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime(now))
+						logmsg = "Received TERM from arduino at: " + now + "\n"
+						log.write(logmsg) 
+						break
+			
 		camera_process_queue.put("TERM")
 		open('KILL', 'a').close()
+		with open('LOG.txt', 'a')as log:
+			now = time.time()
+			now = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime(now))
+			logmsg = "Sent TERM to ptgrey at: " + now + "\n"
+			log.write(logmsg) 
 		camera_process.join()
 		p.wait()
+		with open('LOG.txt', 'a')as log:
+			now = time.time()
+			now = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime(now))
+			logmsg = "ptgrey process returned at: " + now + "\n"
+			log.write(logmsg) 
 		os.remove("KILL")
 
 
@@ -291,7 +309,6 @@ class SessionController(object):
 		session_end_time = time.time()
 		human_readable_end_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime(session_end_time))
 		print("End Time: {}".format(human_readable_end_time))
-		trial_count = main_process_queue.get()
 		profile.insertSessionEntry(session_start_time, session_end_time, trial_count)
 		profile.saveProfile()
 		session_end_msg = profile.name + "'s session has completed\n-------------------------------------------\n"
@@ -308,11 +325,11 @@ class SessionController(object):
 def main():
 
 # Uncomment these to generate new profiles
-#	profile0 = AnimalProfile("00782B192268", "TESTMOUSE1", 1, 99999, 3, "LEFT", 0, PROFILE_SAVE_DIRECTORY, True)
-#	profile1 = AnimalProfile("00782B1884CF", "43036_MOUSE2", 2, 43036, 1, "RIGHT", 0, PROFILE_SAVE_DIRECTORY, True)
-#	profile2 = AnimalProfile("0782B194F0", "43036_MOUSE3", 3, 43036, 1, 1, 0, PROFILE_SAVE_DIRECTORY, True)
-#	profile3 = AnimalProfile("0782B180C4", "43036_MOUSE4", 4, 43036, 1, 1, 0, PROFILE_SAVE_DIRECTORY, True)
-#	profile4 = AnimalProfile("0782B18783", "Test Tag0", 0, 43036, 1, 1, 0, PROFILE_SAVE_DIRECTORY, True)
+#	profile0 = AnimalProfile("00782B191B51", "45567_MOUSE2", 2, 45567, 1, "LEFT", 0, PROFILE_SAVE_DIRECTORY, True)
+#	profile1 = AnimalProfile("00782B19BCF6", "45567_MOUSE3", 3, 45567, 1, "LEFT", 0, PROFILE_SAVE_DIRECTORY, True)
+#	profile2 = AnimalProfile("00782B1797D3", "45567_MOUSE4", 4, 45567, 1, "LEFT", 0, PROFILE_SAVE_DIRECTORY, True)
+#	profile3 = AnimalProfile("002FBE71E909", "TEST_TAG2", 8, 45567, 2, "LEFT", 0, PROFILE_SAVE_DIRECTORY, True)
+#	profile4 = AnimalProfile("00782B187833", "Test_Tag0", 0, 45567, 1, 1, 0, PROFILE_SAVE_DIRECTORY, True)
 #	profile5 = AnimalProfile("0782B189DD", "Test Tag1", 0, 0, 1, 1, 0, PROFILE_SAVE_DIRECTORY, True)
 #	profile6 = AnimalProfile("0782B19226", "Test Tag2", 0, 0, 1, 1, 0, PROFILE_SAVE_DIRECTORY, True)
 #	profile7 = AnimalProfile("0782B18783", "Test Tag3", 0, 0, 1, 1, 0, PROFILE_SAVE_DIRECTORY, True)
@@ -359,9 +376,10 @@ def main():
 		if profile != -1:
 			arduino_client.serialInterface.write(b'A')
 			session_controller.startSession(profile)
+			arduino_client.serialInterface.flush()
 
 		else:
-			arduino_client.serialInterface.write(b'B')
+			arduino_client.serialInterface.write(b'Y')
 			unrecognized_id_msg = RFID_code + " not recognized. Aborting session.\n\n"
 			print(unrecognized_id_msg)
 

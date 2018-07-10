@@ -250,10 +250,10 @@ int result = 0;
 
 cout << endl << "*** IMAGE ACQUISITION ***" << endl << endl;
 
-pCam->Height.SetValue(720);
-pCam->Width.SetValue(600);
-pCam->OffsetX.SetValue(320);
-pCam->OffsetY.SetValue(100);
+pCam->Height.SetValue(400);
+pCam->Width.SetValue(1000);
+pCam->OffsetX.SetValue(200);
+pCam->OffsetY.SetValue(350);
 pCam->AcquisitionFrameRateEnable.SetValue(true);
 pCam->AcquisitionFrameRate.SetValue(float(135.00));
 
