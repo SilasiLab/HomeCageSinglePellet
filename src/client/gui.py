@@ -87,6 +87,7 @@ class GUI:
 			save.write(str(self.profileStates[profileIndex][7]) + "\n")
 
 
+
 	# Search for correct profileState by <mouseNumber>
 	def find_profile_state_index(self, mouseNumber):
 
