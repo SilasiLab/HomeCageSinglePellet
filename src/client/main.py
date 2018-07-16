@@ -202,6 +202,9 @@ class SessionController(object):
 		self.arduino_client = arduino_client
 
 
+	def set_profile_list(profileList):
+
+		self.profile_list = profileList
 
 
 	# This function searches the SessionController's profile_list for a profile whose ID
@@ -226,7 +229,7 @@ class SessionController(object):
     # with those processes before concluding the session.
 	#TODO: This function is really bloated. Should be broken into 4-5 smaller functions.
 	def startSession(self, profile):
-	
+
 
 		session_start_msg = "-------------------------------------------\n" + "Starting session for " + profile.name
 		print(session_start_msg)
@@ -254,7 +257,7 @@ class SessionController(object):
 		jobs.append(camera_process)
 		camera_process.start()
 
-		
+
 
 		# Main session loop. Runs until it receives TERM sig from server. Polls
 		# the camera queue for GETPEL messages and forwards to server if it receives one.
@@ -280,28 +283,28 @@ class SessionController(object):
 			if self.arduino_client.serialInterface.in_waiting > 0:
 				serial_msg = self.arduino_client.serialInterface.readline().rstrip().decode()
 				if serial_msg == "TERM":
-					
+
 					with open('LOG.txt', 'a')as log:
 						now = time.time()
 						now = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime(now))
 						logmsg = "Received TERM from arduino at: " + now + "\n"
-						log.write(logmsg) 
+						log.write(logmsg)
 						break
-			
+
 		camera_process_queue.put("TERM")
 		open('KILL', 'a').close()
 		with open('LOG.txt', 'a')as log:
 			now = time.time()
 			now = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime(now))
 			logmsg = "Sent TERM to ptgrey at: " + now + "\n"
-			log.write(logmsg) 
+			log.write(logmsg)
 		camera_process.join()
 		p.wait()
 		with open('LOG.txt', 'a')as log:
 			now = time.time()
 			now = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime(now))
 			logmsg = "ptgrey process returned at: " + now + "\n"
-			log.write(logmsg) 
+			log.write(logmsg)
 		os.remove("KILL")
 
 
@@ -377,6 +380,10 @@ def main():
 			arduino_client.serialInterface.write(b'A')
 			session_controller.startSession(profile)
 			arduino_client.serialInterface.flush()
+
+			# Reload profileList after each session in case any of the profiles were updated
+			# since the last load.
+			session_controller.set_profile_list(loadAnimalProfiles(PROFILE_SAVE_DIRECTORY))
 
 		else:
 			arduino_client.serialInterface.write(b'Y')
