@@ -1,4 +1,3 @@
-import camera
 import objectDetector
 import gui
 import arduinoClient
@@ -11,10 +10,6 @@ import os
 
 
 # Camera config
-FOURCC = "*XVID"
-CAMERA_INDEX = 0
-CAMERA_FPS = 30.0
-CAMERA_RES = (640,480)
 PTGREY_OUTPUT_FULL_PATH = "/media/silasi/GS 2TB/HomeCageSinglePellet/AnimalProfiles/"
 # ObjectDetector config
 PRIMARY_CASCADE = "../../config/hopper_arm_pellet.xml"
@@ -195,14 +190,13 @@ class SessionController(object):
 			camera: An object that controls a camera.
 	"""
 
-	def __init__(self, profile_list, camera, arduino_client):
+	def __init__(self, profile_list, arduino_client):
 
 		self.profile_list = profile_list
-		self.camera = camera
 		self.arduino_client = arduino_client
 
 
-	def set_profile_list(profileList):
+	def set_profile_list(self, profileList):
 
 		self.profile_list = profileList
 
@@ -249,13 +243,9 @@ class SessionController(object):
 		# Start ptgrey process
 		p = Popen(['../../bin/SessionVideo', PTGREY_OUTPUT_FULL_PATH +str(profile.name) + str("/Videos/") + str(profile.session_count)], stdin=PIPE)
 
-		# Fork process for camera recording
-		jobs = []
-		camera_process_queue = multiprocessing.Queue()
-		main_process_queue = multiprocessing.Queue()
-		camera_process = multiprocessing.Process(target=self.camera.captureVideo, args=(video_output_path, camera_process_queue, main_process_queue))
-		jobs.append(camera_process)
-		camera_process.start()
+
+		#camera_process = multiprocessing.Process(target=self.camera.captureVideo, args=(video_output_path, camera_process_queue, main_process_queue))
+
 
 
 
@@ -283,30 +273,12 @@ class SessionController(object):
 			if self.arduino_client.serialInterface.in_waiting > 0:
 				serial_msg = self.arduino_client.serialInterface.readline().rstrip().decode()
 				if serial_msg == "TERM":
-
-					with open('LOG.txt', 'a')as log:
-						now = time.time()
-						now = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime(now))
-						logmsg = "Received TERM from arduino at: " + now + "\n"
-						log.write(logmsg)
 						break
 
-		camera_process_queue.put("TERM")
-		open('KILL', 'a').close()
-		with open('LOG.txt', 'a')as log:
-			now = time.time()
-			now = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime(now))
-			logmsg = "Sent TERM to ptgrey at: " + now + "\n"
-			log.write(logmsg)
-		camera_process.join()
-		p.wait()
-		with open('LOG.txt', 'a')as log:
-			now = time.time()
-			now = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime(now))
-			logmsg = "ptgrey process returned at: " + now + "\n"
-			log.write(logmsg)
-		os.remove("KILL")
 
+		open('KILL', 'a').close()
+		p.wait()
+		os.remove("KILL")
 
 		# Log session information.
 		session_end_time = time.time()
@@ -352,10 +324,8 @@ def main():
     # Initialize every system component
 	profile_list = loadAnimalProfiles(PROFILE_SAVE_DIRECTORY)
 	obj_detector_1 = objectDetector.ObjectDetector(PRIMARY_CASCADE, roi_x, roi_y, roi_w, roi_h)
-	camera_1 = camera.Camera(FOURCC, CAMERA_INDEX, CAMERA_FPS, CAMERA_RES, obj_detector_1)
 	arduino_client = arduinoClient.client("/dev/ttyUSB0", 9600)
-	session_controller = SessionController(profile_list, camera_1, arduino_client)
-
+	session_controller = SessionController(profile_list, arduino_client)
 
 	# Start GUI
 	jobs = []
