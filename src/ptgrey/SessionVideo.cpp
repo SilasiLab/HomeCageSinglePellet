@@ -8,10 +8,26 @@
 #include "AVIRecorder.h"
 #include <pthread.h>
 
+#include<iostream>
+#include<opencv2/highgui.hpp>
+#include<opencv2/core.hpp>
+#include<stdlib.h>
+#include<chrono>
+
+
 using namespace Spinnaker;
 using namespace Spinnaker::GenApi;
 using namespace Spinnaker::GenICam;
 using namespace std;
+using namespace cv;
+
+// Number of nanoseconds in a second (Used for FPS calculation)
+const int ns_per_second = 1000000000;
+// Dimmensions of image being received
+const int cols = 1000;
+const int rows = 400;
+// Toggle this to turn stream on and off
+bool streaming = true;
 
 
 enum aviType
@@ -388,6 +404,7 @@ try
 
 
 	string pythonMsg;
+  namedWindow("PtGrey Live Feed", WINDOW_AUTOSIZE);
 
 	while(pythonMsg != "TERM")
 	{
@@ -408,6 +425,11 @@ try
 			}
 			else
 			{
+
+				void* img_ptr = pResultImage->GetData();
+				Mat img(rows, cols, CV_8UC1, img_ptr);
+				imshow("PtGrey Live Feed", img);
+		    waitKey(1);
 				aviRecorder.AVIAppend(pResultImage);
 				pResultImage->Release();
 			}
@@ -470,7 +492,7 @@ int main(int argc, char** argv) {
 	// Retrieve TL device nodemap for each camera
 	INodeMap & nodeMapTLDevice = camList.GetByIndex(0)->GetTLDeviceNodeMap();
 	// Configure Trigger for each camera
-	ConfigureTrigger(nodeMap);
+	//ConfigureTrigger(nodeMap);
 	// Begin acquisition
 	AcquireImages(camList.GetByIndex(0), nodeMap, nodeMapTLDevice, argv[1]);
 

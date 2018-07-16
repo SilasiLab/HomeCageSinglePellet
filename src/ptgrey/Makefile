@@ -21,6 +21,7 @@ OUTDIR = ../../bin
 
 ################################################################################
 # Dependencies
+OPENCV_LIB = -L/usr/local/lib -lopencv_highgui -lopencv_core
 ################################################################################
 # Spinnaker deps
 SPINNAKER_LIB = -L../../lib -lSpinnaker${D} ${SPIN_DEPS}
@@ -30,9 +31,10 @@ SPINNAKER_LIB = -L../../lib -lSpinnaker${D} ${SPIN_DEPS}
 ################################################################################
 _OBJ = SessionVideo.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
-INC = -I../../include -I/usr/include/spinnaker
+INC = -I../../include -I/usr/include/spinnaker -I/usr/local/include/opencv
 LIB += -Wl,-Bdynamic ${SPINNAKER_LIB}
-LIB += -Wl,-rpath-link=../../lib 
+LIB += -Wl,-rpath-link=../../lib
+LIB += ${OPENCV_LIB}
 
 ################################################################################
 # Rules/recipes
