@@ -60,10 +60,15 @@ for path in modelH5OutputFilePaths:
     #                yc = int(Dataframe[scorer][bp]['y'].values[index])
 
 
+def packageEvent(dataframe, frameIndexes):
+    print("packaging event")
+
 def extractEatingEvents(dataframe):
 
-    contiguous = False
-    contiguousCount = 0
+    eventStarted = False
+    contiguousPositiveCount = 0
+    contiguousNegativeCount = 0
+    tempEventFrameRange = []
 
     for row in range(0,len(dataframe.index)):
         bl = dataframe[modelNames[0]]['bottom']['likelihood'].values[row]
@@ -71,10 +76,33 @@ def extractEatingEvents(dataframe):
         tl = dataframe[modelNames[0]]['top']['likelihood'].values[row]
         nl = dataframe[modelNames[0]]['nose']['likelihood'].values[row]
 
-        if(bl*ml*tl*nl > likelihoodCutoffs[0]):
+        if(eventStarted):
+            if(bl*ml*tl*nl < likelihoodCutoffs[0]):
+                contiguousNegativeCount += 1
+            else:
+                contiguousNegativeCount = 0
 
-            print("frame#=" + str(row))
-            print(str(bl) + "|" + str(ml) + "|" + str(tl) + "|" + str(nl))
+            tempEventFrameRange.append(row)
+            if(contiguousNegativeCount >= 5):
+                contiguousPositiveCount = 0
+                contiguousNegativeCount = 0
+                packageEvent(dataframe, tempEventFrameRange)
+                tempEventFrameRange = []
+                eventStarted = False
+
+            continue
+            
+        if(bl*ml*tl*nl >= likelihoodCutoffs[0]):
+
+            contiguousPositiveCount += 1
+            tempEventFrameRange.append(row)
+        else:
+            contiguousPositiveCount = 0
+            tempEventFrameRange = []
+
+        if(contiguousPositiveCount >= 5):
+            eventStarted = True
+
 
 def extractLickingPoseEvents(dataframe):
     return 0
