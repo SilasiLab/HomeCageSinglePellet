@@ -2,4 +2,5 @@
 *.avi
 *.swp
 *.pyc
-*./AnimalProfiles/
+*./AnimalProfiles/*
+
