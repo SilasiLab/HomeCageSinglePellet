@@ -107,7 +107,7 @@ def extractEvents(index, bodyparts):
             row += 1
             continue
 
-        if(confidence >= likelihoodCutoffs[0]):
+        if(confidence >= likelihoodCutoffs[index]):
 
             contiguousPositiveCount += 1
             tempEventFrameRange.append(row)

@@ -1,0 +1,8 @@
+00782B192268
+Test_left
+6
+45567
+1
+LEFT
+7
+../../AnimalProfiles/Test_left/

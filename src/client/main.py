@@ -10,7 +10,7 @@ import os
 
 
 # Camera config
-PTGREY_OUTPUT_FULL_PATH = "/media/silasi/GS 2TB/HomeCageSinglePellet/AnimalProfiles/"
+PTGREY_OUTPUT_FULL_PATH = "../../AnimalProfiles/"
 # ObjectDetector config
 PRIMARY_CASCADE = "../../config/hopper_arm_pellet.xml"
 with open("../../config/config.txt") as config:
@@ -20,7 +20,7 @@ with open("../../config/config.txt") as config:
 	roi_h = int(config.readline())
 config.close()
 # AnimalProfile config
-PROFILE_SAVE_DIRECTORY = "/media/silasi/GS 2TB/HomeCageSinglePellet/AnimalProfiles/"
+PROFILE_SAVE_DIRECTORY = "../../AnimalProfiles/"
 
 
 
@@ -307,8 +307,8 @@ def main():
 #	profile4 = AnimalProfile("00782B187833", "Test_Tag0", 0, 45567, 1, 1, 0, PROFILE_SAVE_DIRECTORY, True)
 #	profile5 = AnimalProfile("0782B189DD", "Test Tag1", 0, 0, 1, 1, 0, PROFILE_SAVE_DIRECTORY, True)
 #	profile6 = AnimalProfile("0782B19226", "Test Tag2", 0, 0, 1, 1, 0, PROFILE_SAVE_DIRECTORY, True)
-#	profile7 = AnimalProfile("0782B18783", "Test Tag3", 0, 0, 1, 1, 0, PROFILE_SAVE_DIRECTORY, True)
-#	profile8 = AnimalProfile("0782B1884C", "Test Tag4", 0, 0, 1, 1, 0, PROFILE_SAVE_DIRECTORY, True)
+#	profile7 = AnimalProfile("00782B192268", "Test_left", 6, 45567, 1, "LEFT", 0, PROFILE_SAVE_DIRECTORY, True)
+#	profile8 = AnimalProfile("00782B1884CF", "Test_right", 7, 45567, 1, "RIGHT", 0, PROFILE_SAVE_DIRECTORY, True)
 #	profile0.saveProfile()
 #	profile1.saveProfile()
 #	profile2.saveProfile()

@@ -7,6 +7,15 @@ const int servo1Pin = 10;
 const int servo2Pin = 9;
 int servo1Pos = -1;
 int servo2Pos = -1;
+// Higher numbers make the arm go higher
+int SERVO1_UP_POS = 154;
+// Low numbers make the arm go lower
+int SERVO1_DOWN_POS = 60;
+// Lower numbers make the arm go higher
+int SERVO2_UP_POS = 68;
+// High numbers make the arm go lower
+int SERVO2_DOWN_POS = 170;
+int SERVO_PULSE_DELAY = 15;
 typedef enum {left,right} whichServo;
 
 const int ledPin = 13;
@@ -35,7 +44,9 @@ void handleSwitchChange() {
 // Hardware interrupt handler for IR breaker pin 
 void handleIRChange() {
 
-  IRState = digitalRead(IRBreakerPin);
+  IRState = digitalRead(IRBreakerPin);  
+  digitalWrite(ledPin, IRState);
+
 }
 
 
@@ -45,22 +56,22 @@ int zeroServos() {
 
   // Lower servo1
   servo.attach(servo1Pin);
-  for (int i = 30; i <= 120; i += 1) {
+  for (int i = SERVO1_UP_POS; i >= SERVO1_DOWN_POS; i -= 1) {
     servo.write(i);
     delay(5);
   }
   delay(50);
-  servo1Pos = 100;
+  servo1Pos = SERVO1_DOWN_POS;
   servo.detach();
 
   // Lower servo2
   servo.attach(servo2Pin);
-  for (int i = 180; i >= 50; i -= 1) {
+  for (int i = SERVO2_UP_POS; i <= SERVO2_DOWN_POS; i += 1) {
     servo.write(i);
     delay(5);
   }
   delay(50);
-  servo2Pos = 55;
+  servo2Pos = SERVO2_DOWN_POS;
   servo.detach();
 
    
@@ -80,17 +91,17 @@ int displayPellet(whichServo side) {
 
     // Lower arm to grab pellet.
     servo.attach(pin);
-    for (int i = pos; i <= 120; i += 1) {
+    for (int i = pos; i >= SERVO1_DOWN_POS; i -= 1) {
       servo.write(i);
-      delay(5);
-      pos += 1;
+      delay(SERVO_PULSE_DELAY);
+      pos -= 1;
     }   
 
     // Raise arm to display pellet
-    for (int i = pos; i >= 0; i -= 1) {
+    for (int i = pos; i <= SERVO1_UP_POS; i += 1) {
       servo.write(i);
-      delay(5);
-      pos -= 1;
+      delay(SERVO_PULSE_DELAY);
+      pos += 1;
     }
 
     servo1Pos = pos;
@@ -102,17 +113,17 @@ int displayPellet(whichServo side) {
 
     // Lower arm to grab pellet.
     servo.attach(pin);
-    for (int i = pos; i >= 50; i -= 1) {
+    for (int i = pos; i <= SERVO2_DOWN_POS; i += 1) {
       servo.write(i);
-      delay(5);
-      pos -= 1;
+      delay(SERVO_PULSE_DELAY);
+      pos += 1;
     }   
 
     // Raise arm to display pellet
-    for (int i = pos; i <= 190; i += 1) {
+    for (int i = pos; i >= SERVO2_UP_POS; i -= 1) {
       servo.write(i);
-      delay(5);
-      pos += 1;
+      delay(SERVO_PULSE_DELAY);
+      pos -= 1;
     }
 
     servo2Pos = pos;
@@ -208,10 +219,11 @@ void setup() {
   zeroServos();
   
   // Set switch read pin
-  pinMode(switchPin, INPUT);
+  pinMode(switchPin, INPUT_PULLUP);
   switchState = digitalRead(switchPin);
   attachInterrupt(digitalPinToInterrupt(switchPin), handleSwitchChange, CHANGE);
   zeroStepper();
+
   
   // Set IR breaker read pin
   pinMode(IRBreakerPin, INPUT_PULLUP);

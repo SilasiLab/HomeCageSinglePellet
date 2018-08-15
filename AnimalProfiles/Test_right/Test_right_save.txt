@@ -1,0 +1,8 @@
+00782B1884CF
+Test_right
+7
+45567
+1
+RIGHT
+22
+../../AnimalProfiles/Test_right/
