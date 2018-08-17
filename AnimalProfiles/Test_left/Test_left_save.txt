@@ -4,5 +4,5 @@ Test_left
 45567
 1
 LEFT
-7
+35
 ../../AnimalProfiles/Test_left/

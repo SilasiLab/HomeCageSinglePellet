@@ -4,5 +4,5 @@ Test_right
 45567
 1
 RIGHT
-22
+72
 ../../AnimalProfiles/Test_right/

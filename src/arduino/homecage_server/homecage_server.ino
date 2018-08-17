@@ -5,17 +5,19 @@
 // Config
 const int servo1Pin = 10;
 const int servo2Pin = 9;
-int servo1Pos = -1;
-int servo2Pos = -1;
+bool servo1_up_flag = false;
+bool servo2_up_flag = false;
 // Higher numbers make the arm go higher
-int SERVO1_UP_POS = 154;
+int SERVO1_UP_POS = 100;
 // Low numbers make the arm go lower
-int SERVO1_DOWN_POS = 60;
+int SERVO1_DOWN_POS = 39;
 // Lower numbers make the arm go higher
-int SERVO2_UP_POS = 68;
+int SERVO2_UP_POS = 65;
 // High numbers make the arm go lower
-int SERVO2_DOWN_POS = 170;
+int SERVO2_DOWN_POS = 142;
 int SERVO_PULSE_DELAY = 15;
+int servo1Pos = SERVO1_DOWN_POS;
+int servo2Pos = SERVO2_DOWN_POS;
 typedef enum {left,right} whichServo;
 
 const int ledPin = 13;
@@ -53,81 +55,108 @@ void handleIRChange() {
 int zeroServos() {
 
   Servo servo;
-
+    
   // Lower servo1
   servo.attach(servo1Pin);
-  for (int i = SERVO1_UP_POS; i >= SERVO1_DOWN_POS; i -= 1) {
-    servo.write(i);
-    delay(5);
-  }
-  delay(50);
-  servo1Pos = SERVO1_DOWN_POS;
+  for (int i = servo1Pos; i >= SERVO1_DOWN_POS; i -= 1) {
+      servo.write(i);
+      delay(SERVO_PULSE_DELAY);
+    }   
+  delay(400);
+  servo1Pos = SERVO1_DOWN_POS;;
   servo.detach();
+
+
 
   // Lower servo2
   servo.attach(servo2Pin);
-  for (int i = SERVO2_UP_POS; i <= SERVO2_DOWN_POS; i += 1) {
-    servo.write(i);
-    delay(5);
-  }
-  delay(50);
+  for (int i = servo2Pos; i <= SERVO2_DOWN_POS; i += 1) {
+      servo.write(i);
+      delay(SERVO_PULSE_DELAY);
+    }   
+
+  delay(400);
   servo2Pos = SERVO2_DOWN_POS;
   servo.detach();
-
-   
+  
 }
 
+int lowerServo1(){
+  
+  Servo servo;
+    
+  // Lower servo1
+  servo.attach(servo1Pin);
+  for (int i = servo1Pos; i >= SERVO1_DOWN_POS; i -= 1) {
+      servo.write(i);
+      delay(SERVO_PULSE_DELAY);
+    }   
+  delay(400);
+  servo1Pos = SERVO1_DOWN_POS;
+  servo.detach(); 
+}
+
+int lowerServo2(){
+  
+  Servo servo;
+  // Lower servo2
+  servo.attach(servo2Pin);
+  for (int i = servo2Pos; i <= SERVO2_DOWN_POS; i += 1) {
+      servo.write(i);
+      delay(SERVO_PULSE_DELAY);
+    }   
+
+  delay(400);
+  servo2Pos = SERVO2_DOWN_POS;
+  servo.detach();
+  
+}
 
 int displayPellet(whichServo side) {
 
   Servo servo;
   int pin;
-  int pos;
   
   if(side == left){
     
     pin = servo1Pin;
-    pos = servo1Pos;
 
     // Lower arm to grab pellet.
     servo.attach(pin);
-    for (int i = pos; i >= SERVO1_DOWN_POS; i -= 1) {
+    for (int i = servo1Pos; i >= SERVO1_DOWN_POS; i -= 1) {
       servo.write(i);
       delay(SERVO_PULSE_DELAY);
-      pos -= 1;
     }   
-
+    
     // Raise arm to display pellet
-    for (int i = pos; i <= SERVO1_UP_POS; i += 1) {
+    for (int i = SERVO1_DOWN_POS; i <= SERVO1_UP_POS; i += 1) {
       servo.write(i);
       delay(SERVO_PULSE_DELAY);
-      pos += 1;
     }
-
-    servo1Pos = pos;
-     
+    delay(400);
+    servo1Pos = SERVO1_UP_POS;
+    servo1_up_flag = true;
   }
   else if(side == right){
-    pin = servo2Pin;
-    pos = servo2Pos;
 
+    
+    pin = servo2Pin;
+  
     // Lower arm to grab pellet.
     servo.attach(pin);
-    for (int i = pos; i <= SERVO2_DOWN_POS; i += 1) {
+    for (int i = servo2Pos; i <= SERVO2_DOWN_POS; i += 1) {
       servo.write(i);
       delay(SERVO_PULSE_DELAY);
-      pos += 1;
     }   
 
     // Raise arm to display pellet
-    for (int i = pos; i >= SERVO2_UP_POS; i -= 1) {
+    for (int i = SERVO2_DOWN_POS; i >= SERVO2_UP_POS; i -= 1) {
       servo.write(i);
       delay(SERVO_PULSE_DELAY);
-      pos -= 1;
     }
-
-    servo2Pos = pos;
-    
+    delay(400);
+    servo2Pos = SERVO2_UP_POS;
+    servo2_up_flag = true;
   }
 
   servo.detach(); 
@@ -350,7 +379,16 @@ int startSession() {
   // Send session end message.
   Serial.write("TERM\n");
 
-  zeroServos();
+  if(servo1_up_flag)
+  {
+    lowerServo1();
+    servo1_up_flag = false;
+  }
+  if(servo2_up_flag)
+  {
+    lowerServo2();
+    servo2_up_flag = false;
+  }
   // Flush serial buffer.
   while(Serial.read() >= 0) {
     continue;
