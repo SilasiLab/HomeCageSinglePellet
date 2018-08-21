@@ -37,7 +37,7 @@ enum aviType
 	H264
 };
 
-const aviType chosenAviType = MJPG;
+const aviType chosenAviType = H264;
 
 
 enum triggerType
@@ -260,7 +260,7 @@ int ResetTrigger(INodeMap & nodeMap)
 }
 
 
-int AcquireImages(CameraPtr pCam, INodeMap &nodeMap, INodeMap &nodeMapTLDevice, string vidPath) {
+int AcquireImages(CameraPtr pCam, INodeMap &nodeMap, INodeMap &nodeMapTLDevice, char *vidPath) {
 
 int result = 0;
 
@@ -278,7 +278,7 @@ exposureAuto->SetIntValue(exposureAuto->GetEntryByName("Off")->GetValue());
 CEnumerationPtr exposureMode = nodeMap.GetNode("ExposureMode");
 exposureMode->SetIntValue(exposureMode->GetEntryByName("Timed")->GetValue());
 CFloatPtr exposureTime = nodeMap.GetNode("ExposureTime");
-exposureTime->SetValue(2000);
+exposureTime->SetValue(250);
 
 
 
@@ -361,7 +361,7 @@ try
 	{
 		AVIOption option;
 		option.frameRate = frameRateToSet;
-		aviRecorder.AVIOpen(vidPath.c_str(), option);
+		aviRecorder.AVIOpen(vidPath, option);
 	}
 	else if (chosenAviType == MJPG)
 	{
@@ -369,18 +369,18 @@ try
 		option.frameRate = frameRateToSet;
 		option.quality = 75;
 		cout << "Opening recorder...\n";
-		aviRecorder.AVIOpen(vidPath.c_str(), option);
+		aviRecorder.AVIOpen(vidPath, option);
 		cout << "Done opening recorder...\n";
 	}
 	else if (chosenAviType == H264)
 	{
 		H264Option option;
 		option.frameRate = frameRateToSet;
-		option.bitrate = 1000000;
+		option.bitrate = 8000000;
 
-		option.height = static_cast<unsigned int>(480);
-		option.width = static_cast<unsigned int>(640);
-		aviRecorder.AVIOpen(vidPath.c_str(), option);
+		option.height = static_cast<unsigned int>(400);
+		option.width = static_cast<unsigned int>(1000);
+		aviRecorder.AVIOpen(vidPath, option);
 	}
 
 	// Begin acquiring images
