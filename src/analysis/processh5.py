@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import os
 import cv2
 from functools import reduce
 import sys
@@ -7,18 +8,21 @@ import sys
 ANALYSES_DIRECTORY = sys.argv[1]
 VIDEO_DIRECTORY = sys.argv[2]
 videoName = sys.argv[3]
+
+
+
 # Place the name of each model used to analyze the video in this list.
 # These will be used to find the .h5 output file of each model.
 modelNames = [
-    "DeepCut_resnet50_eatingJuly23shuffle1_50000",
-    "DeepCut_resnet50_reachingAug1shuffle1_50000"]
+    "DeepCut_resnet50_eatingUpdatedAug30shuffle1_100000",
+    "DeepCut_resnet50_leftReachingAug29shuffle1_100000"]
 
 # Name of poses that the models were trained to detect.
 # Must be in the same order as the corresponding model names
 # in <modelNames>.
 poseNames = [
-    "eating",
-    "reaching"]
+    "eatingUpdated",
+    "leftReaching"]
 
 likelihoodCutoffs = [
     0.9,
@@ -49,7 +53,6 @@ class BehaviourEvent:
         self.eventType = eventType
 
 
-
 # Generate the names of each .h5 output file from each model used
 # to analyze the current video.
 modelH5OutputFilePaths = []
@@ -62,6 +65,8 @@ for path in modelH5OutputFilePaths:
     dataframe = pd.read_hdf(path)
     #dataframe.to_csv(path[:-3] + ".csv")
     h5Files.append(dataframe)
+
+
 
 
 def packageEvent(frameIndexes, poseName):
@@ -147,6 +152,12 @@ def findBehaviourPattern(video, poseAnalysis):
 
 
 
+
+
+
+
+
+exists = os.path.isfile('/path/to/file')
 video = cv2.VideoCapture(VIDEO_DIRECTORY + videoName)
 print(VIDEO_DIRECTORY + videoName)
 poseAnalysis = []
@@ -159,7 +170,9 @@ print('Finding successful reaches...')
 successfulReaches = findBehaviourPattern(video,poseAnalysis)
 with open(ANALYSES_DIRECTORY + videoName[:-4] +"_reaches.txt", 'w') as f:
     f.write(videoName + "\n")
-    f.write(str(len(poseAnalysis[1])) + "\n")
+    f.write("eating poses detected: " + str(len(poseAnalysis[0])) + "\n")
+    f.write("reaching poses detected: " + str(len(poseAnalysis[1])) + "\n")
+    f.write("successful reaches detected: " + str(len(successfulReaches)) + "\n")
     for reach in successfulReaches:
         f.write(reach.eventType + "\n")
         f.write(str(reach.startFrame) + "\n")

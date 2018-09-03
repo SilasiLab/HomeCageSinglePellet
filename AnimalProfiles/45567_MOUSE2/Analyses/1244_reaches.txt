@@ -1,0 +1,10 @@
+1244.avi
+eating poses detected: 6
+reaching poses detected: 5
+successful reaches detected: 2
+Successful Reach
+7204
+7262
+Successful Reach
+9938
+10003

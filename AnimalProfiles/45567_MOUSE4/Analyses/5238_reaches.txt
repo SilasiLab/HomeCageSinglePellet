@@ -1,0 +1,118 @@
+5238.avi
+eating poses detected: 40
+reaching poses detected: 92
+successful reaches detected: 38
+Successful Reach
+856
+1046
+Successful Reach
+2118
+2372
+Successful Reach
+4367
+4696
+Successful Reach
+5094
+5349
+Successful Reach
+7123
+7538
+Successful Reach
+8540
+8885
+Successful Reach
+10701
+11095
+Successful Reach
+11366
+11797
+Successful Reach
+12826
+13201
+Successful Reach
+14848
+15259
+Successful Reach
+15489
+15536
+Successful Reach
+16203
+16640
+Successful Reach
+18269
+18350
+Successful Reach
+19031
+19324
+Successful Reach
+21970
+22262
+Successful Reach
+22559
+22687
+Successful Reach
+23920
+24217
+Successful Reach
+25306
+25621
+Successful Reach
+25956
+26215
+Successful Reach
+28091
+28468
+Successful Reach
+29669
+29972
+Successful Reach
+30281
+30703
+Successful Reach
+30952
+31391
+Successful Reach
+31572
+32110
+Successful Reach
+33023
+33783
+Successful Reach
+34471
+34843
+Successful Reach
+35491
+36051
+Successful Reach
+36575
+36656
+Successful Reach
+45661
+45839
+Successful Reach
+46244
+46610
+Successful Reach
+47747
+48049
+Successful Reach
+48365
+48748
+Successful Reach
+49901
+50339
+Successful Reach
+51775
+52325
+Successful Reach
+53184
+53727
+Successful Reach
+54030
+54689
+Successful Reach
+56064
+56318
+Successful Reach
+56797
+57391

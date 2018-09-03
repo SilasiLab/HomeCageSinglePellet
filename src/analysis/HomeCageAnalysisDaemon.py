@@ -1,5 +1,6 @@
 from glob import glob
 import os
+from time import sleep
 import subprocess
 from queue import Queue
 
@@ -7,14 +8,14 @@ from queue import Queue
 KEEP_DAEMON_ALIVE=True
 # List of DLC networks that should be used to analyze each video
 ANALYSIS_NETWORKS = [
-	'DeepCut_resnet50_eatingJuly23shuffle1_50000',
-	'DeepCut_resnet50_reachingAug1shuffle1_50000']
+	'DeepCut_resnet50_eatingUpdatedAug30shuffle1_100000',
+	'DeepCut_resnet50_leftReachingAug29shuffle1_100000']
 ANALYSIS_POSES = [
-	'eating',
-	'reaching']
+	'eatingUpdated',
+	'leftReaching']
 ANALYSIS_DATES = [
-	'July23',
-	'Aug1']
+	'Aug30',
+	'Aug29']
 
 VIDEO_DIRECTORY="/home/sliasi/HomeCageSinglePellet/AnimalProfiles/"
 profilePaths = []
@@ -64,7 +65,15 @@ while(KEEP_DAEMON_ALIVE):
 	for index in range(0,len(profilePaths)):
 		print("Finding video for="+profilePaths[index])
 		for video in videos[index]:
+
 			print("Checking video state for=" + video)
+			# If video less than 10MB, skip analysis.
+			if os.stat(profilePaths[index]+"Videos/"+video).st_size < 1048576:
+				print("Video less than 10MB, skipping...")
+				continue
+			else:
+				print("Video greater than 10MB, analyzing...")
+
 			videoAnalyzed = False
 			for networkIndex in range(0,len(ANALYSIS_NETWORKS)):
 					if video[:-4]+ANALYSIS_NETWORKS[networkIndex]+".h5" in analyses[index]:
@@ -98,6 +107,7 @@ while(KEEP_DAEMON_ALIVE):
 						print("Waiting for DLC...")
 						DLC_P.wait()
 						print("DLC DONE")
+						sleep(3)
 						os.chdir("..")
 						os.remove(profilePaths[index]+"temp/"+video[:-4]+ANALYSIS_NETWORKS[networkIndex]+"includingmetadata.pickle")
 						os.rename(profilePaths[index]+"temp/"+video, profilePaths[index]+"Videos/"+video)
@@ -114,4 +124,4 @@ while(KEEP_DAEMON_ALIVE):
 			behaviorAnalysisP = subprocess.Popen('python3 -B processh5.py ' + profilePaths[index] + "Analyses/ " + profilePaths[index] + "Videos/ " + video, shell=True)
 			print("Waiting for behavior analysis...")
 			behaviorAnalysisP.wait()
-			print("Behavior analysis complete!")
+print("Behavior analysis complete!")

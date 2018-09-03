@@ -1,0 +1,10 @@
+2602.avi
+eating poses detected: 2
+reaching poses detected: 3
+successful reaches detected: 2
+Successful Reach
+853
+1054
+Successful Reach
+1594
+1831

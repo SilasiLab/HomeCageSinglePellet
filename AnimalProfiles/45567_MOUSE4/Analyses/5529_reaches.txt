@@ -1,0 +1,112 @@
+5529.avi
+eating poses detected: 38
+reaching poses detected: 103
+successful reaches detected: 36
+Successful Reach
+4360
+4574
+Successful Reach
+14831
+15100
+Successful Reach
+17074
+17422
+Successful Reach
+18335
+18866
+Successful Reach
+21112
+21540
+Successful Reach
+22081
+22637
+Successful Reach
+24629
+25033
+Successful Reach
+28886
+29397
+Successful Reach
+30926
+31272
+Successful Reach
+33098
+33505
+Successful Reach
+35140
+35702
+Successful Reach
+36538
+37162
+Successful Reach
+42213
+42557
+Successful Reach
+44902
+45186
+Successful Reach
+47768
+48069
+Successful Reach
+49143
+49602
+Successful Reach
+50516
+51050
+Successful Reach
+51263
+52325
+Successful Reach
+54721
+55258
+Successful Reach
+56787
+57164
+Successful Reach
+58913
+59272
+Successful Reach
+59618
+60168
+Successful Reach
+61699
+61948
+Successful Reach
+62481
+63092
+Successful Reach
+64545
+65123
+Successful Reach
+68700
+69145
+Successful Reach
+70112
+70410
+Successful Reach
+71489
+71948
+Successful Reach
+72228
+72691
+Successful Reach
+72890
+73629
+Successful Reach
+77106
+77551
+Successful Reach
+78518
+78950
+Successful Reach
+79184
+79669
+Successful Reach
+81291
+81750
+Successful Reach
+84113
+84316
+Successful Reach
+84791
+85176

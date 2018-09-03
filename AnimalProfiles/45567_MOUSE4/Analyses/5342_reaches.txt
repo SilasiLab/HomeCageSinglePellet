@@ -1,0 +1,7 @@
+5342.avi
+eating poses detected: 1
+reaching poses detected: 4
+successful reaches detected: 1
+Successful Reach
+2218
+2348

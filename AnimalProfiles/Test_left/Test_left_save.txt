@@ -2,7 +2,7 @@
 Test_left
 6
 45567
-1
+4
 LEFT
-35
+170
 ../../AnimalProfiles/Test_left/

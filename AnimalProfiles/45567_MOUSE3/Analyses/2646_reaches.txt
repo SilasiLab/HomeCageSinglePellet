@@ -1,0 +1,34 @@
+2646.avi
+eating poses detected: 10
+reaching poses detected: 55
+successful reaches detected: 10
+Successful Reach
+2309
+2471
+Successful Reach
+2981
+3291
+Successful Reach
+6453
+6672
+Successful Reach
+7882
+8246
+Successful Reach
+13388
+13544
+Successful Reach
+21258
+21462
+Successful Reach
+22599
+22808
+Successful Reach
+26660
+26841
+Successful Reach
+29682
+29885
+Successful Reach
+32185
+32503

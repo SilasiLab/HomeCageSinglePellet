@@ -1,0 +1,10 @@
+5140.avi
+eating poses detected: 2
+reaching poses detected: 36
+successful reaches detected: 2
+Successful Reach
+5708
+5939
+Successful Reach
+20397
+20701

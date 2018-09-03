@@ -1,0 +1,25 @@
+5634.avi
+eating poses detected: 7
+reaching poses detected: 21
+successful reaches detected: 7
+Successful Reach
+1498
+1630
+Successful Reach
+4986
+5257
+Successful Reach
+7092
+7352
+Successful Reach
+8518
+8723
+Successful Reach
+10541
+10901
+Successful Reach
+11996
+12188
+Successful Reach
+12665
+12933

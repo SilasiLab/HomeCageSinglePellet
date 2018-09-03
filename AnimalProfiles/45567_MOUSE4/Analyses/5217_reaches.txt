@@ -1,0 +1,4 @@
+5217.avi
+eating poses detected: 0
+reaching poses detected: 3
+successful reaches detected: 0

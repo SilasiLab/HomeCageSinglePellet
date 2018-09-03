@@ -1,0 +1,46 @@
+1237.avi
+eating poses detected: 20
+reaching poses detected: 23
+successful reaches detected: 14
+Successful Reach
+6439
+6505
+Successful Reach
+7111
+7225
+Successful Reach
+8572
+8631
+Successful Reach
+9989
+10176
+Successful Reach
+10801
+11152
+Successful Reach
+11407
+11697
+Successful Reach
+12003
+12458
+Successful Reach
+13568
+13872
+Successful Reach
+14361
+14423
+Successful Reach
+14831
+14891
+Successful Reach
+15547
+15598
+Successful Reach
+16220
+16267
+Successful Reach
+18902
+19084
+Successful Reach
+19701
+19782

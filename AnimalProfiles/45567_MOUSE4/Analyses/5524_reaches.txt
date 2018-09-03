@@ -1,0 +1,7 @@
+5524.avi
+eating poses detected: 1
+reaching poses detected: 6
+successful reaches detected: 1
+Successful Reach
+2226
+2392
