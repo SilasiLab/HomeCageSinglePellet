@@ -10,7 +10,7 @@ import os
 
 
 # Camera config
-PTGREY_OUTPUT_FULL_PATH = "../../AnimalProfiles/"
+PTGREY_OUTPUT_FULL_PATH = "/home/sliasi/HomeCageSinglePellet/AnimalProfiles/"
 # ObjectDetector config
 PRIMARY_CASCADE = "../../config/hopper_arm_pellet.xml"
 with open("../../config/config.txt") as config:
@@ -20,7 +20,7 @@ with open("../../config/config.txt") as config:
 	roi_h = int(config.readline())
 config.close()
 # AnimalProfile config
-PROFILE_SAVE_DIRECTORY = "../../AnimalProfiles/"
+PROFILE_SAVE_DIRECTORY = "/home/sliasi/HomeCageSinglePellet/AnimalProfiles/"
 
 
 

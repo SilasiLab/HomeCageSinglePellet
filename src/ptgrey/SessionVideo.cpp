@@ -271,7 +271,7 @@ pCam->Width.SetValue(1000);
 pCam->OffsetX.SetValue(200);
 pCam->OffsetY.SetValue(350);
 pCam->AcquisitionFrameRateEnable.SetValue(true);
-pCam->AcquisitionFrameRate.SetValue(float(135.00));
+pCam->AcquisitionFrameRate.SetValue(float(100.00));
 
 CEnumerationPtr exposureAuto = nodeMap.GetNode("ExposureAuto");
 exposureAuto->SetIntValue(exposureAuto->GetEntryByName("Off")->GetValue());
