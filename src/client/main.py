@@ -348,12 +348,14 @@ def main():
 		profile = session_controller.searchForProfile(RFID_code)
 
 		if profile != -1:
+
+			# Load profileList before each session
+			session_controller.set_profile_list(loadAnimalProfiles(PROFILE_SAVE_DIRECTORY))
 			arduino_client.serialInterface.write(b'A')
 			session_controller.startSession(profile)
 			arduino_client.serialInterface.flush()
 
-			# Reload profileList after each session in case any of the profiles were updated
-			# since the last load.
+			# Load profileList after each session
 			session_controller.set_profile_list(loadAnimalProfiles(PROFILE_SAVE_DIRECTORY))
 
 		else:
