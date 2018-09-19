@@ -37,7 +37,7 @@ class GUI:
 		frame2.pack()
 
 		frame3 = Frame(master)
-		self.scale = Scale(frame3, from_=0, to=10, orient=HORIZONTAL)
+		self.scale = Scale(frame3, from_=0, to=5, orient=HORIZONTAL)
 		self.scale.pack()
 		frame3.pack()
 
