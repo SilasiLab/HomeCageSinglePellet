@@ -7,6 +7,7 @@ class GUI:
 	def __init__(self, master, animalProfilePath):
 
 
+		self.master = master
 		self.animalProfilePath = animalProfilePath
 		self.profileNames = []
 		self.profileSaveFilePaths = []
@@ -42,6 +43,7 @@ class GUI:
 
 		frame4 = Frame(master)
 		self.updateButton = Button(frame4, text="Update", fg="green", command=self.update_button_onClick, pady=6)
+		self.close_button = Button(frame4, test="Shutdown", command=self.shutdown_onClick, borderwidth = 3, relief = "raised")
 		self.update_label = Label(frame4, text="\n", height=3, width= 34)
 		self.update_label.config(bd=2, relief="ridge")
 		self.updateButton.pack()
@@ -150,6 +152,9 @@ class GUI:
 				self.save_animal_profile(profileIndex)
 				self.update_label.config(text="Pellet presentation distance \n for Mouse " + str(self.profileStates[profileIndex][2]) + " has been updated to " + str(self.profileStates[profileIndex][4]) + "mm!")
 
+	def shutdown_onClick(self):
+		self.master.destroy()
+		exit()
 
 # Entry point of GUI initialization. This function is outside of the GUI class
 # so that it can be called by multiprocessing without having to construct a GUI

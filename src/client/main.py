@@ -338,7 +338,8 @@ def main():
     # is found, it starts a session for that profile. If no profile is found, it goes back to listening for
     # an RFID.
 	while True:
-
+		if (not gui_process.is_alive()):
+			exit()
 		print("Waiting for RF tag...")
 
         # Wait for RFID from arduino
