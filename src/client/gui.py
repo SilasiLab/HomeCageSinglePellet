@@ -43,7 +43,7 @@ class GUI:
 
 		frame4 = Frame(master)
 		self.updateButton = Button(frame4, text="Update", fg="green", command=self.update_button_onClick, pady=6)
-		self.close_button = Button(frame4, test="Shutdown", command=self.shutdown_onClick, borderwidth = 3, relief = "raised")
+		self.close_button = Button(frame4, text="Shutdown", command=self.shutdown_onClick, borderwidth = 3, relief = "raised")
 		self.update_label = Label(frame4, text="\n", height=3, width= 34)
 		self.update_label.config(bd=2, relief="ridge")
 		self.updateButton.pack()

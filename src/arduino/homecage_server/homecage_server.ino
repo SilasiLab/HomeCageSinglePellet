@@ -8,13 +8,13 @@ const int servo2Pin = 9;
 bool servo1_up_flag = false;
 bool servo2_up_flag = false;
 // Higher numbers make the arm go higher
-int SERVO1_UP_POS = 100;
+int SERVO1_UP_POS = 117;
 // Low numbers make the arm go lower
-int SERVO1_DOWN_POS = 39;
+int SERVO1_DOWN_POS = 50;
 // Lower numbers make the arm go higher
-int SERVO2_UP_POS = 65;
+int SERVO2_UP_POS = 58;
 // High numbers make the arm go lower
-int SERVO2_DOWN_POS = 142;
+int SERVO2_DOWN_POS = 120;
 int SERVO_PULSE_DELAY = 15;
 int servo1Pos = SERVO1_DOWN_POS;
 int servo2Pos = SERVO2_DOWN_POS;
@@ -167,7 +167,7 @@ int displayPellet(whichServo side) {
 
 int zeroStepper() {
 
-  digitalWrite(A3, LOW);
+  digitalWrite(A3, HIGH);
   delay(100);
   while(!switchState){
 
@@ -192,11 +192,11 @@ int moveStepper(int targetPos) {
       stepperDistFromOrigin = 0;
       return 2;
     }
-    digitalWrite(A3, LOW);
+    digitalWrite(A3, HIGH);
   }
   else{
 
-    digitalWrite(A3, HIGH);
+    digitalWrite(A3, LOW);
   }
   
   int stepsToTake = abs(travelDist);

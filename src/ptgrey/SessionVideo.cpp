@@ -1,33 +1,42 @@
 #include "Spinnaker.h"
 #include "SpinGenApi/SpinnakerGenApi.h"
+#include "AVIRecorder.h"
 #include <iostream>
 #include <unistd.h>
 #include <sstream>
 #include <sys/stat.h>
 #include <string>
-#include "AVIRecorder.h"
 #include <pthread.h>
-
-#include<iostream>
-#include<opencv2/highgui.hpp>
-#include<opencv2/core.hpp>
-#include<stdlib.h>
-#include<chrono>
-
+#include <iostream>
+#include <fstream>
+#include <opencv2/highgui.hpp>
+#include <opencv2/core.hpp>
+#include <stdlib.h>
+#include <chrono>
 
 using namespace Spinnaker;
 using namespace Spinnaker::GenApi;
 using namespace Spinnaker::GenICam;
 using namespace std;
+using namespace std::chrono;
 using namespace cv;
 
-// Number of nanoseconds in a second (Used for FPS calculation)
+
+
 const int ns_per_second = 1000000000;
-// Dimmensions of image being received
-const int cols = 1000;
-const int rows = 400;
-// Toggle this to turn stream on and off
-bool streaming = true;
+int WIDTH = 1220;
+int HEIGHT = 500;
+int OFFSET_X = 128;
+int OFFSET_Y = 520;
+int FPS = 160;
+int EXPOSURE = 200;
+int BITRATE = 8000000;
+bool PREVIEW_WINDOW = false;
+
+
+int FRAMES_RECORDED = 0;
+int TARGET_ACQUISITION_DURATION = 0;
+int ACTUAL_ACQUISITION_DURATION = 0;
 
 
 enum aviType
@@ -266,19 +275,19 @@ int result = 0;
 
 cout << endl << "*** IMAGE ACQUISITION ***" << endl << endl;
 
-pCam->Height.SetValue(400);
-pCam->Width.SetValue(1000);
-pCam->OffsetX.SetValue(200);
-pCam->OffsetY.SetValue(350);
-pCam->AcquisitionFrameRateEnable.SetValue(true);
-pCam->AcquisitionFrameRate.SetValue(float(100.00));
+pCam->Height.SetValue(HEIGHT);
+pCam->Width.SetValue(WIDTH);
+pCam->OffsetX.SetValue(OFFSET_X);
+pCam->OffsetY.SetValue(OFFSET_Y);
 
 CEnumerationPtr exposureAuto = nodeMap.GetNode("ExposureAuto");
 exposureAuto->SetIntValue(exposureAuto->GetEntryByName("Off")->GetValue());
 CEnumerationPtr exposureMode = nodeMap.GetNode("ExposureMode");
 exposureMode->SetIntValue(exposureMode->GetEntryByName("Timed")->GetValue());
 CFloatPtr exposureTime = nodeMap.GetNode("ExposureTime");
-exposureTime->SetValue(250);
+exposureTime->SetValue(EXPOSURE);
+pCam->AcquisitionFrameRateEnable.SetValue(true);
+pCam->AcquisitionFrameRate.SetValue(float(FPS));
 
 
 
@@ -375,11 +384,11 @@ try
 	else if (chosenAviType == H264)
 	{
 		H264Option option;
-		option.frameRate = frameRateToSet;
-		option.bitrate = 8000000;
+		option.bitrate = BITRATE;
 
-		option.height = static_cast<unsigned int>(400);
-		option.width = static_cast<unsigned int>(1000);
+		option.height = static_cast<unsigned int>(HEIGHT);
+		option.width = static_cast<unsigned int>(WIDTH);
+		option.frameRate = frameRateToSet;
 		aviRecorder.AVIOpen(vidPath, option);
 	}
 
@@ -404,15 +413,15 @@ try
 
 
 	string pythonMsg;
-  namedWindow("PtGrey Live Feed", WINDOW_AUTOSIZE);
-
-	while(pythonMsg != "TERM")
+    namedWindow("PtGrey Live Feed", WINDOW_AUTOSIZE);
+    int n_frames = 0;
+    high_resolution_clock::time_point start = high_resolution_clock::now();
+	while(1)
 	{
-
-		if(file_exists("KILL"))
+        if(file_exists("KILL"))
 		{
 			break;
-		}
+        }
 
 		try
 		{
@@ -425,13 +434,19 @@ try
 			}
 			else
 			{
-
-				void* img_ptr = pResultImage->GetData();
-				Mat img(rows, cols, CV_8UC1, img_ptr);
-				imshow("PtGrey Live Feed", img);
-		    waitKey(1);
-				aviRecorder.AVIAppend(pResultImage);
-				pResultImage->Release();
+                if(PREVIEW_WINDOW)
+                {
+				    void* img_ptr = pResultImage->GetData();
+				    Mat img(HEIGHT, WIDTH, CV_8UC1, img_ptr);
+				    imshow("PtGrey Live Feed", img);
+		            waitKey(1);
+		        }
+		        else
+		        {
+				    aviRecorder.AVIAppend(pResultImage);
+				    pResultImage->Release();
+				    n_frames++;
+				}
 			}
 		}
 		catch (Spinnaker::Exception &e)
@@ -441,6 +456,13 @@ try
 		}
 
 	}
+
+	high_resolution_clock::time_point end = high_resolution_clock::now();
+    auto duration = duration_cast<seconds>( end - start ).count();
+    ACTUAL_ACQUISITION_DURATION = duration;
+    TARGET_ACQUISITION_DURATION = n_frames / FPS;
+    FRAMES_RECORDED = n_frames;
+
 
 	// End acquisition
 	pCam->EndAcquisition();
@@ -459,6 +481,15 @@ return result;
 
 
 int main(int argc, char** argv) {
+
+    WIDTH = atoi(argv[2]);
+    HEIGHT = atoi(argv[3]);
+    OFFSET_X = atoi(argv[4]);
+    OFFSET_Y = atoi(argv[5]);
+    FPS = atoi(argv[6]);
+    EXPOSURE = atoi(argv[7]);
+    BITRATE = atoi(argv[8]);
+    PREVIEW_WINDOW = atoi(argv[9]);
 
 	cout << "PTGREY BOOTING...\n";
 
@@ -493,12 +524,12 @@ int main(int argc, char** argv) {
 	INodeMap & nodeMapTLDevice = camList.GetByIndex(0)->GetTLDeviceNodeMap();
 	// Configure Trigger for each camera
 	//ConfigureTrigger(nodeMap);
-	// Begin acquisition
+	// Acquire
 	AcquireImages(camList.GetByIndex(0), nodeMap, nodeMapTLDevice, argv[1]);
 
 
 
-	// Rest trigger
+	// Reset trigger
 	ResetTrigger(nodeMap);
 	// Deinitialize cameras
 	deinitCameras(camList);
@@ -506,6 +537,12 @@ int main(int argc, char** argv) {
 	camList.Clear();
 	// Release system
 	system->ReleaseInstance();
+
+    cout << "\n\n";
+    cout << "FRAMES RECORDED: " << FRAMES_RECORDED << endl;
+    cout << "TARGET FPS: " << FPS << endl;
+    cout << "TARGET RECORDING DURATION: " << TARGET_ACQUISITION_DURATION << endl;
+    cout << "ACTUAL RECORDING DURATION: " << ACTUAL_ACQUISITION_DURATION << endl;
 
 	return 0;
 }

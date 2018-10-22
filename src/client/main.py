@@ -1,26 +1,39 @@
-import objectDetector
 import gui
 import arduinoClient
 import time
 from time import sleep
-from datetime import datetime
 import multiprocessing
 from subprocess import PIPE, Popen
 import os
 
 
-# Camera config
-PTGREY_OUTPUT_FULL_PATH = "/home/sliasi/HomeCageSinglePellet/AnimalProfiles/"
-# ObjectDetector config
-PRIMARY_CASCADE = "../../config/hopper_arm_pellet.xml"
-with open("../../config/config.txt") as config:
-	roi_x = int(config.readline())
-	roi_y = int(config.readline())
-	roi_w = int(config.readline())
-	roi_h = int(config.readline())
-config.close()
+
+
 # AnimalProfile config
-PROFILE_SAVE_DIRECTORY = "/home/sliasi/HomeCageSinglePellet/AnimalProfiles/"
+PROFILE_SAVE_DIRECTORY = "/home/silasi/HomeCageSinglePellet/AnimalProfiles/"
+#spinnaker config
+WIDTH="1220"
+HEIGHT="500"
+OFFSET_X="128"
+OFFSET_Y="520"
+FPS="160"
+EXPOSURE="200"
+BITRATE="8000000"
+DISPLAY_PREVIEW="1"
+
+with open("../../config/config.txt") as config:
+	config.readline()
+	WIDTH = config.readline()[6:]
+	HEIGHT = config.readline()[7:]
+	OFFSET_X = config.readline()[9:]
+	OFFSET_Y = config.readline()[9:]
+	FPS = config.readline()[4:]
+	EXPOSURE = config.readline()[9:]
+	BITRATE = config.readline()[8:]
+	DISPLAY_PREVIEW = config.readline()[16:]
+
+config.close()
+
 
 
 
@@ -241,7 +254,7 @@ class SessionController(object):
 		sleep(1)
 
 		# Start ptgrey process
-		p = Popen(['../../bin/SessionVideo', PTGREY_OUTPUT_FULL_PATH +str(profile.name) + str("/Videos/") + str(profile.session_count)], stdin=PIPE)
+		p = Popen(['../../bin/SessionVideo', PROFILE_SAVE_DIRECTORY +str(profile.name) + str("/Videos/") + str(profile.session_count), WIDTH, HEIGHT, OFFSET_X, OFFSET_Y, FPS, EXPOSURE, BITRATE, DISPLAY_PREVIEW], stdin=PIPE)
 
 
 		#camera_process = multiprocessing.Process(target=self.camera.captureVideo, args=(video_output_path, camera_process_queue, main_process_queue))
@@ -299,31 +312,15 @@ class SessionController(object):
 
 def main():
 
-# Uncomment these to generate new profiles
-#	profile0 = AnimalProfile("00782B191B51", "45567_MOUSE2", 2, 45567, 1, "LEFT", 0, PROFILE_SAVE_DIRECTORY, True)
-#	profile1 = AnimalProfile("00782B19BCF6", "45567_MOUSE3", 3, 45567, 1, "LEFT", 0, PROFILE_SAVE_DIRECTORY, True)
-#	profile2 = AnimalProfile("00782B1797D3", "45567_MOUSE4", 4, 45567, 1, "LEFT", 0, PROFILE_SAVE_DIRECTORY, True)
-#	profile3 = AnimalProfile("002FBE71E909", "TEST_TAG2", 8, 45567, 2, "LEFT", 0, PROFILE_SAVE_DIRECTORY, True)
-#	profile4 = AnimalProfile("00782B187833", "Test_Tag0", 0, 45567, 1, 1, 0, PROFILE_SAVE_DIRECTORY, True)
-#	profile5 = AnimalProfile("0782B189DD", "Test Tag1", 0, 0, 1, 1, 0, PROFILE_SAVE_DIRECTORY, True)
-#	profile6 = AnimalProfile("0782B19226", "Test Tag2", 0, 0, 1, 1, 0, PROFILE_SAVE_DIRECTORY, True)
-#	profile7 = AnimalProfile("00782B192268", "Test_left", 6, 45567, 1, "LEFT", 0, PROFILE_SAVE_DIRECTORY, True)
-#	profile8 = AnimalProfile("00782B1884CF", "Test_right", 7, 45567, 1, "RIGHT", 0, PROFILE_SAVE_DIRECTORY, True)
-#	profile0.saveProfile()
-#	profile1.saveProfile()
-#	profile2.saveProfile()
-#	profile3.saveProfile()
-#	profile4.saveProfile()
-#	profile5.saveProfile()
-#	profile6.saveProfile()
-#	profile7.saveProfile()
-#	profile8.saveProfile()
-#	exit()
 
+	#profile1 = AnimalProfile("00782B187833", "TEST_LEFT", 1, 0000, 3, "LEFT", 0, PROFILE_SAVE_DIRECTORY, True)
+	#profile2 = AnimalProfile("00660B341F46", "TEST_RIGHT", 2, 1111, 1, "RIGHT", 0, PROFILE_SAVE_DIRECTORY, True)
+	#profile1.saveProfile()
+	#profile2.saveProfile()
+	#exit()
 
     # Initialize every system component
 	profile_list = loadAnimalProfiles(PROFILE_SAVE_DIRECTORY)
-	obj_detector_1 = objectDetector.ObjectDetector(PRIMARY_CASCADE, roi_x, roi_y, roi_w, roi_h)
 	arduino_client = arduinoClient.client("/dev/ttyUSB0", 9600)
 	session_controller = SessionController(profile_list, arduino_client)
 
