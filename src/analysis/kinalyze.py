@@ -67,12 +67,12 @@ Z_ORIGIN_RIGHTMIRROR = None
 
 # Likelihood cutoff for DLC points
 LIKELIHOOD_THRESHOLD = 0.99
-# Pretty point configuration
+# Visual output config
 POINT_SIZE = 4
 LINE_THICKNESS = 3
 N_TRAILING_POINTS = 10
-
-
+PAINT_GHOST_TRAILS = True
+DISPLAY_VIDEO = True
 
 # -------------------------------------------------#
 # 				</Configure Analysis>			  #
@@ -127,14 +127,14 @@ def paint_frame_points(points, frame):
             cv2.circle(frame, (int(point.x), int(point.y)), POINT_SIZE, (255, 0, 0), -1)
 
 
-def gen_trailing_point_lists(nLabels):
+def gen_ghost_trail_point_lists(nLabels):
     lists = []
     for l in range(0, nLabels):
         lists.append([-1] * nLabels)
     return lists
 
 
-def update_trailing_point_lists(lists, points):
+def update_ghost_trail_point_lists(lists, points):
     if (len(lists) != len(points)):
         print("Error: The number of lists does not equal the numbers of points!")
 
@@ -146,15 +146,15 @@ def update_trailing_point_lists(lists, points):
         lists[i].append(points[i])
 
 
-def paint_trails(trailingPoints, frame, overlay):
+def paint_ghost_trails(ghostTrailPoints, frame, overlay):
     global colors
     global POINT_SIZE
     global LINE_THICKNESS
 
     colorIndex = 0
-    opacityStepSize = 1 / len(trailingPoints)
+    opacityStepSize = 1 / len(ghostTrailPoints)
 
-    for points in trailingPoints:
+    for points in ghostTrailPoints:
 
         opacity = opacityStepSize
         for p in range(1, len(points)):
@@ -531,7 +531,7 @@ def convert_pixelCoord_to_realWorld(x_points, y_points, z_points):
     return realWorldX, realWorldY, realWorldZ
 
 
-def get_frame_points(dataframe, rowIndex):
+def filter_frame_points(dataframe, rowIndex):
     global LEFTSIDE
     global RIGHTSIDE
     global LIKELIHOOD_THRESHOLD
@@ -585,7 +585,7 @@ def get_frame_points(dataframe, rowIndex):
     return points
 
 
-def split_xyz_reach_trajectory_analysis(framePoints):
+def gen_trajectory_reconsutrction_xyz(framePoints):
     x_points = []
     y_points = []
     z_points = []
@@ -656,9 +656,6 @@ def split_xyz_reach_trajectory_analysis(framePoints):
 # ----------------------------------------------------------------------------------#
 
 
-#labels, nLabels = get_labels(dataframe)
-#colors = gen_point_colors(nLabels)
-#trailingPoints = gen_trailing_point_lists(nLabels)
 
 # These hold information for each reach. Right now we're manually setting
 # start/stop frames. Eventually we can write something to find the events
@@ -679,36 +676,72 @@ def split_xyz_reach_trajectory_analysis(framePoints):
 
 
 
-
+# Perform manual calibration
 ret, calibrationFrame = video.read()
 video.set(cv2.CAP_PROP_POS_FRAMES, 0)
 perform_manual_calibration(calibrationFrame)
-exit()
 
+# Load point data
+# Gen list of colors for points
+# Gen lists that will contain "ghost trail" points
+labels, nLabels = get_labels(dataframe)
+colors = gen_point_colors(nLabels)
+ghostTrailPoints = gen_ghost_trail_point_lists(nLabels)
+filteredPoints = []
 
 def main():
-    for row in range(16, len(dataframe.index) - 1):
 
-        points = get_frame_points(dataframe, row)
+
+    # Loop over every frame in the video/DLC-data
+    for row in range(0, len(dataframe.index) - 1):
+
+
+        # Load the frame
         ret, frame = video.read()
+        # Make an overlay for ghostly trails
         overlay = frame.copy()
-        update_trailing_point_lists(trailingPoints, points)
-        paint_trails(trailingPoints, frame, overlay)
 
-        if (row >= eventStartFrame and row <= eventStopFrame):
-            eventPoints.append(points)
-            eventFrames.append(frame)
-        elif (row == eventStopFrame + 1):
-            event = KinematicEvent(eventStartFrame, eventStopFrame, "Reach", eventPoints)
-            kinematicEvents.append(event)
-            x, y, z = split_xyz_reach_trajectory_analysis(event.data)
-            x, y, z = convert_pixelCoord_to_realWorld(x, y, z)
-            spawn_3D_graph(np.asarray(x), np.asarray(y), np.asarray(z))
-            loop = True
-            while (loop):
-                for f in eventFrames:
-                    cv2.imshow("image", f)
-                    cv2.waitKey(0)
+
+        # Pull out the points for this frame (This function should filter any obviously erroneous points)
+        # The points that this function pulls out or filters will be specific to each use case and this function
+        # should therefore be rewritten on a case by case basis.
+        # Add the filtered points to the list of filtered frame points.
+        points = filter_frame_points(dataframe, row)
+        filteredPoints.append(points)
+
+
+        # Pass the points generated in above step to ghostly trail functions
+        # Toggle PAINT_GHOST_TRAILS global to turn this on or off.
+        if(PAINT_GHOST_TRAILS):
+            update_ghost_trail_point_lists(ghostTrailPoints, points)
+            paint_ghost_trails(ghostTrailPoints, frame, overlay)
+
+
+    # TODO: Parse reaching event frame ranges
+    # Now that frame data has been filtered, process the frame data to
+    # generate a list of "reaching events". Each event should contain:
+    #
+    # - Start frame index of event
+    # - Stop frame index of event
+    events = []
+
+
+    # TODO: For each event generated in the above step, perform kinematic analysis.
+    for event in events:
+
+        # Generate x,y,z of trajectory reconstruction by analyzing the (Y,Z) pixel coordinates of left mirror
+        # and right mirror, and the (X,Y) coordinates of center view.
+        x, y, z = gen_trajectory_reconsutrction_xyz(event)
+
+        # Use calibration constants to transform pixel coordinates into real-world coordinates.
+        x, y, z = convert_pixelCoord_to_realWorld(x, y, z)
+
+        # Spawn a graph displaying reconstruction
+        spawn_3D_graph(np.asarray(x), np.asarray(y), np.asarray(z))
+
+        # TODO: Save (x,y,z), graph .png, DLC data + video frames for the range of frames covered by event.
+
+
 
 
 if __name__ == "__main__":
