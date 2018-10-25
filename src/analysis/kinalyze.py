@@ -73,6 +73,7 @@ LINE_THICKNESS = 3
 N_TRAILING_POINTS = 10
 PAINT_GHOST_TRAILS = True
 DISPLAY_VIDEO = True
+DISPLAY_GRAPHS = True
 
 # -------------------------------------------------#
 # 				</Configure Analysis>			  #
@@ -494,17 +495,6 @@ def perform_manual_calibration(calibrationFrame):
 
 
 
-
-
-
-
-
-# -----------------------------------------------------------------------------#
-# All functions below this line are NOT generic and must be rewritten based on #
-# use case.																       #
-# ------------------------------------------------------------------------------#
-
-
 def convert_pixelCoord_to_realWorld(x_points, y_points, z_points):
     global PIXELS_MM_X_ACTUAL
     global PIXELS_MM_Y_RIGHTMIRROR
@@ -530,6 +520,25 @@ def convert_pixelCoord_to_realWorld(x_points, y_points, z_points):
 
     return realWorldX, realWorldY, realWorldZ
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# -----------------------------------------------------------------------------#
+# All functions below this line are NOT generic and must be rewritten based on #
+# use case.																       #
+# ------------------------------------------------------------------------------#
 
 def filter_frame_points(dataframe, rowIndex):
     global LEFTSIDE
@@ -649,29 +658,8 @@ def gen_trajectory_reconsutrction_xyz(framePoints):
             z_points.append(last_z)
 
     return x_points, y_points, z_points
-
-
-
-
 # ----------------------------------------------------------------------------------#
 
-
-
-# These hold information for each reach. Right now we're manually setting
-# start/stop frames. Eventually we can write something to find the events
-# automatically
-#eventStartFrame = 1900
-#eventStopFrame = 2050
-#eventPoints = []
-#eventFrames = []
-#kinematicEvents = extractEvents.extractEvents([2,5,8,11], [17,20,23,26], dataframe,"DeepCut_resnet50_manualSinglePellet2Sep30Shuffle1_300000", "manualSinglePellet", 0.95, 5, 20, LEFTSIDE, RIGHTSIDE)
-#for event in kinematicEvents:
-#    print(event.eventType)
-#    print(event.startFrame)
-#    print(event.stopFrame)
-
-#extractEvents.review_events(kinematicEvents,sys.argv[1],video)
-#exit()
 
 
 
@@ -731,13 +719,16 @@ def main():
 
         # Generate x,y,z of trajectory reconstruction by analyzing the (Y,Z) pixel coordinates of left mirror
         # and right mirror, and the (X,Y) coordinates of center view.
+        # NOTE: How (x,y,z) are chosen depends on use case. This function should be rewritten on a case by case
+        # basis.
         x, y, z = gen_trajectory_reconsutrction_xyz(event)
 
         # Use calibration constants to transform pixel coordinates into real-world coordinates.
         x, y, z = convert_pixelCoord_to_realWorld(x, y, z)
 
         # Spawn a graph displaying reconstruction
-        spawn_3D_graph(np.asarray(x), np.asarray(y), np.asarray(z))
+        if(DISPLAY_GRAPHS):
+            spawn_3D_graph(np.asarray(x), np.asarray(y), np.asarray(z))
 
         # TODO: Save (x,y,z), graph .png, DLC data + video frames for the range of frames covered by event.
 
