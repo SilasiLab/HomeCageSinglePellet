@@ -1,4 +1,0 @@
-2529.avi
-eating poses detected: 1
-reaching poses detected: 30
-successful reaches detected: 0

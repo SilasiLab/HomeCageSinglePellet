@@ -17,50 +17,57 @@ def packageEvent(frameIndexes, poseName):
     return tempEvent
 
 
-def extractEvents(leftBodypartIndexes, rightBodypartIndexes, h5file, modelName, poseName, likelihoodCutoff, minFrameCount, maxFrameCount, leftSide, rightSide):
+def extractEvents(leftMirrorPawIndexes, centerPawIndexes, rightMirrorPawIndexes, points, poseName, avgLikelihoodThreshold_eventStart, minFrameCountThreshold_eventStart, maxFrameCountThreshold_eventEnd, minFramesBetweenEvents):
 
     eventStarted = False
     contiguousPositiveCount = 0
     contiguousNegativeCount = 0
     tempEventFrameRange = []
     events = []
-    row = 0
 
-    while row < len(h5file.index):
-        confidence = 1
+    for row in points:
 
-        for index in leftBodypartIndexes:
-            if h5file.iat[row, index - 2] > leftSide:
-                confidence = 0
-            else:
-                confidence *= h5file.iat[row, index]
+        confidence = 0
 
-        for index in rightBodypartIndexes:
-            if h5file.iat[row, index - 2] < rightSide:
-                confidence = 0
-            else:
-                confidence *= h5file.iat[row, index]
+        for index in leftMirrorPawIndexes:
+
+            if row[index] != -1:
+                confidence += row[index].likelihood
+
+        for index in centerPawIndexes:
+
+            if row[index] != -1:
+                confidence += row[index].likelihood
+
+        for index in rightMirrorPawIndexes:
+
+            if row[index] != -1:
+                confidence += row[index].likelihood
+
+        confidence = (confidence) / (len(leftMirrorPawIndexes) + len(centerPawIndexes) + len(rightMirrorPawIndexes) - 3)
+
+
 
         if(eventStarted):
-            if(confidence < likelihoodCutoff):
+            if(confidence < avgLikelihoodThreshold_eventStart):
                 contiguousNegativeCount += 1
             else:
                 contiguousNegativeCount = 0
 
             tempEventFrameRange.append(row)
 
-            if(contiguousNegativeCount >= maxFrameCount):
+            if(contiguousNegativeCount >= maxFrameCountThreshold_eventEnd):
                 contiguousPositiveCount = 0
                 contiguousNegativeCount = 0
                 events.append(packageEvent(tempEventFrameRange, poseName))
                 tempEventFrameRange = []
-                row += 200
+                row += minFramesBetweenEvents
                 eventStarted = False
 
             row += 1
             continue
 
-        if(confidence >= likelihoodCutoff):
+        if(confidence >= avgLikelihoodThreshold_eventStart):
 
             contiguousPositiveCount += 1
             tempEventFrameRange.append(row)
@@ -68,7 +75,7 @@ def extractEvents(leftBodypartIndexes, rightBodypartIndexes, h5file, modelName, 
             contiguousPositiveCount = 0
             tempEventFrameRange = []
 
-        if(contiguousPositiveCount >= minFrameCount):
+        if(contiguousPositiveCount >= minFrameCountThreshold_eventStart):
             eventStarted = True
 
         row += 1

@@ -1,7 +1,0 @@
-5019.avi
-eating poses detected: 1
-reaching poses detected: 10
-successful reaches detected: 1
-Successful Reach
-4542
-4819

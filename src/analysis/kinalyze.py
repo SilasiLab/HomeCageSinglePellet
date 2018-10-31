@@ -65,8 +65,11 @@ Z_ORIGIN_RIGHTMIRROR = None
 
 
 
-# Likelihood cutoff for DLC points
+# Pose event parsing config
 LIKELIHOOD_THRESHOLD = 0.99
+MIN_FRAME_COUNT_EVENT_START = 10
+MAX_FRAME_COUNT_EVENT_STOP = 20
+MIN_FRAME_COUNT_BETWEEN_EVENTS = 50
 # Visual output config
 POINT_SIZE = 4
 LINE_THICKNESS = 3
@@ -80,6 +83,111 @@ DISPLAY_GRAPHS = True
 # -------------------------------------------------#
 
 
+class PoseEvent:
+
+    def __init__(self, startFrame, stopFrame, eventType):
+
+        self.startFrame = startFrame
+        self.stopFrame = stopFrame
+        self.eventType = eventType
+
+
+def packageEvent(frameIndexes, poseName):
+
+    tempEvent = PoseEvent(frameIndexes[0], frameIndexes[len(frameIndexes) - 1], poseName)
+    return tempEvent
+
+
+def extractEvents(leftMirrorPawIndexes, centerPawIndexes, rightMirrorPawIndexes, points, poseName):
+
+    global LIKELIHOOD_THRESHOLD
+    global MIN_FRAME_COUNT_EVENT_START
+    global MAX_FRAME_COUNT_EVENT_STOP
+    global MIN_FRAME_COUNT_BETWEEN_EVENTS
+
+
+    eventStarted = False
+    contiguousPositiveCount = 0
+    contiguousNegativeCount = 0
+    tempEventFrameRange = []
+    events = []
+    row = 0
+    while row < len(points) - 1:
+
+        confidence = 0
+
+        for index in leftMirrorPawIndexes:
+
+            if points[row][index] != -1:
+                confidence += points[row][index].likelihood
+
+        for index in centerPawIndexes:
+
+            if points[row][index] != -1:
+                confidence += points[row][index].likelihood
+
+        for index in rightMirrorPawIndexes:
+
+            if points[row][index] != -1:
+                confidence += points[row][index].likelihood
+
+        confidence = (confidence) / (len(leftMirrorPawIndexes) + len(centerPawIndexes) + len(rightMirrorPawIndexes) - 3)
+
+
+
+        if(eventStarted):
+            if(confidence < LIKELIHOOD_THRESHOLD):
+                contiguousNegativeCount += 1
+            else:
+                contiguousNegativeCount = 0
+
+            tempEventFrameRange.append(row)
+
+            if(contiguousNegativeCount >= MAX_FRAME_COUNT_EVENT_STOP):
+                contiguousPositiveCount = 0
+                contiguousNegativeCount = 0
+                events.append(packageEvent(tempEventFrameRange, poseName))
+                tempEventFrameRange = []
+                row += MIN_FRAME_COUNT_BETWEEN_EVENTS
+                eventStarted = False
+
+            row += 1
+            continue
+
+        if(confidence >= LIKELIHOOD_THRESHOLD):
+
+            contiguousPositiveCount += 1
+            tempEventFrameRange.append(row)
+        else:
+            contiguousPositiveCount = 0
+            tempEventFrameRange = []
+
+        if(contiguousPositiveCount >= MIN_FRAME_COUNT_EVENT_START):
+            eventStarted = True
+
+        row += 1
+
+    return events
+
+
+def review_events(events, videoName, video, points):
+
+    for event in events:
+        print("Event: " + event.eventType)
+        print("Start Frame: " + str(event.startFrame))
+        print("Stop Frame:" + str(event.stopFrame))
+        print("\n")
+        video.set(1,event.startFrame)
+        for frame in range(event.startFrame, event.stopFrame + 1):
+            ret, fr = video.read()
+            paint_frame_points(points[frame],fr)
+            cv2.imshow(videoName, fr)
+            if cv2.waitKey(0) & 0xFF == ord('q'):
+                break
+
+
+
+
 class Point:
 
     def __init__(self, x, y, likelihood):
@@ -87,15 +195,6 @@ class Point:
         self.y = y
         self.likelihood = likelihood
 
-
-class KinematicEvent:
-
-    def __init__(self, startFrame, stopFrame, eventType, data):
-        self.startFrame = startFrame
-        self.stopFrame = stopFrame
-        self.eventType = eventType
-        # List of lists where outer list is a frame and inner list is all points for that frame
-        self.data = data
 
 
 def gen_point_colors(nLabels):
@@ -314,7 +413,6 @@ def perform_manual_calibration(calibrationFrame):
     print("Draw left mirror segmentation line.")
     print("When you're happy with the line, press 's' to save.")
     while(1):
-        sleep(0.05)
         modified_calibrationFrame = calibrationFrame.copy()
         cv2.line(modified_calibrationFrame, (x1,y1), (x2,y2), (0,255,0), 1)
         cv2.imshow("calibrationFrame", modified_calibrationFrame)
@@ -327,7 +425,6 @@ def perform_manual_calibration(calibrationFrame):
     print("Draw right mirror segmentation line.")
     print("When you're happy with the line, press 's' to save.")
     while(1):
-        sleep(0.05)
         modified_calibrationFrame = calibrationFrame.copy()
         cv2.line(modified_calibrationFrame, (x1,y1), (x2,y2), (255,0,0), 1)
         cv2.imshow("calibrationFrame", modified_calibrationFrame)
@@ -340,7 +437,6 @@ def perform_manual_calibration(calibrationFrame):
     print("Draw line across width of calibration object in left mirror.")
     print("When you're happy with the line, press 's' to save.")
     while(1):
-        sleep(0.05)
         modified_calibrationFrame = calibrationFrame.copy()
         cv2.line(modified_calibrationFrame, (x1,y1), (x2,y2), (0,255,0), 1)
         cv2.imshow("calibrationFrame", modified_calibrationFrame)
@@ -353,7 +449,6 @@ def perform_manual_calibration(calibrationFrame):
     print("Draw line across height of calibration object in left mirror.")
     print("When you're happy with the line, press 's' to save.")
     while(1):
-        sleep(0.05)
         modified_calibrationFrame = calibrationFrame.copy()
         cv2.line(modified_calibrationFrame, (x1,y1), (x2,y2), (255,0,0), 1)
         cv2.imshow("calibrationFrame", modified_calibrationFrame)
@@ -366,7 +461,6 @@ def perform_manual_calibration(calibrationFrame):
     print("Draw line across width of calibration object in center view.")
     print("When you're happy with the line, press 's' to save.")
     while(1):
-        sleep(0.05)
         modified_calibrationFrame = calibrationFrame.copy()
         cv2.line(modified_calibrationFrame, (x1,y1), (x2,y2), (0,255,0), 1)
         cv2.imshow("calibrationFrame", modified_calibrationFrame)
@@ -379,7 +473,6 @@ def perform_manual_calibration(calibrationFrame):
     print("Draw line across height of calibration object in center view.")
     print("When you're happy with the line, press 's' to save.")
     while(1):
-        sleep(0.05)
         modified_calibrationFrame = calibrationFrame.copy()
         cv2.line(modified_calibrationFrame, (x1,y1), (x2,y2), (255,0,0), 1)
         cv2.imshow("calibrationFrame", modified_calibrationFrame)
@@ -392,7 +485,6 @@ def perform_manual_calibration(calibrationFrame):
     print("Draw line across width of calibration object in right mirror.")
     print("When you're happy with the line, press 's' to save.")
     while(1):
-        sleep(0.05)
         modified_calibrationFrame = calibrationFrame.copy()
         cv2.line(modified_calibrationFrame, (x1,y1), (x2,y2), (0,255,0), 1)
         cv2.imshow("calibrationFrame", modified_calibrationFrame)
@@ -405,7 +497,6 @@ def perform_manual_calibration(calibrationFrame):
     print("Draw line across height of calibration object in right mirror.")
     print("When you're happy with the line, press 's' to save.")
     while(1):
-        sleep(0.05)
         modified_calibrationFrame = calibrationFrame.copy()
         cv2.line(modified_calibrationFrame, (x1,y1), (x2,y2), (255,0,0), 1)
         cv2.imshow("calibrationFrame", modified_calibrationFrame)
@@ -418,7 +509,6 @@ def perform_manual_calibration(calibrationFrame):
     print("Click on Y origin in left mirror.")
     print("When you're happy with the point, press 's' to save.")
     while(1):
-        sleep(0.05)
         modified_calibrationFrame = calibrationFrame.copy()
         cv2.circle(modified_calibrationFrame, (x1,y1), 2, (0,255,0), -1)
         cv2.imshow("calibrationFrame", modified_calibrationFrame)
@@ -430,7 +520,6 @@ def perform_manual_calibration(calibrationFrame):
     print("Click on Z origin in left mirror.")
     print("When you're happy with the point, press 's' to save.")
     while(1):
-        sleep(0.05)
         modified_calibrationFrame = calibrationFrame.copy()
         cv2.circle(modified_calibrationFrame, (x1,y1), 2, (255,0,0), -1)
         cv2.imshow("calibrationFrame", modified_calibrationFrame)
@@ -442,7 +531,6 @@ def perform_manual_calibration(calibrationFrame):
     print("Click on X origin in center view.")
     print("When you're happy with the point, press 's' to save.")
     while(1):
-        sleep(0.05)
         modified_calibrationFrame = calibrationFrame.copy()
         cv2.circle(modified_calibrationFrame, (x1,y1), 2, (0,255,0), -1)
         cv2.imshow("calibrationFrame", modified_calibrationFrame)
@@ -454,7 +542,6 @@ def perform_manual_calibration(calibrationFrame):
     print("Click on y origin in center view.")
     print("When you're happy with the point, press 's' to save.")
     while(1):
-        sleep(0.05)
         modified_calibrationFrame = calibrationFrame.copy()
         cv2.circle(modified_calibrationFrame, (x1,y1), 2, (255,0,0), -1)
         cv2.imshow("calibrationFrame", modified_calibrationFrame)
@@ -466,7 +553,6 @@ def perform_manual_calibration(calibrationFrame):
     print("Click on Y origin in right mirror.")
     print("When you're happy with the point, press 's' to save.")
     while(1):
-        sleep(0.05)
         modified_calibrationFrame = calibrationFrame.copy()
         cv2.circle(modified_calibrationFrame, (x1,y1), 2, (0,255,0), -1)
         cv2.imshow("calibrationFrame", modified_calibrationFrame)
@@ -478,7 +564,6 @@ def perform_manual_calibration(calibrationFrame):
     print("Click on Z origin in right mirror.")
     print("When you're happy with the point, press 's' to save.")
     while(1):
-        sleep(0.05)
         modified_calibrationFrame = calibrationFrame.copy()
         cv2.circle(modified_calibrationFrame, (x1,y1), 2, (255,0,0), -1)
         cv2.imshow("calibrationFrame", modified_calibrationFrame)
@@ -540,61 +625,106 @@ def convert_pixelCoord_to_realWorld(x_points, y_points, z_points):
 # use case.																       #
 # ------------------------------------------------------------------------------#
 
-def filter_frame_points(dataframe, rowIndex):
+def filter_trajectory_points(dataframe):
     global LEFTSIDE
     global RIGHTSIDE
     global LIKELIHOOD_THRESHOLD
-    points = []
+    filteredPoints = []
 
-    # Package points for left mirror
-    h5ColIndex = 0
-    for i in range(0, 5):
-        x = dataframe.iat[rowIndex, h5ColIndex]
-        y = dataframe.iat[rowIndex, h5ColIndex + 1]
-        l = dataframe.iat[rowIndex, h5ColIndex + 2]
+    for row in range(0, len(dataframe.index) - 1):
+
+        framePoints = []
+        h5ColIndex = 0
+
+        # Filter left mirror paw points
+        for i in range(0, 5):
+            x = dataframe.iat[row, h5ColIndex]
+            y = dataframe.iat[row, h5ColIndex + 1]
+            l = dataframe.iat[row, h5ColIndex + 2]
+            if (x <= LEFTSIDE and l >= LIKELIHOOD_THRESHOLD):
+                framePoints.append(Point(x, y, l))
+            else:
+                framePoints.append(-1)
+            h5ColIndex += 3
+
+        # Filter points for center paw
+        for i in range(0, 5):
+            x = dataframe.iat[row, h5ColIndex]
+            y = dataframe.iat[row, h5ColIndex + 1]
+            l = dataframe.iat[row, h5ColIndex + 2]
+            if (x >= LEFTSIDE and x <= RIGHTSIDE and l >= LIKELIHOOD_THRESHOLD):
+                framePoints.append(Point(x, y, l))
+            else:
+                framePoints.append(-1)
+            h5ColIndex += 3
+
+        # Filter points for right paw
+        for i in range(0, 5):
+            x = dataframe.iat[row, h5ColIndex]
+            y = dataframe.iat[row, h5ColIndex + 1]
+            l = dataframe.iat[row, h5ColIndex + 2]
+            if (x >= RIGHTSIDE and l >= LIKELIHOOD_THRESHOLD):
+                framePoints.append(Point(x, y, l))
+            else:
+                framePoints.append(-1)
+            h5ColIndex += 3
+
+
+        # Filter point for left mirror pellet
+        x = dataframe.iat[row, h5ColIndex]
+        y = dataframe.iat[row, h5ColIndex + 1]
+        l = dataframe.iat[row, h5ColIndex + 2]
+
         if (x <= LEFTSIDE and l >= LIKELIHOOD_THRESHOLD):
-            points.append(Point(x, y, l))
+            framePoints.append(Point(x, y, l))
         else:
-            points.append(-1)
+            framePoints.append(-1)
         h5ColIndex += 3
 
-    # Package points for right mirror
-    for i in range(6, 11):
-        x = dataframe.iat[rowIndex, h5ColIndex]
-        y = dataframe.iat[rowIndex, h5ColIndex + 1]
-        l = dataframe.iat[rowIndex, h5ColIndex + 2]
+        # Filter point for center pellet
+        x = dataframe.iat[row, h5ColIndex]
+        y = dataframe.iat[row, h5ColIndex + 1]
+        l = dataframe.iat[row, h5ColIndex + 2]
+
+        if (l >= LIKELIHOOD_THRESHOLD):
+            framePoints.append(Point(x, y, l))
+        else:
+            framePoints.append(-1)
+        h5ColIndex += 3
+
+        # Filter point for right mirror pellet
+        x = dataframe.iat[row, h5ColIndex]
+        y = dataframe.iat[row, h5ColIndex + 1]
+        l = dataframe.iat[row, h5ColIndex + 2]
+
         if (x >= RIGHTSIDE and l >= LIKELIHOOD_THRESHOLD):
-            points.append(Point(x, y, l))
+            framePoints.append(Point(x, y, l))
         else:
-            points.append(-1)
+            framePoints.append(-1)
         h5ColIndex += 3
 
-    # Package points for middle (left paw)
-    for i in range(11, 16):
-        x = dataframe.iat[rowIndex, h5ColIndex]
-        y = dataframe.iat[rowIndex, h5ColIndex + 1]
-        l = dataframe.iat[rowIndex, h5ColIndex + 2]
-        if (x > LEFTSIDE and x < RIGHTSIDE and l >= LIKELIHOOD_THRESHOLD):
-            points.append(Point(x, y, l))
-        else:
-            points.append(-1)
-        h5ColIndex += 3
-
-    # Package points for middle (right paw)
-    for i in range(16, 21):
-        x = dataframe.iat[rowIndex, h5ColIndex]
-        y = dataframe.iat[rowIndex, h5ColIndex + 1]
-        l = dataframe.iat[rowIndex, h5ColIndex + 2]
-        if (x > LEFTSIDE and x < RIGHTSIDE and l >= LIKELIHOOD_THRESHOLD):
-            points.append(Point(x, y, l))
-        else:
-            points.append(-1)
-        h5ColIndex += 3
-
-    return points
 
 
-def gen_trajectory_reconsutrction_xyz(framePoints):
+        # Filter points for center face
+        for i in range(0, 6):
+            x = dataframe.iat[row, h5ColIndex]
+            y = dataframe.iat[row, h5ColIndex + 1]
+            l = dataframe.iat[row, h5ColIndex + 2]
+            if (x >= LEFTSIDE and x <= RIGHTSIDE and l >= LIKELIHOOD_THRESHOLD):
+                framePoints.append(Point(x, y, l))
+            else:
+                framePoints.append(-1)
+            h5ColIndex += 3
+
+
+        filteredPoints.append(framePoints)
+
+
+    return filteredPoints
+
+
+def gen_event_trajectory_reconsutrction_xyz(event, points, reachingHand):
+
     x_points = []
     y_points = []
     z_points = []
@@ -602,60 +732,106 @@ def gen_trajectory_reconsutrction_xyz(framePoints):
     last_y = None
     last_z = None
 
-    for points in framePoints:
-        x = 0
-        y = 0
-        z = 0
 
-        # Determine which hand is being reached with
-        leftCount = 0
-        rightCount = 0
-        for point in range(10, 14):
-            if points[point] != -1:
-                leftCount += 1
-        for point in range(15, 19):
-            if points[point] != -1:
-                rightCount += 1
+    for frameIndex in range(event.startFrame, event.stopFrame + 1):
 
-        # Take paw-center label location as x coordinate
-        if leftCount >= rightCount:
-            if points[14] != -1:
-                x = points[14].x
-        else:
-            if points[19] != -1:
-                x += points[19].x
+        frameX = 0
+        frameY = 0
+        frameZ = 0
+        tempN = 0
 
-        nMirror = 0
-        for point in range(1, 2):
-            if points[point] != -1:
-                z += points[point].x
-                y += points[point].y
-                nMirror += 1
-        if nMirror != 0:
-            y = y / nMirror
-            z = z / nMirror
 
-        if x == 0 and last_x == None:
-            continue
-        elif y == 0 and last_y == None:
-            continue
-        elif z == 0 and last_z == None:
-            continue
+        if(reachingHand == "LEFT"):
+            # Get Y from Left Mirror Paw
+            for point in range(4,5):
+                if points[frameIndex][point] != -1:
+                    frameY += points[frameIndex][point].y
+                    tempN += 1
+            if(tempN != 0):
+                frameY = frameY / tempN
+                tempN = 0
 
-        if x != 0:
-            x_points.append(x)
-        else:
+            # Get Z from Left Mirror Paw
+            for point in range(0,3):
+                if points[frameIndex][point] != -1:
+                    frameZ += points[frameIndex][point].x
+                    tempN += 1
+            if(tempN != 0):
+                frameZ = frameZ / tempN
+                tempN = 0
+
+            # Get X from Center Paw
+            for point in range(5,10):
+                if points[frameIndex][point] != -1:
+                    frameX += points[frameIndex][point].x
+                    tempN += 1
+            if(tempN !=0):
+                frameX = frameX / tempN
+                tempN = 0
+
+        elif(reachingHand == "RIGHT"):
+
+            # Get Y from Right Mirror Paw
+            for point in range(14, 15):
+                if points[frameIndex][point] != -1:
+                    frameY += points[frameIndex][point].y
+                    tempN += 1
+            if (tempN != 0):
+                frameY = frameY / tempN
+                tempN = 0
+
+            # Get Z from Right Mirror Paw
+            for point in range(11, 14):
+                if points[frameIndex][point] != -1:
+                    frameZ += points[frameIndex][point].x
+                    tempN += 1
+            if (tempN != 0):
+                frameZ = frameZ / tempN
+                tempN = 0
+
+            # Get X from Center Paw
+            for point in range(5, 10):
+                if points[frameIndex][point] != -1:
+                    frameX += points[frameIndex][point].x
+                    tempN += 1
+            if (tempN != 0):
+                frameX = frameX / tempN
+                tempN = 0
+
+
+        if(last_x == None):
+            if(frameX > 0):
+                last_x = frameX
+
+        if(last_y == None):
+            if(frameY > 0):
+                last_y = frameY
+
+        if(last_z == None):
+            if(frameZ > 0):
+                last_z = frameZ
+
+        if(frameX > 0):
+            x_points.append(frameX)
+        elif(last_x != None):
             x_points.append(last_x)
-
-        if y != 0:
-            y_points.append(y)
         else:
+            x_points.append(-1)
+
+        if(frameY > 0):
+            y_points.append(frameY)
+        elif(last_y != None):
             y_points.append(last_y)
-
-        if z != 0:
-            z_points.append(z)
         else:
+            x_points.append(-1)
+
+        if(frameZ > 0):
+            z_points.append(frameZ)
+        elif(last_z != None):
             z_points.append(last_z)
+        else:
+            z_points.append(-1)
+
 
     return x_points, y_points, z_points
 # ----------------------------------------------------------------------------------#
@@ -675,52 +851,25 @@ perform_manual_calibration(calibrationFrame)
 labels, nLabels = get_labels(dataframe)
 colors = gen_point_colors(nLabels)
 ghostTrailPoints = gen_ghost_trail_point_lists(nLabels)
-filteredPoints = []
+filteredPoints = filter_trajectory_points(dataframe)
+events = extractEvents([0,1,2,3,4],[5,6,7,8,9],[10,11,12,13,14],filteredPoints,"reachingReconstruction")
+x, y, z = gen_event_trajectory_reconsutrction_xyz(events[0], filteredPoints, "LEFT")
+
+print(z)
+
+
+review_events(events,"323.avi", video, filteredPoints)
+
+exit()
+
 
 def main():
 
 
-    # Loop over every frame in the video/DLC-data
-    for row in range(0, len(dataframe.index) - 1):
 
 
-        # Load the frame
-        ret, frame = video.read()
-        # Make an overlay for ghostly trails
-        overlay = frame.copy()
 
 
-        # Pull out the points for this frame (This function should filter any obviously erroneous points)
-        # The points that this function pulls out or filters will be specific to each use case and this function
-        # should therefore be rewritten on a case by case basis.
-        # Add the filtered points to the list of filtered frame points.
-        points = filter_frame_points(dataframe, row)
-        filteredPoints.append(points)
-
-
-        # Pass the points generated in above step to ghostly trail functions
-        # Toggle PAINT_GHOST_TRAILS global to turn this on or off.
-        if(PAINT_GHOST_TRAILS):
-            update_ghost_trail_point_lists(ghostTrailPoints, points)
-            paint_ghost_trails(ghostTrailPoints, frame, overlay)
-
-
-    # TODO: Parse reaching event frame ranges
-    # Now that frame data has been filtered, process the frame data to
-    # generate a list of "reaching events". Each event should contain:
-    #
-    # - Start frame index of event
-    # - Stop frame index of event
-    events = []
-
-
-    # TODO: For each event generated in the above step, perform kinematic analysis.
-    for event in events:
-
-        # Generate x,y,z of trajectory reconstruction by analyzing the (Y,Z) pixel coordinates of left mirror
-        # and right mirror, and the (X,Y) coordinates of center view.
-        # NOTE: How (x,y,z) are chosen depends on use case. This function should be rewritten on a case by case
-        # basis.
         x, y, z = gen_trajectory_reconsutrction_xyz(event)
 
         # Use calibration constants to transform pixel coordinates into real-world coordinates.

@@ -2,7 +2,7 @@
 45567_MOUSE3
 3
 45567
-4
-RIGHT
-2835
+5
+LEFT
+363
 /home/sliasi/HomeCageSinglePellet/AnimalProfiles/45567_MOUSE3/
