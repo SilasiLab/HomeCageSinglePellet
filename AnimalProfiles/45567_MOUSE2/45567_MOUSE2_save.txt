@@ -1,8 +1,8 @@
 00782B191B51
 45567_MOUSE2
-4
+2
 45567
 5
-RIGHT
-1373
+LEFT
+181
 /home/sliasi/HomeCageSinglePellet/AnimalProfiles/45567_MOUSE2/
