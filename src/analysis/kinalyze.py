@@ -90,7 +90,9 @@ class PoseEvent:
         self.startFrame = startFrame
         self.stopFrame = stopFrame
         self.eventType = eventType
-
+        self.xVals = None
+        self.yVals = None
+        self.zVals = None
 
 def packageEvent(frameIndexes, poseName):
 
@@ -163,29 +165,46 @@ def extractEvents(leftMirrorPawIndexes, centerPawIndexes, rightMirrorPawIndexes,
             tempEventFrameRange = []
 
         if(contiguousPositiveCount >= MIN_FRAME_COUNT_EVENT_START):
+
             eventStarted = True
+
+            # If an event is started, grab the first 20 frames before the event started
+            eventFramePadding = []
+            for i in range(row - MIN_FRAME_COUNT_EVENT_START - 20, row - MIN_FRAME_COUNT_EVENT_START + 1):
+                if(i >= 0 and i < len(points)):
+                    eventFramePadding.append(i)
+
+            tempEventFrameRange = eventFramePadding + tempEventFrameRange
+            eventFramePadding = []
 
         row += 1
 
     return events
 
 
-def review_events(events, videoName, video, points):
+def review_event(event, videoName, video, points):
 
-    for event in events:
-        print("Event: " + event.eventType)
-        print("Start Frame: " + str(event.startFrame))
-        print("Stop Frame:" + str(event.stopFrame))
-        print("\n")
-        video.set(1,event.startFrame)
-        for frame in range(event.startFrame, event.stopFrame + 1):
-            ret, fr = video.read()
-            paint_frame_points(points[frame],fr)
-            cv2.imshow(videoName, fr)
-            if cv2.waitKey(0) & 0xFF == ord('q'):
-                break
+    print("Event: " + event.eventType)
+    print("Start Frame: " + str(event.startFrame))
+    print("Stop Frame:" + str(event.stopFrame))
+    print("\n")
 
 
+    video.set(1,event.startFrame)
+    for frame in range(event.startFrame, event.stopFrame + 1):
+        ret, fr = video.read()
+        paint_frame_points(points[frame],fr)
+        cv2.imshow(videoName, fr)
+        if cv2.waitKey(0) & 0xFF == ord('q'):
+            break
+
+    return 0
+
+
+def spawn_event_review_process(event, videoName, video, points):
+    p = Process(target=review_event, args=(event, videoName, video, points))
+    p.start()
+    return p
 
 
 class Point:
@@ -285,19 +304,18 @@ def get_point_distance(point1, point2):
 def graph_3D_trajectory(x_points, y_points, z_points):
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
-    ax.set_xlim(0, 10)
-    ax.set_ylim(-4, 9)
-    ax.set_zlim(8, 18)
+    ax.set_xlim(-10, 10)
+    ax.set_ylim(-17, 3)
+    ax.set_zlim(-5, 5)
     ax.plot(x_points, z_points, y_points)
     ax.text(x_points[0], z_points[0], y_points[0], 'S', size=20, zorder=1, color='g')
-    ax.text(x_points[len(x_points) - 1], z_points[len(z_points) - 1], y_points[len(y_points) - 1], 'F', size=20,
-            zorder=1, color='r')
+    ax.text(x_points[len(x_points) - 1], z_points[len(z_points) - 1], y_points[len(y_points) - 1], 'F', size=20, zorder=1, color='r')
     ax.set_xlabel('x')
     ax.set_ylabel('z')
     ax.set_zlabel('y')
     plt.show()
     cv2.waitKey(0)
-
+    return 0
 
 def spawn_3D_graph(x_points, y_points, z_points):
     p = Process(target=graph_3D_trajectory, args=(x_points, y_points, z_points,))
@@ -398,12 +416,12 @@ def perform_manual_calibration(calibrationFrame):
     global Y_ORIGIN_RIGHTMIRROR
     global Z_ORIGIN_RIGHTMIRROR
 
-    LEFT_MIRROR_CALIBRATION_OBJECT_WIDTH = int(input("Enter the width of the left mirror calibration object in mm: "))
-    LEFT_MIRROR_CALIBRATION_OBJECT_HEIGHT = int(input("Enter the height of the left mirror calibration object in mm: "))
-    ACTUAL_CALIBRATION_OBJECT_WIDTH = int(input("Enter the width of the center view calibration object in mm: "))
-    ACTUAL_CALIBRATION_OBJECT_HEIGHT = int(input("Enter the height of the center view calibration object in mm: "))
-    RIGHT_MIRROR_CALIBRATION_OBJECT_WIDTH = int(input("Enter the width of the right mirror calibration object in mm: "))
-    RIGHT_MIRROR_CALIBRATION_OBJECT_HEIGHT = int(input("Enter the height of the right mirror calibration object in mm: "))
+    LEFT_MIRROR_CALIBRATION_OBJECT_WIDTH = float(input("Enter the width of the left mirror calibration object in mm: "))
+    LEFT_MIRROR_CALIBRATION_OBJECT_HEIGHT = float(input("Enter the height of the left mirror calibration object in mm: "))
+    ACTUAL_CALIBRATION_OBJECT_WIDTH = float(input("Enter the width of the center view calibration object in mm: "))
+    ACTUAL_CALIBRATION_OBJECT_HEIGHT = float(input("Enter the height of the center view calibration object in mm: "))
+    RIGHT_MIRROR_CALIBRATION_OBJECT_WIDTH = float(input("Enter the width of the right mirror calibration object in mm: "))
+    RIGHT_MIRROR_CALIBRATION_OBJECT_HEIGHT = float(input("Enter the height of the right mirror calibration object in mm: "))
     print("\n")
 
     cv2.namedWindow("calibrationFrame")
@@ -581,39 +599,45 @@ def perform_manual_calibration(calibrationFrame):
 
 
 def convert_pixelCoord_to_realWorld(x_points, y_points, z_points):
-    global PIXELS_MM_X_ACTUAL
-    global PIXELS_MM_Y_RIGHTMIRROR
-    global PIXELS_MM_Z_RIGHTMIRROR
+
+
+    # Calibration Constants
+    global LEFTSIDE
+    global RIGHTSIDE
+    global LEFT_MIRROR_CALIBRATION_OBJECT_WIDTH
+    global ACTUAL_CALIBRATION_OBJECT_WIDTH
+    global RIGHT_MIRROR_CALIBRATION_OBJECT_WIDTH
+    global LEFT_MIRROR_CALIBRATION_OBJECT_HEIGHT
+    global ACTUAL_CALIBRATION_OBJECT_HEIGHT
+    global RIGHT_MIRROR_CALIBRATION_OBJECT_HEIGHT
     global PIXELS_MM_Y_LEFTMIRROR
     global PIXELS_MM_Z_LEFTMIRROR
-    global X_ORIGIN_ACTUAL
-    global Y_ORIGIN_RIGHTMIRROR
-    global Z_ORIGIN_RIGHTMIRROR
+    global PIXELS_MM_X_ACTUAL
+    global PIXELS_MM_Y_ACTUAL
+    global PIXELS_MM_Y_RIGHTMIRROR
+    global PIXELS_MM_Z_RIGHTMIRROR
     global Y_ORIGIN_LEFTMIRROR
     global Z_ORIGIN_LEFTMIRROR
+    global X_ORIGIN_ACTUAL
+    global Y_ORIGIN_ACTUAL
+    global Y_ORIGIN_RIGHTMIRROR
+    global Z_ORIGIN_RIGHTMIRROR
 
     realWorldX = []
     realWorldY = []
     realWorldZ = []
 
     for point in x_points:
-        realWorldX.append((point - X_ORIGIN_ACTUAL) / PIXELS_MM_X_ACTUAL)
+        if point != None:
+            realWorldX.append((point - X_ORIGIN_ACTUAL) / PIXELS_MM_X_ACTUAL)
     for point in y_points:
-        realWorldY.append((Y_ORIGIN_LEFTMIRROR - point) / PIXELS_MM_Y_LEFTMIRROR)
+        if point != None:
+            realWorldY.append((Y_ORIGIN_LEFTMIRROR - point) / PIXELS_MM_Y_LEFTMIRROR)
     for point in z_points:
-        realWorldZ.append((Z_ORIGIN_LEFTMIRROR - point) / PIXELS_MM_Z_LEFTMIRROR)
+        if point != None:
+            realWorldZ.append((Z_ORIGIN_LEFTMIRROR - point) / PIXELS_MM_Z_LEFTMIRROR)
 
     return realWorldX, realWorldY, realWorldZ
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -723,7 +747,7 @@ def filter_trajectory_points(dataframe):
     return filteredPoints
 
 
-def gen_event_trajectory_reconsutrction_xyz(event, points, reachingHand):
+def gen_reach_trajectory_reconsutrction_xyz(event, points, reachingHand):
 
     x_points = []
     y_points = []
@@ -743,7 +767,7 @@ def gen_event_trajectory_reconsutrction_xyz(event, points, reachingHand):
 
         if(reachingHand == "LEFT"):
             # Get Y from Left Mirror Paw
-            for point in range(4,5):
+            for point in range(1,2):
                 if points[frameIndex][point] != -1:
                     frameY += points[frameIndex][point].y
                     tempN += 1
@@ -752,7 +776,7 @@ def gen_event_trajectory_reconsutrction_xyz(event, points, reachingHand):
                 tempN = 0
 
             # Get Z from Left Mirror Paw
-            for point in range(0,3):
+            for point in range(1,2):
                 if points[frameIndex][point] != -1:
                     frameZ += points[frameIndex][point].x
                     tempN += 1
@@ -772,7 +796,7 @@ def gen_event_trajectory_reconsutrction_xyz(event, points, reachingHand):
         elif(reachingHand == "RIGHT"):
 
             # Get Y from Right Mirror Paw
-            for point in range(14, 15):
+            for point in range(12, 13):
                 if points[frameIndex][point] != -1:
                     frameY += points[frameIndex][point].y
                     tempN += 1
@@ -781,7 +805,7 @@ def gen_event_trajectory_reconsutrction_xyz(event, points, reachingHand):
                 tempN = 0
 
             # Get Z from Right Mirror Paw
-            for point in range(11, 14):
+            for point in range(12, 13):
                 if points[frameIndex][point] != -1:
                     frameZ += points[frameIndex][point].x
                     tempN += 1
@@ -813,24 +837,30 @@ def gen_event_trajectory_reconsutrction_xyz(event, points, reachingHand):
 
         if(frameX > 0):
             x_points.append(frameX)
+            last_x = frameX
         elif(last_x != None):
             x_points.append(last_x)
         else:
-            x_points.append(-1)
+            x_points.append(None)
+            last_x = None
 
         if(frameY > 0):
             y_points.append(frameY)
+            last_y = frameY
         elif(last_y != None):
             y_points.append(last_y)
         else:
-            x_points.append(-1)
+            y_points.append(None)
+            last_y = None
 
         if(frameZ > 0):
             z_points.append(frameZ)
+            last_z = frameZ
         elif(last_z != None):
             z_points.append(last_z)
         else:
-            z_points.append(-1)
+            z_points.append(None)
+            last_z = None
 
 
     return x_points, y_points, z_points
@@ -840,46 +870,48 @@ def gen_event_trajectory_reconsutrction_xyz(event, points, reachingHand):
 
 
 
-# Perform manual calibration
-ret, calibrationFrame = video.read()
-video.set(cv2.CAP_PROP_POS_FRAMES, 0)
-perform_manual_calibration(calibrationFrame)
-
-# Load point data
-# Gen list of colors for points
-# Gen lists that will contain "ghost trail" points
-labels, nLabels = get_labels(dataframe)
-colors = gen_point_colors(nLabels)
-ghostTrailPoints = gen_ghost_trail_point_lists(nLabels)
-filteredPoints = filter_trajectory_points(dataframe)
-events = extractEvents([0,1,2,3,4],[5,6,7,8,9],[10,11,12,13,14],filteredPoints,"reachingReconstruction")
-x, y, z = gen_event_trajectory_reconsutrction_xyz(events[0], filteredPoints, "LEFT")
-
-print(z)
 
 
-review_events(events,"323.avi", video, filteredPoints)
 
-exit()
 
 
 def main():
 
 
+    # Perform manual calibration
+    ret, calibrationFrame = video.read()
+    video.set(cv2.CAP_PROP_POS_FRAMES, 0)
+    perform_manual_calibration(calibrationFrame)
 
+    # Load point data
+    # Gen list of colors for points
+    # Gen lists that will contain "ghost trail" points
+    labels, nLabels = get_labels(dataframe)
+    colors = gen_point_colors(nLabels)
+    ghostTrailPoints = gen_ghost_trail_point_lists(nLabels)
+    filteredPoints = filter_trajectory_points(dataframe)
 
+    # Extract reaching events
+    events = extractEvents([0, 1, 2, 3, 4], [5, 6, 7, 8, 9], [10, 11, 12, 13, 14], filteredPoints, "reachingReconstruction")
 
-
-        x, y, z = gen_trajectory_reconsutrction_xyz(event)
-
-        # Use calibration constants to transform pixel coordinates into real-world coordinates.
+    # Compute coordinates of each reach event
+    for event in events:
+        x, y, z = gen_reach_trajectory_reconsutrction_xyz(event, filteredPoints, "LEFT")
         x, y, z = convert_pixelCoord_to_realWorld(x, y, z)
+        event.xVals = x
+        event.yVals = y
+        event.zVals = z
 
-        # Spawn a graph displaying reconstruction
+
+    # Graph each event
+    for event in events:
+
         if(DISPLAY_GRAPHS):
-            spawn_3D_graph(np.asarray(x), np.asarray(y), np.asarray(z))
+            graph_p = spawn_3D_graph(np.asarray(event.xVals), np.asarray(event.yVals), np.asarray(event.zVals))
+            graph_p.join()
 
-        # TODO: Save (x,y,z), graph .png, DLC data + video frames for the range of frames covered by event.
+
+
 
 
 
