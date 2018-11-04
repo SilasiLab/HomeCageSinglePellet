@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import csv
 import math
 import cv2
 import sys
@@ -15,6 +16,7 @@ from mpl_toolkits.mplot3d import Axes3D
 
 VIDEO_PATH = sys.argv[1]
 H5_PATH = sys.argv[2]
+OUTPUT_PATH = sys.argv[3]
 
 # Load video
 video = cv2.VideoCapture(VIDEO_PATH)
@@ -74,9 +76,8 @@ MIN_FRAME_COUNT_BETWEEN_EVENTS = 50
 POINT_SIZE = 4
 LINE_THICKNESS = 3
 N_TRAILING_POINTS = 10
-PAINT_GHOST_TRAILS = True
-DISPLAY_VIDEO = True
-DISPLAY_GRAPHS = True
+PAINT_GHOST_TRAILS = False
+DISPLAY_EVENTS = False
 
 # -------------------------------------------------#
 # 				</Configure Analysis>			  #
@@ -630,12 +631,22 @@ def convert_pixelCoord_to_realWorld(x_points, y_points, z_points):
     for point in x_points:
         if point != None:
             realWorldX.append((point - X_ORIGIN_ACTUAL) / PIXELS_MM_X_ACTUAL)
+        else:
+            realWorldX.append(None)
     for point in y_points:
         if point != None:
             realWorldY.append((Y_ORIGIN_LEFTMIRROR - point) / PIXELS_MM_Y_LEFTMIRROR)
+        else:
+            realWorldY.append(None)
     for point in z_points:
         if point != None:
             realWorldZ.append((Z_ORIGIN_LEFTMIRROR - point) / PIXELS_MM_Z_LEFTMIRROR)
+        else:
+            realWorldZ.append(None)
+
+    if(not (len(realWorldX) == len(realWorldY) == len(realWorldZ))):
+        print("Error: convert_pixelCoord_to_realWorld(): Coordinate list lengths do not match")
+        exit()
 
     return realWorldX, realWorldY, realWorldZ
 
@@ -767,7 +778,7 @@ def gen_reach_trajectory_reconsutrction_xyz(event, points, reachingHand):
 
         if(reachingHand == "LEFT"):
             # Get Y from Left Mirror Paw
-            for point in range(1,2):
+            for point in range(0,1):
                 if points[frameIndex][point] != -1:
                     frameY += points[frameIndex][point].y
                     tempN += 1
@@ -776,7 +787,7 @@ def gen_reach_trajectory_reconsutrction_xyz(event, points, reachingHand):
                 tempN = 0
 
             # Get Z from Left Mirror Paw
-            for point in range(1,2):
+            for point in range(0,1):
                 if points[frameIndex][point] != -1:
                     frameZ += points[frameIndex][point].x
                     tempN += 1
@@ -785,7 +796,7 @@ def gen_reach_trajectory_reconsutrction_xyz(event, points, reachingHand):
                 tempN = 0
 
             # Get X from Center Paw
-            for point in range(5,10):
+            for point in range(5,9):
                 if points[frameIndex][point] != -1:
                     frameX += points[frameIndex][point].x
                     tempN += 1
@@ -823,17 +834,17 @@ def gen_reach_trajectory_reconsutrction_xyz(event, points, reachingHand):
                 tempN = 0
 
 
-        if(last_x == None):
-            if(frameX > 0):
+        if(last_x == None and frameX > 0):
                 last_x = frameX
 
-        if(last_y == None):
-            if(frameY > 0):
+        if(last_y == None and frameY > 0):
                 last_y = frameY
 
-        if(last_z == None):
-            if(frameZ > 0):
+        if(last_z == None and frameZ > 0):
                 last_z = frameZ
+
+
+
 
         if(frameX > 0):
             x_points.append(frameX)
@@ -862,6 +873,10 @@ def gen_reach_trajectory_reconsutrction_xyz(event, points, reachingHand):
             z_points.append(None)
             last_z = None
 
+
+    if(not (len(x_points) == len(y_points) == len(z_points))):
+        print("Error: gen_reach_trajectory_reconstruction_xyz(): Coordinate list lengths do not match")
+        exit()
 
     return x_points, y_points, z_points
 # ----------------------------------------------------------------------------------#
@@ -903,14 +918,34 @@ def main():
         event.zVals = z
 
 
+
+    # Temp event num for testing saving feature before integration
+    eventNum = 1
+
     # Graph each event
     for event in events:
 
-        if(DISPLAY_GRAPHS):
-            graph_p = spawn_3D_graph(np.asarray(event.xVals), np.asarray(event.yVals), np.asarray(event.zVals))
-            graph_p.join()
+        if(DISPLAY_EVENTS):
+            spawn_3D_graph(np.asarray(event.xVals), np.asarray(event.yVals), np.asarray(event.zVals))
+            review_event(event, VIDEO_PATH, video, filteredPoints)
+            cv2.waitKey(0)
+        else:
+            with open(str(OUTPUT_PATH) + str(eventNum), 'w', newline='') as outputFile:
 
+                outputFile.write(str(VIDEO_PATH) + "\n")
+                outputFile.write(str(H5_PATH) + "\n")
+                outputFile.write(str(event.startFrame) + "\n")
+                outputFile.write(str(event.stopFrame) + "\n")
+                wr = csv.writer(outputFile)
 
+                for i in range(0, len(event.xVals)):
+                    line = []
+                    line.append(event.xVals[i])
+                    line.append(event.yVals[i])
+                    line.append(event.zVals[i])
+                    wr.writerow(line)
+
+                eventNum += 1
 
 
 
