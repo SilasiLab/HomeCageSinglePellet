@@ -1,0 +1,8 @@
+00782B19B0FA
+TEST_LEFT
+1
+0
+3
+LEFT
+2
+/home/sliasi/HomeCageSinglePellet/AnimalProfiles/TEST_LEFT/

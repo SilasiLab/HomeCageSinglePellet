@@ -1,37 +1,26 @@
 import gui
 import arduinoClient
 import time
+import socket
+import sys
 from time import sleep
 import multiprocessing
 from subprocess import PIPE, Popen
 import os
 
 
-
-
-# AnimalProfile config
-PROFILE_SAVE_DIRECTORY = "/home/silasi/HomeCageSinglePellet/AnimalProfiles/"
-#spinnaker config
-WIDTH="1220"
-HEIGHT="500"
-OFFSET_X="128"
-OFFSET_Y="520"
-FPS="160"
-EXPOSURE="200"
-BITRATE="8000000"
-DISPLAY_PREVIEW="1"
-
 with open("../../config/config.txt") as config:
-	config.readline()
-	WIDTH = config.readline()[6:]
-	HEIGHT = config.readline()[7:]
-	OFFSET_X = config.readline()[9:]
-	OFFSET_Y = config.readline()[9:]
-	FPS = config.readline()[4:]
-	EXPOSURE = config.readline()[9:]
-	BITRATE = config.readline()[8:]
-	DISPLAY_PREVIEW = config.readline()[16:]
-
+    config.readline()
+    WIDTH = config.readline()[6:]
+    HEIGHT = config.readline()[7:]
+    OFFSET_X = config.readline()[9:]
+    OFFSET_Y = config.readline()[9:]
+    FPS = config.readline()[4:]
+    EXPOSURE = config.readline()[9:]
+    BITRATE = config.readline()[8:]
+    DISPLAY_PREVIEW = config.readline()[16:]
+    PROFILE_SAVE_DIRECTORY = config.readline()[23:]
+    PROFILE_SAVE_DIRECTORY = PROFILE_SAVE_DIRECTORY[:len(PROFILE_SAVE_DIRECTORY) - 1]
 config.close()
 
 
@@ -168,8 +157,10 @@ class AnimalProfile(object):
 
 
     # Generates the path where the video for the next session will be stored
-	def genVideoPath(self):
-		return str(self.video_save_directory) + str(self.name) + "_session#_" + str(self.session_count) + ".avi"
+	def genVideoPath(self, videoStartTimestamp):
+
+		videoStartTimestamp = time.strftime("%Y-%m-%d_%H:%M:%S", time.localtime(videoStartTimestamp))
+		return PROFILE_SAVE_DIRECTORY + str(self.name) + str("/Videos/") + videoStartTimestamp + "_" + str(self.ID) + "_" + str(self.cageNumber) + "_" + str(self.session_count)
 
 
 	# This function takes all the information required for an animal's session log entry, and then formats it.
@@ -191,7 +182,7 @@ class AnimalProfile(object):
 
 
 class SessionController(object):
-	"""
+    """
 		A controller for all sessions that occur within the system. A "session" is defined as everything that happens while an animal is in the
                 experiment tube. A session is started when an animal first breaks the IR beam AND then triggers the RFID reader (Note: Triggering
                 the RFID reader alone will not start a session. The IR beam must be broken first. This is intentional as the IR beam is for pressence
@@ -203,29 +194,40 @@ class SessionController(object):
 			camera: An object that controls a camera.
 	"""
 
-	def __init__(self, profile_list, arduino_client):
+    def __init__(self, profile_list, arduino_client):
 
-		self.profile_list = profile_list
-		self.arduino_client = arduino_client
+        self.profile_list = profile_list
+        self.arduino_client = arduino_client
 
+    def set_profile_list(self, profileList):
 
-	def set_profile_list(self, profileList):
+        self.profile_list = profileList
 
-		self.profile_list = profileList
+    # This function searches the SessionController's profile_list for a profile whose ID
+    # matches the supplied RFID. If a profile is found, it is returned. If no profile is found,
+    # -1 is returned.
+    def searchForProfile(self, RFID):
 
+        for profile in self.profile_list:
 
-	# This function searches the SessionController's profile_list for a profile whose ID
-	# matches the supplied RFID. If a profile is found, it is returned. If no profile is found,
-	# -1 is returned.
-	def searchForProfile(self, RFID):
+            if profile.ID == RFID:
+                return profile
 
-		for profile in self.profile_list:
+        return -1
 
-			if profile.ID == RFID:
-				return profile
+    def print_session_start_information(self, profile, startTime):
 
-		return -1
+        session_start_msg = "-------------------------------------------\n" + "Starting session for " + profile.name
+        print(session_start_msg)
+        human_readable_start_time = time.strftime("%Y%m%d-%H:%M:%S", time.localtime(startTime))
+        print("Start Time: {}".format(human_readable_start_time))
 
+    def print_session_end_information(self, profile, endTime):
+
+        human_readable_end_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime(endTime))
+        print("End Time: {}".format(human_readable_end_time))
+        session_end_msg = profile.name + "'s session has completed\n-------------------------------------------\n"
+        print(session_end_msg)
 
     # This function starts an experiment session for the animal identified in the supplied <profile>.
     # A session is only started if the IR beam is broken and only continues while this remains true.
@@ -234,131 +236,113 @@ class SessionController(object):
     # will also log data about itself. As soon as the session detects the IR beam reconnect,
     # a destruct signal will be sent to all forked processes and this function will wait to join
     # with those processes before concluding the session.
-	#TODO: This function is really bloated. Should be broken into 4-5 smaller functions.
-	def startSession(self, profile):
+    def startSession(self, profile):
+
+        startTime = time.time()
+        profile.session_count += 1
+        self.print_session_start_information(profile, startTime)
+
+        vidPath = profile.genVideoPath(startTime)
+        p = Popen(['../../bin/SessionVideo', vidPath, WIDTH, HEIGHT, OFFSET_X, OFFSET_Y, FPS, EXPOSURE, BITRATE, DISPLAY_PREVIEW], stdin=PIPE)
 
 
-		session_start_msg = "-------------------------------------------\n" + "Starting session for " + profile.name
-		print(session_start_msg)
-		session_start_time = time.time()
-		human_readable_start_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime(session_start_time))
-		print("Start Time: {}".format(human_readable_start_time))
-		profile.session_count += 1
-		video_output_path = profile.genVideoPath()
+        # Tell server to move stepper to appropriate position for current profile
+        self.arduino_client.serialInterface.write(b'3')
+        stepperMsg = str(profile.difficulty_dist_mm)
+        self.arduino_client.serialInterface.write(stepperMsg.encode())
+        sleep(1)
+
+        # Main session loop. Runs until it receives TERM sig from server. Polls
+        # the camera queue for GETPEL messages and forwards to server if it receives one.
+        if profile.dominant_hand == "LEFT":
+            self.arduino_client.serialInterface.write(b'1')
+        elif profile.dominant_hand == "RIGHT":
+            self.arduino_client.serialInterface.write(b'2')
+
+        trial_count = 1
+        now = time.time()
+
+        while True:
+
+            if (time.time() - now > 7):
+                if profile.dominant_hand == "LEFT":
+                    self.arduino_client.serialInterface.write(b'1')
+                elif profile.dominant_hand == "RIGHT":
+                    self.arduino_client.serialInterface.write(b'2')
+                now = time.time()
+                trial_count += 1
+
+            # Check if message has arrived from server, if it has, check if it is a TERM message.
+            if self.arduino_client.serialInterface.in_waiting > 0:
+                serial_msg = self.arduino_client.serialInterface.readline().rstrip().decode()
+                if serial_msg == "TERM":
+                    break
+
+        open('KILL', 'a').close()
+        p.wait()
+        os.remove("KILL")
+
+        # Log session information.
+        endTime = time.time()
+        profile.insertSessionEntry(startTime, endTime, trial_count)
+        profile.saveProfile()
+        self.print_session_end_information(profile, endTime)
 
 
-		# Tell server to move stepper to appropriate position for current profile
-		self.arduino_client.serialInterface.write(b'3')
-		stepperMsg = str(profile.difficulty_dist_mm)
-		self.arduino_client.serialInterface.write(stepperMsg.encode())
-		sleep(1)
-
-		# Start ptgrey process
-		p = Popen(['../../bin/SessionVideo', PROFILE_SAVE_DIRECTORY +str(profile.name) + str("/Videos/") + str(profile.session_count), WIDTH, HEIGHT, OFFSET_X, OFFSET_Y, FPS, EXPOSURE, BITRATE, DISPLAY_PREVIEW], stdin=PIPE)
-
-
-		#camera_process = multiprocessing.Process(target=self.camera.captureVideo, args=(video_output_path, camera_process_queue, main_process_queue))
-
-
-
-
-		# Main session loop. Runs until it receives TERM sig from server. Polls
-		# the camera queue for GETPEL messages and forwards to server if it receives one.
-		if profile.dominant_hand == "LEFT":
-			self.arduino_client.serialInterface.write(b'1')
-		elif profile.dominant_hand == "RIGHT":
-			self.arduino_client.serialInterface.write(b'2')
-
-		trial_count = 1
-		now = time.time()
-
-		while True:
-
-			if(time.time() - now > 7):
-				if profile.dominant_hand == "LEFT":
-					self.arduino_client.serialInterface.write(b'1')
-				elif profile.dominant_hand == "RIGHT":
-					self.arduino_client.serialInterface.write(b'2')
-				now = time.time()
-				trial_count += 1
-
-			# Check if message has arrived from server, if it has, check if it is a TERM message.
-			if self.arduino_client.serialInterface.in_waiting > 0:
-				serial_msg = self.arduino_client.serialInterface.readline().rstrip().decode()
-				if serial_msg == "TERM":
-						break
-
-
-		open('KILL', 'a').close()
-		p.wait()
-		os.remove("KILL")
-
-		# Log session information.
-		session_end_time = time.time()
-		human_readable_end_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime(session_end_time))
-		print("End Time: {}".format(human_readable_end_time))
-		profile.insertSessionEntry(session_start_time, session_end_time, trial_count)
-		profile.saveProfile()
-		session_end_msg = profile.name + "'s session has completed\n-------------------------------------------\n"
-		print(session_end_msg)
-		return 0
+def launch_gui():
+	gui_process = multiprocessing.Process(target=gui.start_gui_loop, args=(PROFILE_SAVE_DIRECTORY,))
+	gui_process.start()
+	return gui_process
 
 
 
+def sys_init():
 
-
-
+	profile_list = loadAnimalProfiles(PROFILE_SAVE_DIRECTORY)
+	arduino_client = arduinoClient.client("/dev/ttyUSB0", 9600)
+	launch_gui()
+	session_controller = SessionController(profile_list, arduino_client)
+	return profile_list, arduino_client, session_controller
 
 
 def main():
 
 
-	#profile1 = AnimalProfile("00782B187833", "TEST_LEFT", 1, 0000, 3, "LEFT", 0, PROFILE_SAVE_DIRECTORY, True)
-	#profile2 = AnimalProfile("00660B341F46", "TEST_RIGHT", 2, 1111, 1, "RIGHT", 0, PROFILE_SAVE_DIRECTORY, True)
+	#profile1 = AnimalProfile("00782B19B0FA", "TEST_LEFT", 1, 0000, 3, "LEFT", 0, PROFILE_SAVE_DIRECTORY, True)
+	#profile2 = AnimalProfile("002FBE72D132", "TEST_RIGHT", 2, 1111, 1, "RIGHT", 0, PROFILE_SAVE_DIRECTORY, True)
 	#profile1.saveProfile()
 	#profile2.saveProfile()
 	#exit()
 
-    # Initialize every system component
-	profile_list = loadAnimalProfiles(PROFILE_SAVE_DIRECTORY)
-	arduino_client = arduinoClient.client("/dev/ttyUSB0", 9600)
-	session_controller = SessionController(profile_list, arduino_client)
+	profile_list, arduino_client, session_controller = sys_init()
 
-	# Start GUI
-	jobs = []
-	gui_process = multiprocessing.Process(target=gui.start_gui_loop, args=(PROFILE_SAVE_DIRECTORY,))
-	jobs.append(gui_process)
-	gui_process.start()
-
-    # Entry point of the system. This block waits for an RFID to enter the <SERIAL_INTERFACE_PATH> buffer.
-    # Once it receives an RFID, it parses it and searches for a profile with a matching RFID. If a profile
-    # is found, it starts a session for that profile. If no profile is found, it goes back to listening for
-    # an RFID.
+	# Entry point of the system. This block waits for an RFID to enter the <SERIAL_INTERFACE_PATH> buffer.
+	# Once it receives an RFID, it parses it and searches for a profile with a matching RFID. If a profile
+	# is found, it starts a session for that profile. If no profile is found, it goes back to listening for
+	# an RFID.
 	while True:
-		if (not gui_process.is_alive()):
-			exit()
-		print("Waiting for RF tag...")
 
-        # Wait for RFID from arduino
+		# Wait for RFID from arduino
+		print("Waiting for RFID...")
 		RFID_code = arduino_client.listenForRFID()
 		# Authenticate RFID
 		profile = session_controller.searchForProfile(RFID_code)
 
 		if profile != -1:
 
-			# Load profileList before each session
-			session_controller.set_profile_list(loadAnimalProfiles(PROFILE_SAVE_DIRECTORY))
-			arduino_client.serialInterface.write(b'A')
-			session_controller.startSession(profile)
-			arduino_client.serialInterface.flush()
+	            # Load profileList before each session
+	            session_controller.set_profile_list(loadAnimalProfiles(PROFILE_SAVE_DIRECTORY))
+	            arduino_client.serialInterface.write(b'A')
+	            session_controller.startSession(profile)
+	            arduino_client.serialInterface.flush()
 
-			# Load profileList after each session
-			session_controller.set_profile_list(loadAnimalProfiles(PROFILE_SAVE_DIRECTORY))
+	            # Load profileList after each session
+	            session_controller.set_profile_list(loadAnimalProfiles(PROFILE_SAVE_DIRECTORY))
 
 		else:
-			arduino_client.serialInterface.write(b'Y')
-			unrecognized_id_msg = RFID_code + " not recognized. Aborting session.\n\n"
-			print(unrecognized_id_msg)
+	            arduino_client.serialInterface.write(b'Y')
+	            unrecognized_id_msg = RFID_code + " not recognized. Aborting session.\n\n"
+	            print(unrecognized_id_msg)
 
 
 # Python convention for launching main() function.

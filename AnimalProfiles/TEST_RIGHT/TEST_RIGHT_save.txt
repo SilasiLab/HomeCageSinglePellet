@@ -1,0 +1,8 @@
+002FBE72D132
+TEST_RIGHT
+2
+1111
+1
+RIGHT
+3
+/home/sliasi/HomeCageSinglePellet/AnimalProfiles/TEST_RIGHT/
