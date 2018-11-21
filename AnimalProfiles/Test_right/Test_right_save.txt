@@ -1,8 +1,0 @@
-00782B1884CF
-Test_right
-7
-45567
-4
-RIGHT
-189
-../../AnimalProfiles/Test_right/

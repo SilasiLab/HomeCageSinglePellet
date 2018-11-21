@@ -1,8 +1,0 @@
-00782B1797D3
-45567_MOUSE4
-4
-45567
-5
-LEFT
-320
-/home/sliasi/HomeCageSinglePellet/AnimalProfiles/45567_MOUSE4/

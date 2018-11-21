@@ -1,8 +1,0 @@
-00782B192268
-Test_left
-6
-45567
-4
-LEFT
-170
-../../AnimalProfiles/Test_left/
