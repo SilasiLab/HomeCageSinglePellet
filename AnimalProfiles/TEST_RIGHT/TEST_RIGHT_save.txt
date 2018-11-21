@@ -4,5 +4,5 @@ TEST_RIGHT
 1111
 1
 RIGHT
-3
+4
 /home/sliasi/HomeCageSinglePellet/AnimalProfiles/TEST_RIGHT/

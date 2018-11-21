@@ -243,7 +243,10 @@ class SessionController(object):
         self.print_session_start_information(profile, startTime)
 
         vidPath = profile.genVideoPath(startTime)
-        p = Popen(['../../bin/SessionVideo', vidPath, WIDTH, HEIGHT, OFFSET_X, OFFSET_Y, FPS, EXPOSURE, BITRATE, DISPLAY_PREVIEW], stdin=PIPE)
+        if "TEST" in profile.name:
+            p = Popen(['../../bin/SessionVideo', vidPath, WIDTH, HEIGHT, OFFSET_X, OFFSET_Y, "50", EXPOSURE, BITRATE, "1"], stdin=PIPE)
+        else:
+            p = Popen(['../../bin/SessionVideo', vidPath, WIDTH, HEIGHT, OFFSET_X, OFFSET_Y, FPS, EXPOSURE, BITRATE, DISPLAY_PREVIEW], stdin=PIPE)
 
 
         # Tell server to move stepper to appropriate position for current profile
