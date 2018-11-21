@@ -1,20 +1,23 @@
+#include <Servo.h>
 #include <SoftwareSerial.h>
-#include "Servo2.h"
 
 
 // Config
 const int servo1Pin = 10;
 const int servo2Pin = 9;
+Servo servo1;
+Servo servo2;
 bool servo1_up_flag = false;
 bool servo2_up_flag = false;
+const int SERVO_SETTLE_DELAY = 300;
 // Higher numbers make the arm go higher
-int SERVO1_UP_POS = 117;
+int SERVO1_UP_POS = 115;
 // Low numbers make the arm go lower
-int SERVO1_DOWN_POS = 50;
+int SERVO1_DOWN_POS = 60;
 // Lower numbers make the arm go higher
-int SERVO2_UP_POS = 58;
+int SERVO2_UP_POS = 60;
 // High numbers make the arm go lower
-int SERVO2_DOWN_POS = 120;
+int SERVO2_DOWN_POS = 110;
 int SERVO_PULSE_DELAY = 15;
 int servo1Pos = SERVO1_DOWN_POS;
 int servo2Pos = SERVO2_DOWN_POS;
@@ -54,112 +57,85 @@ void handleIRChange() {
 
 int zeroServos() {
 
-  Servo servo;
-    
-  // Lower servo1
-  servo.attach(servo1Pin);
+
   for (int i = servo1Pos; i >= SERVO1_DOWN_POS; i -= 1) {
-      servo.write(i);
+      servo1.write(i);
       delay(SERVO_PULSE_DELAY);
     }   
-  delay(400);
+  delay(SERVO_SETTLE_DELAY);
   servo1Pos = SERVO1_DOWN_POS;;
-  servo.detach();
 
-
-
-  // Lower servo2
-  servo.attach(servo2Pin);
   for (int i = servo2Pos; i <= SERVO2_DOWN_POS; i += 1) {
-      servo.write(i);
+      servo2.write(i);
       delay(SERVO_PULSE_DELAY);
     }   
 
-  delay(400);
+  delay(SERVO_SETTLE_DELAY);
   servo2Pos = SERVO2_DOWN_POS;
-  servo.detach();
-  
+
 }
 
 int lowerServo1(){
-  
-  Servo servo;
     
-  // Lower servo1
-  servo.attach(servo1Pin);
   for (int i = servo1Pos; i >= SERVO1_DOWN_POS; i -= 1) {
-      servo.write(i);
+      servo1.write(i);
       delay(SERVO_PULSE_DELAY);
     }   
-  delay(400);
+  delay(SERVO_SETTLE_DELAY);
   servo1Pos = SERVO1_DOWN_POS;
-  servo.detach(); 
+  
 }
 
 int lowerServo2(){
-  
-  Servo servo;
-  // Lower servo2
-  servo.attach(servo2Pin);
+  ;
   for (int i = servo2Pos; i <= SERVO2_DOWN_POS; i += 1) {
-      servo.write(i);
+      servo2.write(i);
       delay(SERVO_PULSE_DELAY);
     }   
 
-  delay(400);
+  delay(SERVO_SETTLE_DELAY);
   servo2Pos = SERVO2_DOWN_POS;
-  servo.detach();
-  
 }
 
-int displayPellet(whichServo side) {
 
-  Servo servo;
-  int pin;
+
+int displayPellet(whichServo side) {
   
   if(side == left){
     
-    pin = servo1Pin;
 
     // Lower arm to grab pellet.
-    servo.attach(pin);
     for (int i = servo1Pos; i >= SERVO1_DOWN_POS; i -= 1) {
-      servo.write(i);
+      servo1.write(i);
       delay(SERVO_PULSE_DELAY);
     }   
     
     // Raise arm to display pellet
     for (int i = SERVO1_DOWN_POS; i <= SERVO1_UP_POS; i += 1) {
-      servo.write(i);
+      servo1.write(i);
       delay(SERVO_PULSE_DELAY);
     }
-    delay(400);
+    delay(SERVO_SETTLE_DELAY);
     servo1Pos = SERVO1_UP_POS;
     servo1_up_flag = true;
   }
   else if(side == right){
 
-    
-    pin = servo2Pin;
-  
     // Lower arm to grab pellet.
-    servo.attach(pin);
     for (int i = servo2Pos; i <= SERVO2_DOWN_POS; i += 1) {
-      servo.write(i);
+      servo2.write(i);
       delay(SERVO_PULSE_DELAY);
     }   
-
     // Raise arm to display pellet
     for (int i = SERVO2_DOWN_POS; i >= SERVO2_UP_POS; i -= 1) {
-      servo.write(i);
+      servo2.write(i);
       delay(SERVO_PULSE_DELAY);
     }
-    delay(400);
+    delay(SERVO_SETTLE_DELAY);
     servo2Pos = SERVO2_UP_POS;
     servo2_up_flag = true;
   }
 
-  servo.detach(); 
   return 0;
 }
 
@@ -245,6 +221,8 @@ void setup() {
     delay(100);
   }
 
+  servo1.attach(servo1Pin);
+  servo2.attach(servo2Pin);
   zeroServos();
   
   // Set switch read pin
@@ -400,7 +378,8 @@ int startSession() {
 
 
 void loop() { 
-  
+
+
   // If IR beam is broken, enter RFID listening state. 
   if(!digitalRead(IRBreakerPin)) {
 
