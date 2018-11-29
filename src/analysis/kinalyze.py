@@ -9,14 +9,20 @@ import matplotlib.pyplot as plt
 from time import sleep
 import matplotlib.axes as axes
 from mpl_toolkits.mplot3d import Axes3D
-
+from matplotlib.patches import Circle
 # -------------------------------------------------#
 # 				<Load Data>						  #
 # -------------------------------------------------#
 
 VIDEO_PATH = sys.argv[1]
-H5_PATH = sys.argv[2]
-OUTPUT_PATH = sys.argv[3]
+VIDEO_NAME = sys.argv[2]
+H5_PATH = sys.argv[3]
+DISPLAY_VIDEOS = int(sys.argv[4])
+DISPLAY_GRAPHS = int(sys.argv[5])
+EXTRACT_VIDEO_CLIPS = int(sys.argv[6])
+GEN_CSV = int(sys.argv[7])
+PERFORM_CALIBRATION = int(sys.argv[8])
+
 
 # Load video
 video = cv2.VideoCapture(VIDEO_PATH)
@@ -26,9 +32,10 @@ height = int(video.get(cv2.CAP_PROP_FRAME_HEIGHT))
 fps = video.get(cv2.CAP_PROP_FPS)
 
 # Load coordinates file
+print("Loading DeepLabCut data...")
 dataframe = pd.read_hdf(H5_PATH)
 dataframe.to_csv(H5_PATH[:-3] + ".csv")
-
+print("DeepLabCut data loaded")
 # -------------------------------------------------#
 # 				</Load Data>					  #
 # -------------------------------------------------#
@@ -68,17 +75,15 @@ Z_ORIGIN_RIGHTMIRROR = None
 
 
 # Pose event parsing config
-LIKELIHOOD_THRESHOLD = 0.99
+LIKELIHOOD_THRESHOLD = 0.5
 MIN_FRAME_COUNT_EVENT_START = 10
 MAX_FRAME_COUNT_EVENT_STOP = 20
-MIN_FRAME_COUNT_BETWEEN_EVENTS = 50
+MIN_FRAME_COUNT_BETWEEN_EVENTS = 30
 # Visual output config
 POINT_SIZE = 4
 LINE_THICKNESS = 3
 N_TRAILING_POINTS = 10
-PAINT_GHOST_TRAILS = False
-DISPLAY_EVENTS = False
-
+PAINT_GHOST_TRAILS = True
 # -------------------------------------------------#
 # 				</Configure Analysis>			  #
 # -------------------------------------------------#
@@ -184,6 +189,7 @@ def extractEvents(leftMirrorPawIndexes, centerPawIndexes, rightMirrorPawIndexes,
 
 
 def review_event(event, videoName, video, points):
+        
 
     print("Event: " + event.eventType)
     print("Start Frame: " + str(event.startFrame))
@@ -266,8 +272,8 @@ def update_ghost_trail_point_lists(lists, points):
         lists[i].append(points[i])
 
 
-def paint_ghost_trails(ghostTrailPoints, frame, overlay):
-    global colors
+def paint_ghost_trails(ghostTrailPoints, frame, overlay, colors):
+
     global POINT_SIZE
     global LINE_THICKNESS
 
@@ -309,6 +315,8 @@ def graph_3D_trajectory(x_points, y_points, z_points):
     ax.set_ylim(-17, 3)
     ax.set_zlim(-5, 5)
     ax.plot(x_points, z_points, y_points)
+    ax.scatter(0.5, 0.5, 0.5, color="black", s=100)
+    ax.text(0,0,0,'P',size=15,zorder=1,color='black')
     ax.text(x_points[0], z_points[0], y_points[0], 'S', size=20, zorder=1, color='g')
     ax.text(x_points[len(x_points) - 1], z_points[len(z_points) - 1], y_points[len(y_points) - 1], 'F', size=20, zorder=1, color='r')
     ax.set_xlabel('x')
@@ -598,6 +606,120 @@ def perform_manual_calibration(calibrationFrame):
     return 0
 
 
+def save_calibration_data():
+
+    # Calibration Constants
+    global LEFTSIDE
+    global RIGHTSIDE
+    global LEFT_MIRROR_CALIBRATION_OBJECT_WIDTH
+    global ACTUAL_CALIBRATION_OBJECT_WIDTH
+    global RIGHT_MIRROR_CALIBRATION_OBJECT_WIDTH
+    global LEFT_MIRROR_CALIBRATION_OBJECT_HEIGHT
+    global ACTUAL_CALIBRATION_OBJECT_HEIGHT
+    global RIGHT_MIRROR_CALIBRATION_OBJECT_HEIGHT
+    global PIXELS_MM_Y_LEFTMIRROR
+    global PIXELS_MM_Z_LEFTMIRROR
+    global PIXELS_MM_X_ACTUAL
+    global PIXELS_MM_Y_ACTUAL
+    global PIXELS_MM_Y_RIGHTMIRROR
+    global PIXELS_MM_Z_RIGHTMIRROR
+    global Y_ORIGIN_LEFTMIRROR
+    global Z_ORIGIN_LEFTMIRROR
+    global X_ORIGIN_ACTUAL
+    global Y_ORIGIN_ACTUAL
+    global Y_ORIGIN_RIGHTMIRROR
+    global Z_ORIGIN_RIGHTMIRROR
+
+
+    with open("../../config/3D_reconstruction_calibration.txt", 'w') as f:
+         f.write(str(LEFTSIDE) + "\n")
+         f.write(str(RIGHTSIDE) + "\n")
+         f.write(str(LEFT_MIRROR_CALIBRATION_OBJECT_WIDTH) + "\n")
+         f.write(str(ACTUAL_CALIBRATION_OBJECT_WIDTH) + "\n")
+         f.write(str(RIGHT_MIRROR_CALIBRATION_OBJECT_WIDTH) + "\n")
+         f.write(str(LEFT_MIRROR_CALIBRATION_OBJECT_HEIGHT) + "\n")
+         f.write(str(ACTUAL_CALIBRATION_OBJECT_HEIGHT) + "\n")
+         f.write(str(RIGHT_MIRROR_CALIBRATION_OBJECT_HEIGHT) + "\n")
+         f.write(str(PIXELS_MM_Y_LEFTMIRROR) + "\n")
+         f.write(str(PIXELS_MM_Z_LEFTMIRROR) + "\n")
+         f.write(str(PIXELS_MM_X_ACTUAL) + "\n")
+         f.write(str(PIXELS_MM_Y_ACTUAL) + "\n")
+         f.write(str(PIXELS_MM_Y_RIGHTMIRROR) + "\n")
+         f.write(str(PIXELS_MM_Z_RIGHTMIRROR) + "\n")
+         f.write(str(Y_ORIGIN_LEFTMIRROR) + "\n")
+         f.write(str(Z_ORIGIN_LEFTMIRROR) + "\n")
+         f.write(str(X_ORIGIN_ACTUAL) + "\n")
+         f.write(str(Y_ORIGIN_ACTUAL) + "\n")
+         f.write(str(Y_ORIGIN_RIGHTMIRROR) + "\n")
+         f.write(str(Z_ORIGIN_RIGHTMIRROR) + "\n")
+
+
+def load_calibration_data():
+
+    # Calibration Constants
+    global LEFTSIDE
+    global RIGHTSIDE
+    global LEFT_MIRROR_CALIBRATION_OBJECT_WIDTH
+    global ACTUAL_CALIBRATION_OBJECT_WIDTH
+    global RIGHT_MIRROR_CALIBRATION_OBJECT_WIDTH
+    global LEFT_MIRROR_CALIBRATION_OBJECT_HEIGHT
+    global ACTUAL_CALIBRATION_OBJECT_HEIGHT
+    global RIGHT_MIRROR_CALIBRATION_OBJECT_HEIGHT
+    global PIXELS_MM_Y_LEFTMIRROR
+    global PIXELS_MM_Z_LEFTMIRROR
+    global PIXELS_MM_X_ACTUAL
+    global PIXELS_MM_Y_ACTUAL
+    global PIXELS_MM_Y_RIGHTMIRROR
+    global PIXELS_MM_Z_RIGHTMIRROR
+    global Y_ORIGIN_LEFTMIRROR
+    global Z_ORIGIN_LEFTMIRROR
+    global X_ORIGIN_ACTUAL
+    global Y_ORIGIN_ACTUAL
+    global Y_ORIGIN_RIGHTMIRROR
+    global Z_ORIGIN_RIGHTMIRROR
+
+
+    with open("../../config/3D_reconstruction_calibration.txt") as f:
+
+        LEFTSIDE = int(f.readline())
+        RIGHTSIDE = int(f.readline())
+        LEFT_MIRROR_CALIBRATION_OBJECT_WIDTH = float(f.readline())
+        ACTUAL_CALIBRATION_OBJECT_WIDTH = float(f.readline())
+        RIGHT_MIRROR_CALIBRATION_OBJECT_WIDTH = float(f.readline())
+        LEFT_MIRROR_CALIBRATION_OBJECT_HEIGHT = float(f.readline())
+        ACTUAL_CALIBRATION_OBJECT_HEIGHT = float(f.readline())
+        RIGHT_MIRROR_CALIBRATION_OBJECT_HEIGHT = float(f.readline())
+        PIXELS_MM_Y_LEFTMIRROR = float(f.readline())
+        PIXELS_MM_Z_LEFTMIRROR = float(f.readline())
+        PIXELS_MM_X_ACTUAL = float(f.readline())
+        PIXELS_MM_Y_ACTUAL = float(f.readline())
+        PIXELS_MM_Y_RIGHTMIRROR = float(f.readline())
+        PIXELS_MM_Z_RIGHTMIRROR = float(f.readline())
+        Y_ORIGIN_LEFTMIRROR = int(f.readline())
+        Z_ORIGIN_LEFTMIRROR = int(f.readline())
+        X_ORIGIN_ACTUAL = int(f.readline())
+        Y_ORIGIN_ACTUAL = int(f.readline())
+        Y_ORIGIN_RIGHTMIRROR = int(f.readline())
+        Z_ORIGIN_RIGHTMIRROR = int(f.readline())
+
+
+def filter_points_missing_dimension(x,y,z):
+
+
+    filteredX = []
+    filteredY = []
+    filteredZ = []
+
+    for i in range(0,len(x)):
+        if(x[i]!=None and y[i]!=None and z[i]!=None):
+            filteredX.append(x[i])
+            filteredY.append(y[i])
+            filteredZ.append(z[i])
+
+    return filteredX, filteredY, filteredZ
+
+    
+
 
 def convert_pixelCoord_to_realWorld(x_points, y_points, z_points):
 
@@ -629,17 +751,17 @@ def convert_pixelCoord_to_realWorld(x_points, y_points, z_points):
     realWorldZ = []
 
     for point in x_points:
-        if point != None:
+        if point != None and point != -1:
             realWorldX.append((point - X_ORIGIN_ACTUAL) / PIXELS_MM_X_ACTUAL)
         else:
             realWorldX.append(None)
     for point in y_points:
-        if point != None:
+        if point != None and point != -1:
             realWorldY.append((Y_ORIGIN_LEFTMIRROR - point) / PIXELS_MM_Y_LEFTMIRROR)
         else:
             realWorldY.append(None)
     for point in z_points:
-        if point != None:
+        if point != None and point != -1:
             realWorldZ.append((Z_ORIGIN_LEFTMIRROR - point) / PIXELS_MM_Z_LEFTMIRROR)
         else:
             realWorldZ.append(None)
@@ -648,11 +770,10 @@ def convert_pixelCoord_to_realWorld(x_points, y_points, z_points):
         print("Error: convert_pixelCoord_to_realWorld(): Coordinate list lengths do not match")
         exit()
 
+    realWorldX, realWorldY, realWorldZ = filter_points_missing_dimension(realWorldX, realWorldY, realWorldZ)
+
     return realWorldX, realWorldY, realWorldZ
-
-
-
-
+ 
 
 
 # -----------------------------------------------------------------------------#
@@ -778,7 +899,7 @@ def gen_reach_trajectory_reconsutrction_xyz(event, points, reachingHand):
 
         if(reachingHand == "LEFT"):
             # Get Y from Left Mirror Paw
-            for point in range(0,1):
+            for point in range(1,3):
                 if points[frameIndex][point] != -1:
                     frameY += points[frameIndex][point].y
                     tempN += 1
@@ -787,7 +908,7 @@ def gen_reach_trajectory_reconsutrction_xyz(event, points, reachingHand):
                 tempN = 0
 
             # Get Z from Left Mirror Paw
-            for point in range(0,1):
+            for point in range(1,3):
                 if points[frameIndex][point] != -1:
                     frameZ += points[frameIndex][point].x
                     tempN += 1
@@ -796,7 +917,7 @@ def gen_reach_trajectory_reconsutrction_xyz(event, points, reachingHand):
                 tempN = 0
 
             # Get X from Center Paw
-            for point in range(5,9):
+            for point in range(7,9):
                 if points[frameIndex][point] != -1:
                     frameX += points[frameIndex][point].x
                     tempN += 1
@@ -852,7 +973,7 @@ def gen_reach_trajectory_reconsutrction_xyz(event, points, reachingHand):
         elif(last_x != None):
             x_points.append(last_x)
         else:
-            x_points.append(None)
+            x_points.append(-1)
             last_x = None
 
         if(frameY > 0):
@@ -861,7 +982,7 @@ def gen_reach_trajectory_reconsutrction_xyz(event, points, reachingHand):
         elif(last_y != None):
             y_points.append(last_y)
         else:
-            y_points.append(None)
+            y_points.append(-1)
             last_y = None
 
         if(frameZ > 0):
@@ -870,7 +991,7 @@ def gen_reach_trajectory_reconsutrction_xyz(event, points, reachingHand):
         elif(last_z != None):
             z_points.append(last_z)
         else:
-            z_points.append(None)
+            z_points.append(-1)
             last_z = None
 
 
@@ -884,6 +1005,19 @@ def gen_reach_trajectory_reconsutrction_xyz(event, points, reachingHand):
 
 
 
+def extract_vid_range(start, stop, video, ghostTrailPoints, filteredPoints, colors, name):
+
+    fourcc = cv2.VideoWriter_fourcc(*'XVID')
+    out = cv2.VideoWriter(name+".avi",fourcc,139.0,(1180,480))
+    video.set(cv2.CAP_PROP_POS_FRAMES, start)
+    for f in range(start, stop):
+        ret, frame = video.read()
+        overlay = frame.copy()
+        update_ghost_trail_point_lists(ghostTrailPoints, filteredPoints[f])
+        paint_ghost_trails(ghostTrailPoints, frame, overlay, colors)
+        out.write(frame)
+
+
 
 
 
@@ -893,47 +1027,53 @@ def gen_reach_trajectory_reconsutrction_xyz(event, points, reachingHand):
 def main():
 
 
-    # Perform manual calibration
-    ret, calibrationFrame = video.read()
-    video.set(cv2.CAP_PROP_POS_FRAMES, 0)
-    perform_manual_calibration(calibrationFrame)
+    if(PERFORM_CALIBRATION):
+        ret, calibrationFrame = video.read()
+        video.set(cv2.CAP_PROP_POS_FRAMES, 0)
+        perform_manual_calibration(calibrationFrame)
+        save_calibration_data()
+    else:
+        print("Loading calibration data...")
+        load_calibration_data()
+        print("Calibration data loaded.")
 
-    # Load point data
-    # Gen list of colors for points
-    # Gen lists that will contain "ghost trail" points
     labels, nLabels = get_labels(dataframe)
     colors = gen_point_colors(nLabels)
     ghostTrailPoints = gen_ghost_trail_point_lists(nLabels)
+    print("Filtering DeepLabCut points...")
     filteredPoints = filter_trajectory_points(dataframe)
+    print("DeepLabCut points filtered")
 
     # Extract reaching events
+    print("Finding reaches...")
     events = extractEvents([0, 1, 2, 3, 4], [5, 6, 7, 8, 9], [10, 11, 12, 13, 14], filteredPoints, "reachingReconstruction")
+    print("Reaches found: " + str(len(events)))
 
-    # Compute coordinates of each reach event
+    print("Computing 3D reconstructions...")
     for event in events:
         x, y, z = gen_reach_trajectory_reconsutrction_xyz(event, filteredPoints, "LEFT")
         x, y, z = convert_pixelCoord_to_realWorld(x, y, z)
         event.xVals = x
         event.yVals = y
         event.zVals = z
+    print("3D reconstructions completed")
 
-
-
-    # Temp event num for testing saving feature before integration
-    eventNum = 1
-
-    # Graph each event
+    # Gen output for each event
+    print("Generating output...")
     for event in events:
 
-        if(DISPLAY_EVENTS):
-            spawn_3D_graph(np.asarray(event.xVals), np.asarray(event.yVals), np.asarray(event.zVals))
+
+        if(DISPLAY_VIDEOS):
             review_event(event, VIDEO_PATH, video, filteredPoints)
             cv2.waitKey(0)
-        else:
-            with open(str(OUTPUT_PATH) + str(eventNum), 'w', newline='') as outputFile:
+        if(DISPLAY_GRAPHS):
+            spawn_3D_graph(np.asarray(event.xVals), np.asarray(event.yVals), np.asarray(event.zVals))
+            cv2.waitKey(0)
+        if(EXTRACT_VIDEO_CLIPS):
+            extract_vid_range(event.startFrame, event.stopFrame, video, ghostTrailPoints, filteredPoints, colors,str(event.startFrame))
+        if(GEN_CSV):
+            with open("reaches_" + VIDEO_NAME[:-4] + ".txt", 'a', newline='') as outputFile:
 
-                outputFile.write(str(VIDEO_PATH) + "\n")
-                outputFile.write(str(H5_PATH) + "\n")
                 outputFile.write(str(event.startFrame) + "\n")
                 outputFile.write(str(event.stopFrame) + "\n")
                 wr = csv.writer(outputFile)
@@ -944,10 +1084,8 @@ def main():
                     line.append(event.yVals[i])
                     line.append(event.zVals[i])
                     wr.writerow(line)
-
-                eventNum += 1
-
-
+                outputFile.write("\n\n")
+    print("Done")
 
 
 
