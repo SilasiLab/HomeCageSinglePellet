@@ -15,8 +15,8 @@ from matplotlib.patches import Circle
 # -------------------------------------------------#
 
 VIDEO_PATH = sys.argv[1]
-VIDEO_NAME = sys.argv[2]
-H5_PATH = sys.argv[3]
+H5_PATH = sys.argv[2]
+OUTPUT_PATH = sys.argv[3]
 DISPLAY_VIDEOS = int(sys.argv[4])
 DISPLAY_GRAPHS = int(sys.argv[5])
 EXTRACT_VIDEO_CLIPS = int(sys.argv[6])
@@ -1072,7 +1072,7 @@ def main():
         if(EXTRACT_VIDEO_CLIPS):
             extract_vid_range(event.startFrame, event.stopFrame, video, ghostTrailPoints, filteredPoints, colors,str(event.startFrame))
         if(GEN_CSV):
-            with open("reaches_" + VIDEO_NAME[:-4] + ".txt", 'a', newline='') as outputFile:
+            with open(OUTPUT_PATH, 'a', newline='') as outputFile:
 
                 outputFile.write(str(event.startFrame) + "\n")
                 outputFile.write(str(event.stopFrame) + "\n")
