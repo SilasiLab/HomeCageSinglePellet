@@ -5,6 +5,7 @@ import socket
 import sys
 from time import sleep
 import multiprocessing
+import serial
 from subprocess import PIPE, Popen
 import os
 
@@ -303,21 +304,40 @@ def sys_init():
 
 	profile_list = loadAnimalProfiles(PROFILE_SAVE_DIRECTORY)
 	arduino_client = arduinoClient.client("/dev/ttyUSB0", 9600)
+	ser = serial.Serial('/dev/ttyUSB1',9600)
 	launch_gui()
 	session_controller = SessionController(profile_list, arduino_client)
-	return profile_list, arduino_client, session_controller
+	return profile_list, arduino_client, session_controller, ser
+
+
+
+def listen_for_rfid(ser):
+
+	rfid = ''
+
+
+	while(ser.is_open):
+
+		byte = ser.read(1)
+
+		if(byte == b'\x02'):
+			rfid = ''
+		elif (byte == b'\x03'):
+			return rfid
+		else:
+			rfid += byte.decode('utf-8')
 
 
 def main():
 
 
-	#profile1 = AnimalProfile("00782B19B0FA", "TEST_LEFT", 1, 0000, 3, "LEFT", 0, PROFILE_SAVE_DIRECTORY, True)
+	#profile1 = AnimalProfile("00782B1884CF", "TEST_LEFT", 10, 0000, 0, "LEFT", 0, PROFILE_SAVE_DIRECTORY, True)
 	#profile2 = AnimalProfile("002FBE72D132", "TEST_RIGHT", 2, 1111, 1, "RIGHT", 0, PROFILE_SAVE_DIRECTORY, True)
 	#profile1.saveProfile()
 	#profile2.saveProfile()
 	#exit()
 
-	profile_list, arduino_client, session_controller = sys_init()
+	profile_list, arduino_client, session_controller, ser = sys_init()
 
 	# Entry point of the system. This block waits for an RFID to enter the <SERIAL_INTERFACE_PATH> buffer.
 	# Once it receives an RFID, it parses it and searches for a profile with a matching RFID. If a profile
@@ -327,7 +347,7 @@ def main():
 
 		# Wait for RFID from arduino
 		print("Waiting for RFID...")
-		RFID_code = arduino_client.listenForRFID()
+		RFID_code = listen_for_rfid(ser)[:12]
 		# Authenticate RFID
 		profile = session_controller.searchForProfile(RFID_code)
 

@@ -11,13 +11,13 @@ bool servo1_up_flag = false;
 bool servo2_up_flag = false;
 const int SERVO_SETTLE_DELAY = 300;
 // Higher numbers make the arm go higher
-int SERVO1_UP_POS = 115;
+int SERVO1_UP_POS = 93;
 // Low numbers make the arm go lower
-int SERVO1_DOWN_POS = 60;
+int SERVO1_DOWN_POS = 30;
 // Lower numbers make the arm go higher
-int SERVO2_UP_POS = 60;
+int SERVO2_UP_POS = 105;
 // High numbers make the arm go lower
-int SERVO2_DOWN_POS = 110;
+int SERVO2_DOWN_POS = 165;
 int SERVO_PULSE_DELAY = 15;
 int servo1Pos = SERVO1_DOWN_POS;
 int servo2Pos = SERVO2_DOWN_POS;
@@ -143,10 +143,28 @@ int displayPellet(whichServo side) {
 
 int zeroStepper() {
 
+  digitalWrite(A3, LOW);
+  for(int i = 0; i < 1000; i++)
+  {
+    digitalWrite(A4, HIGH);
+    delay(1);
+    digitalWrite(A4, LOW);
+    delay(1);
+  }
+
+
   digitalWrite(A3, HIGH);
   delay(100);
   while(!switchState){
 
+    digitalWrite(A4, HIGH);
+    delay(1);
+    digitalWrite(A4, LOW);
+    delay(1);
+  }
+
+  for(int i = 0; i < 500; i++)
+  {
     digitalWrite(A4, HIGH);
     delay(1);
     digitalWrite(A4, LOW);
@@ -263,11 +281,7 @@ void listenForRFID() {
  
 }
 
-bool authRFID() {
-
-  digitalWrite(ledPin,LOW);  
-
-  Serial.print(RFID_String);
+bool listenForStartCommand() {
   
   char authByte;
   
@@ -379,28 +393,10 @@ int startSession() {
 
 void loop() { 
 
-
-  // If IR beam is broken, enter RFID listening state. 
-  if(!digitalRead(IRBreakerPin)) {
-      
-      while(RFID_Flag != complete && !digitalRead(IRBreakerPin)) {
-         listenForRFID();     
-      }
-
-      if(RFID_Flag == complete) {
-
-         // Ask client to authenticate RFID.
-         if(authRFID()) {
-
-            // If RFID authenticated, start session.
-            startSession();          
-         }
-      }
-
-
-      RFID_String = "";
-      RFID_Flag = empty;
+  if(listenForStartCommand()){
+      startSession();
   }
+         
 }
 
  
