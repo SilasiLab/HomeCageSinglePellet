@@ -1076,6 +1076,7 @@ def main():
 
                 outputFile.write(str(event.startFrame) + "\n")
                 outputFile.write(str(event.stopFrame) + "\n")
+                outputFile.write(str("UNSCORED"))
                 wr = csv.writer(outputFile)
 
                 for i in range(0, len(event.xVals)):

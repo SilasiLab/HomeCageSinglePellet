@@ -382,11 +382,6 @@ void loop() {
 
   // If IR beam is broken, enter RFID listening state. 
   if(!digitalRead(IRBreakerPin)) {
-
-      // Flush RFID serial buffer...serial.flush() not working...
-      while(mySerial.read() >= 0) {
-        continue;
-      }
       
       while(RFID_Flag != complete && !digitalRead(IRBreakerPin)) {
          listenForRFID();     
