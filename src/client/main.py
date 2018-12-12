@@ -332,7 +332,7 @@ def main():
 
 
 	#profile1 = AnimalProfile("00782B1884CF", "TEST_LEFT", 10, 0000, 0, "LEFT", 0, PROFILE_SAVE_DIRECTORY, True)
-	#profile2 = AnimalProfile("002FBE72D132", "TEST_RIGHT", 2, 1111, 1, "RIGHT", 0, PROFILE_SAVE_DIRECTORY, True)
+	#profile2 = AnimalProfile("002FBE72D132", "TEST_RIGHT", 11, 1111, 1, "RIGHT", 0, PROFILE_SAVE_DIRECTORY, True)
 	#profile1.saveProfile()
 	#profile2.saveProfile()
 	#exit()

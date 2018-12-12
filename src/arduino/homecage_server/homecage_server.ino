@@ -1,6 +1,4 @@
 #include <Servo.h>
-#include <SoftwareSerial.h>
-
 
 // Config
 const int servo1Pin = 10;
@@ -11,13 +9,13 @@ bool servo1_up_flag = false;
 bool servo2_up_flag = false;
 const int SERVO_SETTLE_DELAY = 300;
 // Higher numbers make the arm go higher
-int SERVO1_UP_POS = 93;
+int SERVO1_UP_POS = 120;
 // Low numbers make the arm go lower
-int SERVO1_DOWN_POS = 30;
+int SERVO1_DOWN_POS = 50;
 // Lower numbers make the arm go higher
-int SERVO2_UP_POS = 105;
+int SERVO2_UP_POS = 57;
 // High numbers make the arm go lower
-int SERVO2_DOWN_POS = 165;
+int SERVO2_DOWN_POS = 122;
 int SERVO_PULSE_DELAY = 15;
 int servo1Pos = SERVO1_DOWN_POS;
 int servo2Pos = SERVO2_DOWN_POS;
@@ -30,11 +28,6 @@ const int ptgreyGPIOSignalPin = A1;
 
 volatile byte switchState = digitalRead(switchPin);
 volatile byte IRState;
-
-SoftwareSerial mySerial(8,5); 
-String RFID_String = "";
-typedef enum {complete,wait,empty } RFID_Flag_t;
-RFID_Flag_t RFID_Flag = empty;
 
 int stepperDistFromOrigin = -1;
 double stepsToMmRatio = 420;
@@ -57,6 +50,9 @@ void handleIRChange() {
 
 int zeroServos() {
 
+  servo1.attach(servo1Pin);
+  servo2.attach(servo2Pin);
+
 
   for (int i = servo1Pos; i >= SERVO1_DOWN_POS; i -= 1) {
       servo1.write(i);
@@ -73,10 +69,16 @@ int zeroServos() {
   delay(SERVO_SETTLE_DELAY);
   servo2Pos = SERVO2_DOWN_POS;
 
+  servo1.detach();
+  servo2.detach();
+  return 0;
+
 }
 
 int lowerServo1(){
-    
+ 
+  servo1.attach(servo1Pin);
+   
   for (int i = servo1Pos; i >= SERVO1_DOWN_POS; i -= 1) {
       servo1.write(i);
       delay(SERVO_PULSE_DELAY);
@@ -84,10 +86,14 @@ int lowerServo1(){
   delay(SERVO_SETTLE_DELAY);
   servo1Pos = SERVO1_DOWN_POS;
   
+  servo1.detach();
+  return 0;
 }
 
 int lowerServo2(){
-  ;
+
+  servo2.attach(servo2Pin);  
+
   for (int i = servo2Pos; i <= SERVO2_DOWN_POS; i += 1) {
       servo2.write(i);
       delay(SERVO_PULSE_DELAY);
@@ -95,6 +101,9 @@ int lowerServo2(){
 
   delay(SERVO_SETTLE_DELAY);
   servo2Pos = SERVO2_DOWN_POS;
+
+  servo2.detach();
+  return 0;
 }
 
 
@@ -103,6 +112,7 @@ int displayPellet(whichServo side) {
   
   if(side == left){
     
+    servo1.attach(servo1Pin);
 
     // Lower arm to grab pellet.
     for (int i = servo1Pos; i >= SERVO1_DOWN_POS; i -= 1) {
@@ -118,9 +128,11 @@ int displayPellet(whichServo side) {
     delay(SERVO_SETTLE_DELAY);
     servo1Pos = SERVO1_UP_POS;
     servo1_up_flag = true;
+    servo1.detach();
   }
   else if(side == right){
-
+     
+    servo2.attach(servo2Pin);
     // Lower arm to grab pellet.
     for (int i = servo2Pos; i <= SERVO2_DOWN_POS; i += 1) {
       servo2.write(i);
@@ -134,6 +146,7 @@ int displayPellet(whichServo side) {
     delay(SERVO_SETTLE_DELAY);
     servo2Pos = SERVO2_UP_POS;
     servo2_up_flag = true;
+    servo2.detach();
   }
 
   return 0;
@@ -163,7 +176,7 @@ int zeroStepper() {
     delay(1);
   }
 
-  for(int i = 0; i < 500; i++)
+  for(int i = 0; i < 250; i++)
   {
     digitalWrite(A4, HIGH);
     delay(1);
@@ -233,16 +246,15 @@ void setup() {
   // Open serial connection
   // Note: This takes a bit to connect so while(!Serial) keeps it waiting
   // until the connection is ready.
-  mySerial.begin(9600);
   Serial.begin(9600);
   while (!Serial) {
     delay(100);
   }
 
-  servo1.attach(servo1Pin);
-  servo2.attach(servo2Pin);
   zeroServos();
-  
+
+
+
   // Set switch read pin
   pinMode(switchPin, INPUT_PULLUP);
   switchState = digitalRead(switchPin);
@@ -263,23 +275,6 @@ void setup() {
   Serial.write("READY\n");
 }
 
-
-
-
-void listenForRFID() {
- 
- if (mySerial.available()) 
- {
-  
-  char A = mySerial.read();
-  switch (A){
-    case (0x02)  : {RFID_String="";RFID_Flag = empty;break;}
-    case (0x03)  : {RFID_Flag = complete;break;}
-    default:{  RFID_String +=(String)A; RFID_Flag = wait;}
-  }
- }
- 
-}
 
 bool listenForStartCommand() {
   
