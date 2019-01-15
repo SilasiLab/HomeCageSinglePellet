@@ -25,16 +25,47 @@ class GUI:
 		self.mouse2_button = Button(frame1, text="Select Mouse 2", command=self.select_mouse2_button_onClick, borderwidth = 3, relief = "raised")
 		self.mouse3_button = Button(frame1, text="Select Mouse 3", command=self.select_mouse3_button_onClick, borderwidth = 3, relief = "raised")
 		self.mouse4_button = Button(frame1, text="Select Mouse 4", command=self.select_mouse4_button_onClick, borderwidth = 3, relief = "raised")
+		self.mouse5_button = Button(frame1, text="Select Mouse 5", command=self.select_mouse5_button_onClick, borderwidth = 3, relief = "raised")
 		self.mouse1_button.pack(side=LEFT)
 		self.mouse2_button.pack(side=LEFT)
 		self.mouse3_button.pack(side=LEFT)
 		self.mouse4_button.pack(side=LEFT)
+		self.mouse5_button.pack(side=LEFT)
+
 		frame1.pack()
 
 		frame2 = Frame(master)
-		self.label = Label(frame2, text="\nPellet Presentation Distance(mm)")
-		self.label.pack()
+
+		self.load_animal_profiles()
+		dists = [0,0,0,0,0]
+
+		for mouse in range(1,6):
+			profileIndex = self.find_profile_state_index(mouse)
+
+			if profileIndex == -1:
+				print("Mouse " + str(mouse) + " does not exist")
+			else:
+				dists.insert(mouse - 1,self.profileStates[profileIndex][4])
+
+
+
+		self.mouse1_label = Label(frame2, text="Dist= " + str(dists[0]))
+		self.mouse1_label.pack(padx=38,side=LEFT)
+		self.mouse2_label = Label(frame2, text="Dist= "+ str(dists[1]))
+		self.mouse2_label.pack(padx=38,side=LEFT)
+		self.mouse3_label = Label(frame2, text="Dist= "+ str(dists[2]))
+		self.mouse3_label.pack(padx=38,side=LEFT)
+		self.mouse4_label = Label(frame2, text="Dist= "+ str(dists[3]))
+		self.mouse4_label.pack(padx=38,side=LEFT)
+		self.mouse5_label = Label(frame2, text="Dist= "+ str(dists[4]))
+		self.mouse5_label.pack(padx=38,side=LEFT)
+
 		frame2.pack()
+
+		frame42 = Frame(master)
+		self.label = Label(frame42, text="\nPellet Presentation Distance(mm)")
+		self.label.pack()
+		frame42.pack()
 
 		frame3 = Frame(master)
 		self.scale = Scale(frame3, from_=0, to=5, orient=HORIZONTAL)
@@ -52,6 +83,10 @@ class GUI:
 
 
 	def load_animal_profiles(self):
+
+		self.profileNames = []
+		self.profileStates = []
+		self.profileSaveFilePaths = []
 
 		# Get list of profile folders
 		self.profileNames = os.listdir(self.animalProfilePath)
@@ -108,6 +143,7 @@ class GUI:
 		self.mouse2_button.config(relief="raised")
 		self.mouse3_button.config(relief="raised")
 		self.mouse4_button.config(relief="raised")
+		self.mouse5_button.config(relief="raised")
 		self.currentMouse = 1
 
 	def select_mouse2_button_onClick(self):
@@ -116,6 +152,7 @@ class GUI:
 		self.mouse2_button.config(relief="sunken")
 		self.mouse3_button.config(relief="raised")
 		self.mouse4_button.config(relief="raised")
+		self.mouse5_button.config(relief="raised")
 		self.currentMouse = 2
 
 	def select_mouse3_button_onClick(self):
@@ -124,6 +161,7 @@ class GUI:
 		self.mouse2_button.config(relief="raised")
 		self.mouse3_button.config(relief="sunken")
 		self.mouse4_button.config(relief="raised")
+		self.mouse5_button.config(relief="raised")
 		self.currentMouse = 3
 
 	def select_mouse4_button_onClick(self):
@@ -132,12 +170,23 @@ class GUI:
 		self.mouse2_button.config(relief="raised")
 		self.mouse3_button.config(relief="raised")
 		self.mouse4_button.config(relief="sunken")
+		self.mouse5_button.config(relief="raised")
 		self.currentMouse = 4
 
+	def select_mouse5_button_onClick(self):
+
+		self.mouse1_button.config(relief="raised")
+		self.mouse2_button.config(relief="raised")
+		self.mouse3_button.config(relief="raised")
+		self.mouse4_button.config(relief="raised")
+		self.mouse5_button.config(relief="sunken")
+		self.currentMouse = 5
 
 	def update_button_onClick(self):
 
-		if self.currentMouse > 0 and self.currentMouse <= 4:
+		self.load_animal_profiles()
+
+		if self.currentMouse > 0 and self.currentMouse <= 5:
 
 			profileIndex = self.find_profile_state_index(self.currentMouse)
 
@@ -151,6 +200,16 @@ class GUI:
 				self.profileStates[profileIndex][4] = self.scale.get()
 				self.save_animal_profile(profileIndex)
 				self.update_label.config(text="Pellet presentation distance \n for Mouse " + str(self.profileStates[profileIndex][2]) + " has been updated to " + str(self.profileStates[profileIndex][4]) + "mm!")
+				if self.currentMouse == 1:
+					self.mouse1_label.config(text="Dist= " + str(self.profileStates[profileIndex][4]))
+				elif self.currentMouse == 2:
+					self.mouse2_label.config(text="Dist= " + str(self.profileStates[profileIndex][4]))
+				elif self.currentMouse == 3:
+					self.mouse3_label.config(text="Dist= " + str(self.profileStates[profileIndex][4]))
+				elif self.currentMouse == 4:
+					self.mouse4_label.config(text="Dist= " + str(self.profileStates[profileIndex][4]))
+				elif self.currentMouse == 5:
+					self.mouse5_label.config(text="Dist= " + str(self.profileStates[profileIndex][4]))
 
 	def shutdown_onClick(self):
 		self.master.destroy()

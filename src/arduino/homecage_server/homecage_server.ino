@@ -1,5 +1,8 @@
 #include <Servo.h>
 
+bool SIMULATION_MODE = false;
+
+
 // Config
 const int servo1Pin = 10;
 const int servo2Pin = 9;
@@ -176,7 +179,7 @@ int zeroStepper() {
     delay(1);
   }
 
-  for(int i = 0; i < 250; i++)
+  for(int i = 0; i < 200; i++)
   {
     digitalWrite(A4, HIGH);
     delay(1);
@@ -288,11 +291,20 @@ bool listenForStartCommand() {
     }
     
     if(authByte == 'A') {
-
+      SIMULATION_MODE = false;
       return true;
     }
     else if (authByte == 'Y' ) {
+      SIMULATION_MODE = false;
       digitalWrite(ledPin,HIGH);
+      return false;
+    }
+    else if (authByte == 'S') {
+      SIMULATION_MODE = true;
+      return true;
+    }
+    else if (authByte == 'Z') {
+      SIMULATION_MODE = true;
       return false;
     }
 
@@ -385,13 +397,107 @@ int startSession() {
 }
 
 
+int startSimulatedSession() {
+  
+  long StartTime = millis();
+  long CurrentTime = StartTime;
+  long randomDuration = random(1,20000);
+  
+  while((CurrentTime - StartTime) < randomDuration) {
+
+    CurrentTime = millis();
+
+    char cmd;
+    char stepperDist;
+    
+    if(Serial.available() > 0) {
+
+      cmd = Serial.read();
+      
+      switch(cmd){
+        
+        case ('1'):
+          displayPellet(right);
+          break;
+          
+        case ('2'):
+          displayPellet(left);
+          break;
+          
+        case ('3'):
+
+          // Give client a second to respond
+          delay(1000);
+          stepperDist = Serial.read();
+          
+          switch(stepperDist){
+            case('0'):
+              zeroStepper();
+              break;
+            case('1'):
+              moveStepper(stepsToMmRatio * 1);
+              break;
+            case('2'):
+              moveStepper(stepsToMmRatio * 2);
+              break;
+            case('3'):
+              moveStepper(stepsToMmRatio * 3);
+              break;
+            case('4'):
+              moveStepper(stepsToMmRatio * 4);
+              break;
+            case('5'):
+              moveStepper(stepsToMmRatio * 5);
+              break;
+            case('6'):
+              moveStepper(stepsToMmRatio * 6);
+              break;
+            default:
+              break;  
+            }
+            
+        default:
+          break;
+      }
+    }
+    
+  }
+
+
+  char termCmd;
+  // Send session end message.
+  Serial.write("TERM\n");
+
+  if(servo1_up_flag)
+  {
+    lowerServo1();
+    servo1_up_flag = false;
+  }
+  if(servo2_up_flag)
+  {
+    lowerServo2();
+    servo2_up_flag = false;
+  }
+  // Flush serial buffer.
+  while(Serial.read() >= 0) {
+    continue;
+  }
+
+  return 0;  
+}
+
 
 void loop() { 
 
   if(listenForStartCommand()){
-      startSession();
-  }
-         
+
+      if(SIMULATION_MODE) {
+        startSimulatedSession();
+      }
+      else {
+        startSession();
+      }
+  }       
 }
 
  

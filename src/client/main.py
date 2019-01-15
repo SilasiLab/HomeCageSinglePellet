@@ -8,6 +8,16 @@ import multiprocessing
 import serial
 from subprocess import PIPE, Popen
 import os
+import random
+
+
+
+
+RUN_SIMULATION = True
+
+
+
+
 
 
 with open("../../config/config.txt") as config:
@@ -25,16 +35,12 @@ with open("../../config/config.txt") as config:
 config.close()
 
 
-
-
-
-
-#This function generates a list of AnimalProfiles found inside <profile_save_directory>.
-#It then reads the save.txt file for each profile found, and uses the information
-#in that file to reconstruct the AnimalProfile object. It returns all the
-#reconstructed profiles as a list of AnimalProfiles.
-#Note: This function works by assuming the directory structure of each AnimalProfile
-#is consistent and the required save.txt files are present, i.e:
+# This function generates a list of AnimalProfiles found inside <profile_save_directory>.
+# It then reads the save.txt file for each profile found, and uses the information
+# in that file to reconstruct the AnimalProfile object. It returns all the
+# reconstructed profiles as a list of AnimalProfiles.
+# Note: This function works by assuming the directory structure of each AnimalProfile
+# is consistent and the required save.txt files are present, i.e:
 #
 # <profile_save_directory>
 #   -
@@ -45,43 +51,41 @@ config.close()
 #       - save.txt
 
 def loadAnimalProfiles(profile_save_directory):
-
     # Get list of profile folders
-	profile_names = os.listdir(profile_save_directory)
-	profiles = []
+    profile_names = os.listdir(profile_save_directory)
+    profiles = []
 
-	for profile in profile_names:
+    for profile in profile_names:
 
-		# Build save file path
-		load_file = profile_save_directory + profile + "/" + profile + "_save.txt"
-		profile_state = []
+        # Build save file path
+        load_file = profile_save_directory + profile + "/" + profile + "_save.txt"
+        profile_state = []
 
-		# Open the save file
-		try:
-			load = open(load_file, 'r')
-		except IOError:
-			print("Could not open AnimalProfile save file!")
+        # Open the save file
+        try:
+            load = open(load_file, 'r')
+        except IOError:
+            print("Could not open AnimalProfile save file!")
 
-		# Read all lines from save file and strip them
-		with load:
-			profile_state = load.readlines()
-		profile_state = [x.strip() for x in profile_state]
+        # Read all lines from save file and strip them
+        with load:
+            profile_state = load.readlines()
+        profile_state = [x.strip() for x in profile_state]
 
-		# Create AnimalProfile object using loaded data and put it in profile list
-		ID = profile_state[0]
-		name = profile_state[1]
-		mouseNumber = profile_state[2]
-		cageNumber = profile_state[3]
-		difficulty_dist_mm = profile_state[4]
-		dominant_hand = profile_state[5]
-		session_count = profile_state[6]
-		animal_profile_directory = profile_state[7]
-		temp = AnimalProfile(ID, name, mouseNumber, cageNumber, difficulty_dist_mm, dominant_hand, session_count, animal_profile_directory, False)
-		profiles.append(temp)
+        # Create AnimalProfile object using loaded data and put it in profile list
+        ID = profile_state[0]
+        name = profile_state[1]
+        mouseNumber = profile_state[2]
+        cageNumber = profile_state[3]
+        difficulty_dist_mm = profile_state[4]
+        dominant_hand = profile_state[5]
+        session_count = profile_state[6]
+        animal_profile_directory = profile_state[7]
+        temp = AnimalProfile(ID, name, mouseNumber, cageNumber, difficulty_dist_mm, dominant_hand, session_count,
+                             animal_profile_directory, False)
+        profiles.append(temp)
 
-
-	return profiles
-
+    return profiles
 
 
 class AnimalProfile(object):
@@ -91,12 +95,12 @@ class AnimalProfile(object):
     #    of the system for any operation pertaining to the animal (data logging, identification, etc). When the application closes,
     #    saveProfile() should be called on each profile in the system. A global loadProfiles() function is used to load/reconstruct
     #    each profile at load time. Each AnimalProfile has the following properties:
-	#
+    #
     #    Attributes:
     #        ID: A unique identification number for the animal. In our case this number will be the RFID of the RF tag implanted in the animal.
     #        name: The name of the animal
-	#		 mouseNumber: The number of the animal in it's cage (0-5).
-	#		 cageNumber: The cage number of the animal.
+    #		 mouseNumber: The number of the animal in it's cage (0-5).
+    #		 cageNumber: The cage number of the animal.
     #        difficulty_dist_mm: An integer representing the distance from the tube to the presented pellet in mm.
     #        dominant_hand: A string representing the dominant hand of the mouse.
     #        session_count: The number of Sessions the animal has participated in. In our system, this is the number of times the animal has
@@ -105,81 +109,75 @@ class AnimalProfile(object):
     #        video_save_directory: A path to where the videos for this animal are stored. This path will be inside [./<animal_profile_directory>/<animal_name>/]
     #        log_save_directory: A path to where the logs for this animal are stored. This pathh will be inside [./<animal_profile_directory/<animal_name/]
 
+    def __init__(self, ID, name, mouseNumber, cageNumber, difficulty_dist_mm, dominant_hand, session_count,
+                 profile_save_directory, is_new):
 
+        self.ID = str(ID)
+        self.name = str(name)
+        self.mouseNumber = str(mouseNumber)
+        self.cageNumber = str(cageNumber)
+        self.difficulty_dist_mm = int(difficulty_dist_mm)
+        self.dominant_hand = str(dominant_hand)
+        self.session_count = int(session_count)
 
+        if is_new:
+            self.animal_profile_directory = profile_save_directory + name + "/"
+        else:
+            self.animal_profile_directory = profile_save_directory
 
-	def __init__(self, ID, name, mouseNumber, cageNumber, difficulty_dist_mm, dominant_hand, session_count, profile_save_directory, is_new):
+        self.video_save_directory = self.animal_profile_directory + "Videos/"
+        self.log_save_directory = self.animal_profile_directory + "Logs/"
 
-		self.ID = str(ID)
-		self.name = str(name)
-		self.mouseNumber = str(mouseNumber)
-		self.cageNumber = str(cageNumber)
-		self.difficulty_dist_mm = int(difficulty_dist_mm)
-		self.dominant_hand = str(dominant_hand)
-		self.session_count = int(session_count)
+        if is_new:
 
+            if not os.path.isdir(self.animal_profile_directory):
+                os.makedirs(self.animal_profile_directory)
 
-		if is_new:
-			self.animal_profile_directory = profile_save_directory + name + "/"
-		else:
-			self.animal_profile_directory = profile_save_directory
+            if not os.path.isdir(self.video_save_directory):
+                os.makedirs(self.video_save_directory)
 
-		self.video_save_directory = self.animal_profile_directory + "Videos/"
-		self.log_save_directory = self.animal_profile_directory + "Logs/"
-
-		if is_new:
-
-			if not os.path.isdir(self.animal_profile_directory):
-				os.makedirs(self.animal_profile_directory)
-
-			if not os.path.isdir(self.video_save_directory):
-				os.makedirs(self.video_save_directory)
-
-			if not os.path.isdir(self.log_save_directory):
-				os.makedirs(self.log_save_directory)
-
+            if not os.path.isdir(self.log_save_directory):
+                os.makedirs(self.log_save_directory)
 
     # This function writes the state of the AnimalProfile object to the
     # AnimalProfile's save file.
-	def saveProfile(self):
+    def saveProfile(self):
 
-		save_file_path = self.animal_profile_directory + str(self.name) + "_save.txt"
+        save_file_path = self.animal_profile_directory + str(self.name) + "_save.txt"
 
-		with open(save_file_path, 'w') as save:
-
-			save.write(str(self.ID) + "\n")
-			save.write(str(self.name) + "\n")
-			save.write(str(self.mouseNumber) + "\n")
-			save.write(str(self.cageNumber) + "\n")
-			save.write(str(self.difficulty_dist_mm) + "\n")
-			save.write(str(self.dominant_hand) + "\n")
-			save.write(str(self.session_count) + "\n")
-			save.write(str(self.animal_profile_directory) + "\n")
-
+        with open(save_file_path, 'w') as save:
+            save.write(str(self.ID) + "\n")
+            save.write(str(self.name) + "\n")
+            save.write(str(self.mouseNumber) + "\n")
+            save.write(str(self.cageNumber) + "\n")
+            save.write(str(self.difficulty_dist_mm) + "\n")
+            save.write(str(self.dominant_hand) + "\n")
+            save.write(str(self.session_count) + "\n")
+            save.write(str(self.animal_profile_directory) + "\n")
 
     # Generates the path where the video for the next session will be stored
-	def genVideoPath(self, videoStartTimestamp):
+    def genVideoPath(self, videoStartTimestamp):
 
-		videoStartTimestamp = time.strftime("%Y-%m-%d_%H:%M:%S", time.localtime(videoStartTimestamp))
-		return PROFILE_SAVE_DIRECTORY + str(self.name) + str("/Videos/") + videoStartTimestamp + "_" + str(self.ID) + "_" + str(self.cageNumber) + "_" + str(self.session_count)
+        videoStartTimestamp = time.strftime("%Y-%m-%d_%H:%M:%S", time.localtime(videoStartTimestamp))
+        return PROFILE_SAVE_DIRECTORY + str(self.name) + str("/Videos/") + videoStartTimestamp + "_" + str(
+            self.ID) + "_" + str(self.cageNumber) + "_" + str(self.session_count)
 
+    # This function takes all the information required for an animal's session log entry, and then formats it.
+    # Once formatted, it appends the log entry to the animal's session_history.csv file.
+    def insertSessionEntry(self, start_timestamp, end_timestamp, trial_count):
 
-	# This function takes all the information required for an animal's session log entry, and then formats it.
-	# Once formatted, it appends the log entry to the animal's session_history.csv file.
-	def insertSessionEntry(self, start_timestamp, end_timestamp, trial_count):
+        # TODO: Is there a better way to create + format strings?
+        session_history = self.log_save_directory + str(self.name) + "_session_history.csv"
+        start_date = time.strftime("%d-%b-%Y", time.localtime(start_timestamp))
+        start_time = time.strftime("%H:%M:%S", time.localtime(start_timestamp))
+        end_date = time.strftime("%d-%b-%Y", time.localtime(end_timestamp))
+        end_time = time.strftime("%H:%M:%S", time.localtime(end_timestamp))
+        csv_entry = str(self.session_count) + "," + str(self.name) + "," + str(self.ID) + "," + str(
+            trial_count) + "," + str(self.difficulty_dist_mm) + "," + str(
+            self.dominant_hand) + "," + start_date + "," + start_time + "," + end_date + "," + end_time + "\n"
 
-		#TODO: Is there a better way to create + format strings?
-		session_history = self.log_save_directory + str(self.name) + "_session_history.csv"
-		start_date = time.strftime("%d-%b-%Y", time.localtime(start_timestamp))
-		start_time = time.strftime("%H:%M:%S", time.localtime(start_timestamp))
-		end_date = time.strftime("%d-%b-%Y", time.localtime(end_timestamp))
-		end_time = time.strftime("%H:%M:%S", time.localtime(end_timestamp))
-		csv_entry = str(self.session_count) + "," + str(self.name) + "," + str(self.ID) + "," + str(trial_count) + "," + str(self.difficulty_dist_mm) + "," + str(self.dominant_hand)  + "," + start_date + "," + start_time + "," + end_date + "," + end_time + "\n"
-
-		with open(session_history, "a") as log:
-			log.write(csv_entry)
-
-
+        with open(session_history, "a") as log:
+            log.write(csv_entry)
 
 
 class SessionController(object):
@@ -245,10 +243,12 @@ class SessionController(object):
 
         vidPath = profile.genVideoPath(startTime)
         if "TEST" in profile.name:
-            p = Popen(['../../bin/SessionVideo', vidPath, WIDTH, HEIGHT, OFFSET_X, OFFSET_Y, "50", EXPOSURE, BITRATE, "1"], stdin=PIPE)
+            p = Popen(
+                ['../../bin/SessionVideo', vidPath, WIDTH, HEIGHT, OFFSET_X, OFFSET_Y, "50", EXPOSURE, BITRATE, "1"],
+                stdin=PIPE)
         else:
-            p = Popen(['../../bin/SessionVideo', vidPath, WIDTH, HEIGHT, OFFSET_X, OFFSET_Y, FPS, EXPOSURE, BITRATE, DISPLAY_PREVIEW], stdin=PIPE)
-
+            p = Popen(['../../bin/SessionVideo', vidPath, WIDTH, HEIGHT, OFFSET_X, OFFSET_Y, FPS, EXPOSURE, BITRATE,
+                       DISPLAY_PREVIEW], stdin=PIPE)
 
         # Tell server to move stepper to appropriate position for current profile
         self.arduino_client.serialInterface.write(b'3')
@@ -264,6 +264,7 @@ class SessionController(object):
             self.arduino_client.serialInterface.write(b'2')
 
         trial_count = 1
+        sleep(6)
         now = time.time()
 
         while True:
@@ -294,80 +295,144 @@ class SessionController(object):
 
 
 def launch_gui():
-	gui_process = multiprocessing.Process(target=gui.start_gui_loop, args=(PROFILE_SAVE_DIRECTORY,))
-	gui_process.start()
-	return gui_process
-
+    gui_process = multiprocessing.Process(target=gui.start_gui_loop, args=(PROFILE_SAVE_DIRECTORY,))
+    gui_process.start()
+    return gui_process
 
 
 def sys_init():
-
-	profile_list = loadAnimalProfiles(PROFILE_SAVE_DIRECTORY)
-	arduino_client = arduinoClient.client("/dev/ttyUSB0", 9600)
-	ser = serial.Serial('/dev/ttyUSB1',9600)
-	launch_gui()
-	session_controller = SessionController(profile_list, arduino_client)
-	return profile_list, arduino_client, session_controller, ser
-
+    profile_list = loadAnimalProfiles(PROFILE_SAVE_DIRECTORY)
+    arduino_client = arduinoClient.client("/dev/ttyUSB0", 9600)
+    ser = serial.Serial('/dev/ttyUSB1', 9600)
+    launch_gui()
+    session_controller = SessionController(profile_list, arduino_client)
+    return profile_list, arduino_client, session_controller, ser
 
 
 def listen_for_rfid(ser):
+    rfid = ''
 
-	rfid = ''
+    while (ser.is_open):
+
+        byte = ser.read(1)
+
+        if (byte == b'\x02'):
+            rfid = ''
+        elif (byte == b'\x03'):
+            return rfid
+        else:
+            rfid += byte.decode('utf-8')
 
 
-	while(ser.is_open):
+def generate_test_profiles():
+    profiles = []
+    RFIDs = [
+        "00782B1918G7",
+        "00782B19H7FF",
+        "0078JG9DLG9D",
+        "8G9JG9KF94KF",
+        "58GJG959JGJG",
+    ]
 
-		byte = ser.read(1)
+    profile_n = 0
 
-		if(byte == b'\x02'):
-			rfid = ''
-		elif (byte == b'\x03'):
-			return rfid
-		else:
-			rfid += byte.decode('utf-8')
+    for rfid in RFIDs:
 
+        profile_n += 1
+        difficultyDist = random.randint(0, 4)
+        hand = None
+        print(difficultyDist)
+        if difficultyDist % 2 == 0:
+            hand = "LEFT"
+        else:
+            hand = "RIGHT"
+
+        tempProfile = AnimalProfile(rfid, rfid + "_name", profile_n, 00000, difficultyDist, hand, 0,
+                                    PROFILE_SAVE_DIRECTORY, True)
+        tempProfile.saveProfile()
+        profiles.append(tempProfile)
+
+    return profiles
+
+
+
+# Uncomment to generate test profiles
+# generate_test_profiles()
+# exit()
 
 def main():
 
 
-	#profile1 = AnimalProfile("00782B1884CF", "TEST_LEFT", 10, 0000, 0, "LEFT", 0, PROFILE_SAVE_DIRECTORY, True)
-	#profile2 = AnimalProfile("002FBE72D132", "TEST_RIGHT", 11, 1111, 1, "RIGHT", 0, PROFILE_SAVE_DIRECTORY, True)
-	#profile1.saveProfile()
-	#profile2.saveProfile()
-	#exit()
+    profile_list, arduino_client, session_controller, ser = sys_init()
 
-	profile_list, arduino_client, session_controller, ser = sys_init()
+    # Entry point of the system. This block waits for an RFID to enter the <SERIAL_INTERFACE_PATH> buffer.
+    # Once it receives an RFID, it parses it and searches for a profile with a matching RFID. If a profile
+    # is found, it starts a session for that profile. If no profile is found, it goes back to listening for
+    # an RFID.
+    while True:
 
-	# Entry point of the system. This block waits for an RFID to enter the <SERIAL_INTERFACE_PATH> buffer.
-	# Once it receives an RFID, it parses it and searches for a profile with a matching RFID. If a profile
-	# is found, it starts a session for that profile. If no profile is found, it goes back to listening for
-	# an RFID.
-	while True:
+        if RUN_SIMULATION:
 
-		# Wait for RFID from arduino
-		print("Waiting for RFID...")
-		RFID_code = listen_for_rfid(ser)[:12]
-		# Authenticate RFID
-		profile = session_controller.searchForProfile(RFID_code)
+            # Roll to determine if we do a session or not
+            roll = random.randint(0,2)
 
-		if profile != -1:
+            # Sleep for random amount of time
+            if roll == 0:
+                randSleepTime = random.randint(0,10)
+                print("Sleeping for: " + str(randSleepTime))
+                sleep(randSleepTime)
 
-	            # Load profileList before each session
-	            session_controller.set_profile_list(loadAnimalProfiles(PROFILE_SAVE_DIRECTORY))
-	            arduino_client.serialInterface.write(b'A')
-	            session_controller.startSession(profile)
-	            arduino_client.serialInterface.flush()
 
-	            # Load profileList after each session
-	            session_controller.set_profile_list(loadAnimalProfiles(PROFILE_SAVE_DIRECTORY))
+            # pick a random profile and start a random length session for it
+            elif roll == 1:
+                profile = profile_list[random.randint(0,len(profile_list) - 1)]
+                RFID_code = profile.ID
+                print("Simulating session for: " + profile.ID)
+                profile = session_controller.searchForProfile(RFID_code)
 
-		else:
-	            arduino_client.serialInterface.write(b'Y')
-	            unrecognized_id_msg = RFID_code + " not recognized. Aborting session.\n\n"
-	            print(unrecognized_id_msg)
+                if profile != -1:
+
+                    # Load profileList before each session
+                    session_controller.set_profile_list(loadAnimalProfiles(PROFILE_SAVE_DIRECTORY))
+                    profile = session_controller.searchForProfile(RFID_code)
+                    arduino_client.serialInterface.write(b'S')
+                    session_controller.startSession(profile)
+                    arduino_client.serialInterface.flush()
+
+                    # Load profileList after each session
+                    session_controller.set_profile_list(loadAnimalProfiles(PROFILE_SAVE_DIRECTORY))
+
+                else:
+                    arduino_client.serialInterface.write(b'Z')
+                    unrecognized_id_msg = RFID_code + " not recognized. Aborting session.\n\n"
+                    print(unrecognized_id_msg)
+
+        else:
+
+            # Wait for RFID from arduino
+            print("Waiting for RFID...")
+            RFID_code = listen_for_rfid(ser)[:12]
+            # Authenticate RFID
+            profile = session_controller.searchForProfile(RFID_code)
+
+            if profile != -1:
+
+                # Load profileList before each session
+                session_controller.set_profile_list(loadAnimalProfiles(PROFILE_SAVE_DIRECTORY))
+                profile = session_controller.searchForProfile(RFID_code)
+                arduino_client.serialInterface.write(b'A')
+                session_controller.startSession(profile)
+                arduino_client.serialInterface.flush()
+
+                # Load profileList after each session
+                session_controller.set_profile_list(loadAnimalProfiles(PROFILE_SAVE_DIRECTORY))
+
+            else:
+                arduino_client.serialInterface.write(b'Y')
+                unrecognized_id_msg = RFID_code + " not recognized. Aborting session.\n\n"
+                print(unrecognized_id_msg)
 
 
 # Python convention for launching main() function.
 if __name__ == "__main__":
-	main()
+    main()

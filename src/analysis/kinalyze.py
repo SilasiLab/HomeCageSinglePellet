@@ -154,6 +154,8 @@ def extractEvents(leftMirrorPawIndexes, centerPawIndexes, rightMirrorPawIndexes,
             if(contiguousNegativeCount >= MAX_FRAME_COUNT_EVENT_STOP):
                 contiguousPositiveCount = 0
                 contiguousNegativeCount = 0
+                for padding in range(1,20):
+                    tempEventFrameRange.append(row + padding)
                 events.append(packageEvent(tempEventFrameRange, poseName))
                 tempEventFrameRange = []
                 row += MIN_FRAME_COUNT_BETWEEN_EVENTS
@@ -308,7 +310,7 @@ def get_point_distance(point1, point2):
     return dist
 
 
-def graph_3D_trajectory(x_points, y_points, z_points):
+def graph_3D_trajectory(x_points, y_points, z_points, startFrame):
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
     ax.set_xlim(-10, 10)
@@ -322,12 +324,13 @@ def graph_3D_trajectory(x_points, y_points, z_points):
     ax.set_xlabel('x')
     ax.set_ylabel('z')
     ax.set_zlabel('y')
+    fig.suptitle(str(startFrame), fontsize=16)
     plt.show()
     cv2.waitKey(0)
     return 0
 
-def spawn_3D_graph(x_points, y_points, z_points):
-    p = Process(target=graph_3D_trajectory, args=(x_points, y_points, z_points,))
+def spawn_3D_graph(x_points, y_points, z_points, startFrame):
+    p = Process(target=graph_3D_trajectory, args=(x_points, y_points, z_points, startFrame,))
     p.start()
     return p
 
@@ -1067,7 +1070,7 @@ def main():
             review_event(event, VIDEO_PATH, video, filteredPoints)
             cv2.waitKey(0)
         if(DISPLAY_GRAPHS):
-            spawn_3D_graph(np.asarray(event.xVals), np.asarray(event.yVals), np.asarray(event.zVals))
+            spawn_3D_graph(np.asarray(event.xVals), np.asarray(event.yVals), np.asarray(event.zVals), event.startFrame)
             cv2.waitKey(0)
         if(EXTRACT_VIDEO_CLIPS):
             extract_vid_range(event.startFrame, event.stopFrame, video, ghostTrailPoints, filteredPoints, colors,str(event.startFrame))
@@ -1076,17 +1079,28 @@ def main():
 
                 outputFile.write(str(event.startFrame) + "\n")
                 outputFile.write(str(event.stopFrame) + "\n")
-                outputFile.write(str("UNSCORED"))
+                outputFile.write(str("UNSCORED") + "\n")
                 wr = csv.writer(outputFile)
+
+                s = event.startFrame
+                j = 24
 
                 for i in range(0, len(event.xVals)):
                     line = []
                     line.append(event.xVals[i])
                     line.append(event.yVals[i])
                     line.append(event.zVals[i])
+
+                    for x in range(0,j):
+                        line.append(dataframe.iat[s, x])
+                    s+= 1
+
                     wr.writerow(line)
+
                 outputFile.write("\n\n")
+
     print("Done")
+
 
 
 
