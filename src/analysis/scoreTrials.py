@@ -840,7 +840,7 @@ class Application(Frame):
 
 
 
-        if self.currentFrame > self.currentStopFrame or self.currentFrame < self.currentStartFrame:
+        if self.currentFrame > self.currentStopFrame + 20 or self.currentFrame < self.currentStartFrame:
             self.currentFrame = self.currentStartFrame
 
 

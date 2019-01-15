@@ -1085,6 +1085,7 @@ def main():
                 s = event.startFrame
                 j = 24
 
+
                 for i in range(0, len(event.xVals)):
                     line = []
                     line.append(event.xVals[i])
