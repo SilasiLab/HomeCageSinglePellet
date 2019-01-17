@@ -67,15 +67,17 @@ class GUI:
 
 		frameArmButton = Frame(master)
 		self.armButton1 = Button(frameArmButton,text=armSettings[0], command=self.switch_arm_state_1)
-		frameArmButton = Frame(master)
+		self.armButton1.pack(padx=38,side=LEFT)
 		self.armButton2 = Button(frameArmButton,text=armSettings[1], command=self.switch_arm_state_2)
-		frameArmButton = Frame(master)
+		self.armButton2.pack(padx=38,side=LEFT)
 		self.armButton3 = Button(frameArmButton,text=armSettings[2], command=self.switch_arm_state_3)
-		frameArmButton = Frame(master)
+		self.armButton3.pack(padx=38,side=LEFT)
 		self.armButton4 = Button(frameArmButton,text=armSettings[3], command=self.switch_arm_state_4)
-		frameArmButton = Frame(master)
+		self.armButton4.pack(padx=38,side=LEFT)
 		self.armButton5 = Button(frameArmButton,text=armSettings[4], command=self.switch_arm_state_5)
+		self.armButton5.pack(padx=38,side=LEFT)
 
+		frameArmButton.pack()
 
 
 		frame42 = Frame(master)
