@@ -38,6 +38,7 @@ class GUI:
 
 		self.load_animal_profiles()
 		dists = [0,0,0,0,0]
+		armSettings = ['left','left','left','left']
 
 		for mouse in range(1,6):
 			profileIndex = self.find_profile_state_index(mouse)
@@ -46,6 +47,7 @@ class GUI:
 				print("Mouse " + str(mouse) + " does not exist")
 			else:
 				dists.insert(mouse - 1,self.profileStates[profileIndex][4])
+				armSettings.insert(mouse - 1, self.profileStates[profileIndex][5])
 
 
 
@@ -61,6 +63,20 @@ class GUI:
 		self.mouse5_label.pack(padx=38,side=LEFT)
 
 		frame2.pack()
+
+
+		frameArmButton = Frame(master)
+		self.armButton1 = Button(frameArmButton,text=armSettings[0], command=self.switch_arm_state_1)
+		frameArmButton = Frame(master)
+		self.armButton2 = Button(frameArmButton,text=armSettings[1], command=self.switch_arm_state_2)
+		frameArmButton = Frame(master)
+		self.armButton3 = Button(frameArmButton,text=armSettings[2], command=self.switch_arm_state_3)
+		frameArmButton = Frame(master)
+		self.armButton4 = Button(frameArmButton,text=armSettings[3], command=self.switch_arm_state_4)
+		frameArmButton = Frame(master)
+		self.armButton5 = Button(frameArmButton,text=armSettings[4], command=self.switch_arm_state_5)
+
+
 
 		frame42 = Frame(master)
 		self.label = Label(frame42, text="\nPellet Presentation Distance(mm)")
@@ -80,6 +96,102 @@ class GUI:
 		self.updateButton.pack()
 		self.update_label.pack(side=BOTTOM)
 		frame4.pack()
+
+
+
+	def switch_arm_state_1(self):
+
+		self.load_animal_profiles()
+
+		profileIndex = self.find_profile_state_index(1)
+		armState = self.profileStates[profileIndex][5]
+
+		if armState == "RIGHT":
+			self.profileStates[profileIndex][5] = "LEFT"
+			armState = "LEFT"
+		elif armState == "LEFT":
+			self.profileStates[profileIndex][5] = "RIGHT"
+			armState = "RIGHT"
+
+
+		self.armButton1.config(text=armState)
+		self.save_animal_profile(profileIndex)
+
+
+	def switch_arm_state_2(self):
+
+		self.load_animal_profiles()
+
+		profileIndex = self.find_profile_state_index(2)
+		armState = self.profileStates[profileIndex][5]
+
+		if armState == "RIGHT":
+			self.profileStates[profileIndex][5] = "LEFT"
+			armState = "LEFT"
+		elif armState == "LEFT":
+			self.profileStates[profileIndex][5] = "RIGHT"
+			armState = "RIGHT"
+
+
+		self.armButton2.config(text=armState)
+		self.save_animal_profile(profileIndex)
+
+
+	def switch_arm_state_3(self):
+
+		self.load_animal_profiles()
+
+		profileIndex = self.find_profile_state_index(3)
+		armState = self.profileStates[profileIndex][5]
+
+		if armState == "RIGHT":
+			self.profileStates[profileIndex][5] = "LEFT"
+			armState = "LEFT"
+		elif armState == "LEFT":
+			self.profileStates[profileIndex][5] = "RIGHT"
+			armState = "RIGHT"
+
+
+		self.armButton3.config(text=armState)
+		self.save_animal_profile(profileIndex)
+
+
+	def switch_arm_state_4(self):
+
+		self.load_animal_profiles()
+
+		profileIndex = self.find_profile_state_index(4)
+		armState = self.profileStates[profileIndex][5]
+
+		if armState == "RIGHT":
+			self.profileStates[profileIndex][5] = "LEFT"
+			armState = "LEFT"
+		elif armState == "LEFT":
+			self.profileStates[profileIndex][5] = "RIGHT"
+			armState = "RIGHT"
+
+
+		self.armButton4.config(text=armState)
+		self.save_animal_profile(profileIndex)
+
+
+	def switch_arm_state_5(self):
+
+		self.load_animal_profiles()
+
+		profileIndex = self.find_profile_state_index(5)
+		armState = self.profileStates[profileIndex][5]
+
+		if armState == "RIGHT":
+			self.profileStates[profileIndex][5] = "LEFT"
+			armState = "LEFT"
+		elif armState == "LEFT":
+			self.profileStates[profileIndex][5] = "RIGHT"
+			armState = "RIGHT"
+
+
+		self.armButton5.config(text=armState)
+		self.save_animal_profile(profileIndex)
 
 
 	def load_animal_profiles(self):
