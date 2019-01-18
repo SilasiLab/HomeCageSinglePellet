@@ -1,7 +1,7 @@
 """
 Walk through all the mice folders, and generate the csv files containing the analysed data.
  Written by Frank
- 1/14/2019
+ 1/15/2019
 """
 import os
 import csv
@@ -45,25 +45,15 @@ def txt2Reaches(txtFile):
                 'min_speed_id': none,
                 'reaches': []
                 }
-    reach = {
-            'id': none,
-            'start_frame': none,
-            'end_frame': none,
-            'label': none,
-            'max_speed': none,
-            'max_speed_coordinates': none,
-            'min_speed': none,
-            'min_speed_coordinates': none,
-            'path_length_paw': none,
-            'speed_per_moment': [],
-            'path_paw': [],
-            }
 
     labels = []
 
     dict = {'Background': 0, 'Invalid Trial': 1, 'Pellet Knocked Off': 2, 'Grasp2': 3, 'Successful Grasp': 4}
     numReaches = 0
-    pathLength = 0.
+    pathForwardLength = 0.
+    pathBackwardLength = 0.
+    reachFrame = 0
+
     with open(txtFile, 'r') as f:
         lines = f.readlines()
 
@@ -76,7 +66,9 @@ def txt2Reaches(txtFile):
             'max_speed_coordinates': none,
             'min_speed': none,
             'min_speed_coordinates': none,
-            'path_length_paw': none,
+            'path_length_paw_forward': none,
+            'path_length_paw_backward': none,
+            'reach_frame': none,
             'speed_per_moment': [],
             'path_paw': [],
             }
@@ -111,7 +103,12 @@ def txt2Reaches(txtFile):
                     [x1, y1, z1] = [float(listLine[0]), float(listLine[1]), float(listLine[2])]
                     [x2, y2, z2] = tempReach['path_paw'][-1]
                     distance = ((x1 - x2) ** 2 + (y1 - y2) ** 2 + (z1 - z2) ** 2) ** 0.5
-                    pathLength += distance
+                    if z1 - z2 > 0:
+                        pathForwardLength += distance
+                        reachFrame += 1
+                    else:
+                        pathBackwardLength += distance
+
                     speed = distance * 40.
                     tempReach['speed_per_moment'].append(speed)
                 tempReach['path_paw'].append([float(listLine[0]), float(listLine[1]), float(listLine[2])])
@@ -124,23 +121,30 @@ def txt2Reaches(txtFile):
             minSpeed = min(tempReach['speed_per_moment'])
             tempReach['min_speed'] = minSpeed
             tempReach['min_speed_coordinates'] = tempReach['speed_per_moment'].index(minSpeed)
-            tempReach['path_length_paw'] = pathLength
+            tempReach['reach_frame'] = reachFrame
+            tempReach['path_length_paw_forward'] = pathForwardLength
+            tempReach['path_length_paw_backward'] = pathBackwardLength
             dataList['reaches'].append(tempReach)
-            pathLength = 0.
+
+            reachFrame = 0
+            pathForwardLength = 0.
+            pathBackwardLength = 0.
             labels = []
             i = 0
             tempReach = {
-            'id': none,
-            'start_frame': none,
-            'end_frame': none,
-            'label': none,
-            'max_speed': none,
-            'max_speed_coordinates': none,
-            'min_speed': none,
-            'min_speed_coordinates': none,
-            'path_length_paw': none,
-            'speed_per_moment': [],
-            'path_paw': [],
+                'id': none,
+                'start_frame': none,
+                'end_frame': none,
+                'label': none,
+                'max_speed': none,
+                'max_speed_coordinates': none,
+                'min_speed': none,
+                'min_speed_coordinates': none,
+                'path_length_paw_forward': none,
+                'path_length_paw_backward': none,
+                'reach_frame': none,
+                'speed_per_moment': [],
+                'path_paw': [],
             }
             numReaches += 1
     maxSpeed = 0
