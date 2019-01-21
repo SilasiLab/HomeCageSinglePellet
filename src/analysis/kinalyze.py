@@ -79,6 +79,7 @@ LIKELIHOOD_THRESHOLD = 0.5
 MIN_FRAME_COUNT_EVENT_START = 10
 MAX_FRAME_COUNT_EVENT_STOP = 20
 MIN_FRAME_COUNT_BETWEEN_EVENTS = 30
+EVENT_END_PADDING = 80
 # Visual output config
 POINT_SIZE = 4
 LINE_THICKNESS = 3
@@ -112,6 +113,7 @@ def extractEvents(leftMirrorPawIndexes, centerPawIndexes, rightMirrorPawIndexes,
     global MIN_FRAME_COUNT_EVENT_START
     global MAX_FRAME_COUNT_EVENT_STOP
     global MIN_FRAME_COUNT_BETWEEN_EVENTS
+    global EVENT_END_PADDING
 
 
     eventStarted = False
@@ -154,8 +156,8 @@ def extractEvents(leftMirrorPawIndexes, centerPawIndexes, rightMirrorPawIndexes,
             if(contiguousNegativeCount >= MAX_FRAME_COUNT_EVENT_STOP):
                 contiguousPositiveCount = 0
                 contiguousNegativeCount = 0
-                for padding in range(1,20):
-                    tempEventFrameRange.append(row + padding)
+                for pad in range(1,EVENT_END_PADDING):
+                    tempEventFrameRange.append(row + pad)
                 events.append(packageEvent(tempEventFrameRange, poseName))
                 tempEventFrameRange = []
                 row += MIN_FRAME_COUNT_BETWEEN_EVENTS

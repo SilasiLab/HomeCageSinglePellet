@@ -6,6 +6,7 @@ NETWORK_NAME=$3
 
 for video in $VIDEO_DIRECTORY*.avi
 do
+	echo $video
 	source activate DLC2
 	python /home/sliasi/.conda/envs/DLC2/lib/python3.6/site-packages/deeplabcut/HCSP_analyze.py analyze-videos $CONFIG_PATH $video 
 
