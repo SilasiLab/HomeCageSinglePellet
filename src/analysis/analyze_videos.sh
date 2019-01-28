@@ -14,6 +14,10 @@ do
 	videoExtensionRemoved=${video::-4}
 	python kinalyze.py $video $videoExtensionRemoved$NETWORK_NAME.h5 $videoExtensionRemoved"_reaches.txt" 0 0 0 1 0 
 
+    # franks stuff
+    python remakeVideo.py
+    python analysis.py
+
 	mv $video $VIDEO_DIRECTORY"../Temp/"
 	mv $videoExtensionRemoved$NETWORK_NAME.h5 $VIDEO_DIRECTORY"../Temp/"
 	mv $videoExtensionRemoved$NETWORK_NAME.csv $VIDEO_DIRECTORY"../Temp/"
@@ -27,6 +31,7 @@ do
 		vidExtRmvd=${vid::-4}
 		mkdir ../Analyses/$vidExtRmvd
 		cd ../Analyses/$vidExtRmvd
+
 	done
 
 	for file in ../../Temp/*

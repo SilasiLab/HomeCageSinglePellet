@@ -8,14 +8,9 @@ import multiprocessing
 import serial
 from subprocess import PIPE, Popen
 import os
+import cv2
 import random
-
-
-
-
-RUN_SIMULATION = True
-
-
+from pelletClassifier import CNN
 
 
 
@@ -193,10 +188,11 @@ class SessionController(object):
 			camera: An object that controls a camera.
 	"""
 
-    def __init__(self, profile_list, arduino_client):
+    def __init__(self, profile_list, arduino_client, pelletClassifier):
 
         self.profile_list = profile_list
         self.arduino_client = arduino_client
+        self.pelletClassifier = pelletClassifier
 
     def set_profile_list(self, profileList):
 
@@ -267,7 +263,15 @@ class SessionController(object):
         sleep(6)
         now = time.time()
 
+
+
+
         while True:
+
+            #frame = cv2.imread("/home/sliasi/HomeCageSinglePellet/temp/pelletClassifierFatMouse.jpg")
+            #pelletExists = self.pelletClassifier.predict(frame)
+            #print(pelletExists)
+
 
             if (time.time() - now > 7):
                 if profile.dominant_hand == "LEFT":
@@ -294,19 +298,23 @@ class SessionController(object):
         self.print_session_end_information(profile, endTime)
 
 
+
 def launch_gui():
     gui_process = multiprocessing.Process(target=gui.start_gui_loop, args=(PROFILE_SAVE_DIRECTORY,))
     gui_process.start()
     return gui_process
 
 
+
 def sys_init():
     profile_list = loadAnimalProfiles(PROFILE_SAVE_DIRECTORY)
     arduino_client = arduinoClient.client("/dev/ttyUSB0", 9600)
     ser = serial.Serial('/dev/ttyUSB1', 9600)
-    launch_gui()
-    session_controller = SessionController(profile_list, arduino_client)
-    return profile_list, arduino_client, session_controller, ser
+    guiProcess = launch_gui()
+    modelWeightPath = "pelletModel/model.h5"
+    pelletClassifier = CNN(modelWeightPath)
+    session_controller = SessionController(profile_list, arduino_client, pelletClassifier)
+    return profile_list, arduino_client, session_controller, ser, guiProcess
 
 
 def listen_for_rfid(ser):
@@ -324,46 +332,11 @@ def listen_for_rfid(ser):
             rfid += byte.decode('utf-8')
 
 
-def generate_test_profiles():
-    profiles = []
-    RFIDs = [
-        "00782B1918G7",
-        "00782B19H7FF",
-        "0078JG9DLG9D",
-        "8G9JG9KF94KF",
-        "58GJG959JGJG",
-    ]
-
-    profile_n = 0
-
-    for rfid in RFIDs:
-
-        profile_n += 1
-        difficultyDist = random.randint(0, 4)
-        hand = None
-        print(difficultyDist)
-        if difficultyDist % 2 == 0:
-            hand = "LEFT"
-        else:
-            hand = "RIGHT"
-
-        tempProfile = AnimalProfile(rfid, rfid + "_name", profile_n, 00000, difficultyDist, hand, 0,
-                                    PROFILE_SAVE_DIRECTORY, True)
-        tempProfile.saveProfile()
-        profiles.append(tempProfile)
-
-    return profiles
-
-
-
-# Uncomment to generate test profiles
-# generate_test_profiles()
-# exit()
 
 def main():
 
 
-    profile_list, arduino_client, session_controller, ser = sys_init()
+    profile_list, arduino_client, session_controller, ser, guiProcess = sys_init()
 
     # Entry point of the system. This block waits for an RFID to enter the <SERIAL_INTERFACE_PATH> buffer.
     # Once it receives an RFID, it parses it and searches for a profile with a matching RFID. If a profile
@@ -371,67 +344,32 @@ def main():
     # an RFID.
     while True:
 
-        if RUN_SIMULATION:
+        # Wait for RFID from arduino
+        print("Waiting for RFID...")
+        RFID_code = listen_for_rfid(ser)[:12]
+        print(RFID_code)
+        # Authenticate RFID
+        profile = session_controller.searchForProfile(RFID_code)
 
-            # Roll to determine if we do a session or not
-            roll = random.randint(0,2)
+        if profile != -1:
 
-            # Sleep for random amount of time
-            if roll == 0:
-                randSleepTime = random.randint(0,10)
-                print("Sleeping for: " + str(randSleepTime))
-                sleep(randSleepTime)
+            # Load profileList before each session
+            session_controller.set_profile_list(loadAnimalProfiles(PROFILE_SAVE_DIRECTORY))
+            profile = session_controller.searchForProfile(RFID_code)
+            arduino_client.serialInterface.write(b'A')
+            session_controller.startSession(profile)
+            arduino_client.serialInterface.flush()
 
-
-            # pick a random profile and start a random length session for it
-            elif roll == 1:
-                profile = profile_list[random.randint(0,len(profile_list) - 1)]
-                RFID_code = profile.ID
-                print("Simulating session for: " + profile.ID)
-                profile = session_controller.searchForProfile(RFID_code)
-
-                if profile != -1:
-
-                    # Load profileList before each session
-                    session_controller.set_profile_list(loadAnimalProfiles(PROFILE_SAVE_DIRECTORY))
-                    profile = session_controller.searchForProfile(RFID_code)
-                    arduino_client.serialInterface.write(b'S')
-                    session_controller.startSession(profile)
-                    arduino_client.serialInterface.flush()
-
-                    # Load profileList after each session
-                    session_controller.set_profile_list(loadAnimalProfiles(PROFILE_SAVE_DIRECTORY))
-
-                else:
-                    arduino_client.serialInterface.write(b'Z')
-                    unrecognized_id_msg = RFID_code + " not recognized. Aborting session.\n\n"
-                    print(unrecognized_id_msg)
+            # Load profileList after each session
+            session_controller.set_profile_list(loadAnimalProfiles(PROFILE_SAVE_DIRECTORY))
 
         else:
+            arduino_client.serialInterface.write(b'Y')
+            unrecognized_id_msg = RFID_code + " not recognized. Aborting session.\n\n"
+            print(unrecognized_id_msg)
 
-            # Wait for RFID from arduino
-            print("Waiting for RFID...")
-            RFID_code = listen_for_rfid(ser)[:12]
-            # Authenticate RFID
-            profile = session_controller.searchForProfile(RFID_code)
-
-            if profile != -1:
-
-                # Load profileList before each session
-                session_controller.set_profile_list(loadAnimalProfiles(PROFILE_SAVE_DIRECTORY))
-                profile = session_controller.searchForProfile(RFID_code)
-                arduino_client.serialInterface.write(b'A')
-                session_controller.startSession(profile)
-                arduino_client.serialInterface.flush()
-
-                # Load profileList after each session
-                session_controller.set_profile_list(loadAnimalProfiles(PROFILE_SAVE_DIRECTORY))
-
-            else:
-                arduino_client.serialInterface.write(b'Y')
-                unrecognized_id_msg = RFID_code + " not recognized. Aborting session.\n\n"
-                print(unrecognized_id_msg)
-
+        ser.reset_input_buffer()
+        ser.reset_output_buffer()
 
 # Python convention for launching main() function.
 if __name__ == "__main__":

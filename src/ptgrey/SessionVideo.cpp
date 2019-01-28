@@ -11,6 +11,7 @@
 #include <fstream>
 #include <opencv2/highgui.hpp>
 #include <opencv2/core.hpp>
+#include <opencv2/imgcodecs.hpp>
 #include <stdlib.h>
 #include <chrono>
 
@@ -33,10 +34,12 @@ int EXPOSURE = 200;
 int BITRATE = 8000000;
 bool PREVIEW_WINDOW = false;
 
-
 int FRAMES_RECORDED = 0;
 int TARGET_ACQUISITION_DURATION = 0;
 int ACTUAL_ACQUISITION_DURATION = 0;
+
+int pelletClassifierFrameInterval = 100;
+
 
 
 enum aviType
@@ -416,6 +419,7 @@ try
     namedWindow("PtGrey Live Feed", WINDOW_AUTOSIZE);
     int n_frames = 0;
     high_resolution_clock::time_point start = high_resolution_clock::now();
+    int pelletClassifierFrameCount = 0;
 	while(1)
 	{
         if(file_exists("KILL"))
@@ -434,18 +438,29 @@ try
 			}
 			else
 			{
+                pelletClassifierFrameCount++;
+				void* img_ptr = pResultImage->GetData();
+				Mat img(HEIGHT, WIDTH, CV_8UC1, img_ptr);
+
                 if(PREVIEW_WINDOW)
                 {
-				    void* img_ptr = pResultImage->GetData();
-				    Mat img(HEIGHT, WIDTH, CV_8UC1, img_ptr);
 				    imshow("PtGrey Live Feed", img);
 		            waitKey(1);
 		        }
 		        else
 		        {
+
+		            if(pelletClassifierFrameCount > pelletClassifierFrameInterval)
+		            {
+		                imwrite("/home/sliasi/HomeCageSinglePellet/temp/pelletClassifierFatMouse.jpg", img);
+		                pelletClassifierFrameCount = 0;
+		            }
+
+
 				    aviRecorder.AVIAppend(pResultImage);
 				    pResultImage->Release();
 				    n_frames++;
+				    pelletClassifierFrameCount++;
 				}
 			}
 		}
