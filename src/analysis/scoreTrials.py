@@ -5,6 +5,12 @@ import cv2
 import os, sys
 
 
+# This file defines and implements a GUI that allows the user to load session information from a particular session, from a particular animal,
+# and manually annotate the video associated with that session. The annotations are saved alongside the existing session data.
+
+
+# The profiles are read from the directory specified in this function. This script expects the same ~/HomeCageSinglePellet/AnimalProfiles/ directory
+# sturcture that the rest of the system expects. Don't change it. 
 def get_profile_list():
     return next(os.walk('../../AnimalProfiles'))[1]
 

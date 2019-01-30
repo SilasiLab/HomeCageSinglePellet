@@ -14,7 +14,8 @@ from pelletClassifier import CNN
 
 
 
-
+# Load all configuration information for running the system.
+# Note: Configuration information for data analysis does not come from here.
 with open("../../config/config.txt") as config:
     config.readline()
     WIDTH = config.readline()[6:]
@@ -178,14 +179,15 @@ class AnimalProfile(object):
 class SessionController(object):
     """
 		A controller for all sessions that occur within the system. A "session" is defined as everything that happens while an animal is in the
-                experiment tube. A session is started when an animal first breaks the IR beam AND then triggers the RFID reader (Note: Triggering
-                the RFID reader alone will not start a session. The IR beam must be broken first. This is intentional as the IR beam is for pressence
-                detection while the RFID reader is only for identification). The session will continue until the IR beam is reconnected.
+                experiment tube. A session is started when an RFID is read and authorized. The session will continue until the IR beam is reconnected and 
+                the Arduino server sends a signal to indicate this. Sessions record several pieces of information during the session, including video, timestamps, motor actions, etc.
+                The sessions is also responsible for sending requests to the Arduino for motor actions and for spawning a video recording process.
                 A SessionController has the following properties:
 
 		Attributes:
 			profile_list: A list containing all animal profiles.
-			camera: An object that controls a camera.
+			arduino_client: An object that wraps a serial interface for talking to the Arduino server.
+            pelletClassifier: Object that handles pellet detection (Currently not being used).
 	"""
 
     def __init__(self, profile_list, arduino_client, pelletClassifier):
@@ -200,7 +202,7 @@ class SessionController(object):
 
     # This function searches the SessionController's profile_list for a profile whose ID
     # matches the supplied RFID. If a profile is found, it is returned. If no profile is found,
-    # -1 is returned.
+    # -1 is returned. (Not very pythonic but I have C-like habits.) 
     def searchForProfile(self, RFID):
 
         for profile in self.profile_list:
@@ -225,12 +227,25 @@ class SessionController(object):
         print(session_end_msg)
 
     # This function starts an experiment session for the animal identified in the supplied <profile>.
-    # A session is only started if the IR beam is broken and only continues while this remains true.
-    # Each session forks a process that records video for the duration of the session and forks
-    # another process which controls the servo for the duration of the session. Each session
-    # will also log data about itself. As soon as the session detects the IR beam reconnect,
-    # a destruct signal will be sent to all forked processes and this function will wait to join
-    # with those processes before concluding the session.
+    # The session remains active until a signal is received from the Arduino server indicating that
+    # the IR beam breaker has been reconnected.
+    #
+    # Each session forks a process that records video for the duration of the session. 
+    # This function is also responsible for sending a terminate signal to that forked process.
+    # This signal is sent by creating a file called 'KILL' in the current working
+    # directory (Not good, but does the job. I was halfway through implementing IPC with sockets 
+    # but didn't have time to finish).
+    #
+    # This function is also responsible for telling the Arduino server how to position the stepper motors and
+    # for periodically sending get pellet requests.
+    #
+    # Each session will also log data about itself.
+    #
+    # On completion, this session will update the <profile> it was running the session for,
+    # clean up any processes it opened, and save all log data. 
+    #
+    # TODO: This function is pretty bloated and probably harder to read than it needs to be. Better separation 
+    # of concerns could be easily achieved by splitting it into a few smaller functions.
     def startSession(self, profile):
 
         startTime = time.time()
@@ -299,13 +314,14 @@ class SessionController(object):
 
 
 
+# Just a wrapper to launch the configuration GUI in its own process. 
 def launch_gui():
     gui_process = multiprocessing.Process(target=gui.start_gui_loop, args=(PROFILE_SAVE_DIRECTORY,))
     gui_process.start()
     return gui_process
 
 
-
+# This function initializes all the high level system components, returning a handle to each one. 
 def sys_init():
     profile_list = loadAnimalProfiles(PROFILE_SAVE_DIRECTORY)
     arduino_client = arduinoClient.client("/dev/ttyUSB0", 9600)
@@ -317,6 +333,9 @@ def sys_init():
     return profile_list, arduino_client, session_controller, ser, guiProcess
 
 
+# This function listens to the open port of a serial object. It waits for <x02> 
+# to indicate the start of an RFID, if then appends to a string until it detects <x03>, indicating the end
+# of the RFID.
 def listen_for_rfid(ser):
     rfid = ''
 
@@ -335,7 +354,7 @@ def listen_for_rfid(ser):
 
 def main():
 
-
+    # These are handles to all the main system components.
     profile_list, arduino_client, session_controller, ser, guiProcess = sys_init()
 
     # Entry point of the system. This block waits for an RFID to enter the <SERIAL_INTERFACE_PATH> buffer.
@@ -344,32 +363,48 @@ def main():
     # an RFID.
     while True:
 
-        # Wait for RFID from arduino
+        # Block until RFID is received
         print("Waiting for RFID...")
         RFID_code = listen_for_rfid(ser)[:12]
-        print(RFID_code)
-        # Authenticate RFID
+        # Check RFID authorization
         profile = session_controller.searchForProfile(RFID_code)
 
+        # RFID authorized
         if profile != -1:
 
-            # Load profileList before each session
+            # Before starting a session, reload the animal profiles. This is done incase a profile was
+            # changed by the GUI or some other process since the last load occured. 
             session_controller.set_profile_list(loadAnimalProfiles(PROFILE_SAVE_DIRECTORY))
             profile = session_controller.searchForProfile(RFID_code)
+
+            # Start a session on Arduino server side. <A> is the magic byte that tells the Arduino to start a session.
             arduino_client.serialInterface.write(b'A')
+            # Start a session on Python client side.
             session_controller.startSession(profile)
+            # After the session returns, flush the Arduino serial communication buffer.
             arduino_client.serialInterface.flush()
 
-            # Load profileList after each session
+            # Load profileList after each session as well. Can't remember why I decided to reload profiles before AND after session, 
+            # but I don't see any downside and removing this might break something. 
             session_controller.set_profile_list(loadAnimalProfiles(PROFILE_SAVE_DIRECTORY))
 
+        # RFID NOT authorized
         else:
+
+            # <Y> is the magic byte that tells the Arduino server that the RFID was rejected. Sending this rejection notice
+            # is no longer necessary, it is a relic of when the RFID sensor was handled by the Arduino directly. However, removing it
+            # would require modifying the Arduino server code and there's no need for that at present. 
             arduino_client.serialInterface.write(b'Y')
             unrecognized_id_msg = RFID_code + " not recognized. Aborting session.\n\n"
             print(unrecognized_id_msg)
 
+        # Reset RFID serial buffers. This is necessary because while an animal is in a session, it's RFID chip will often 
+        # get read many times as it wiggles around under the RFID sensor. This buffer reset prevents those additional reads
+        # from being processed after the session ends. 
         ser.reset_input_buffer()
         ser.reset_output_buffer()
+
+
 
 # Python convention for launching main() function.
 if __name__ == "__main__":

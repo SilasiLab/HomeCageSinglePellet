@@ -13,7 +13,7 @@ class client(object):
         self.serialInterface.flushInput()
         sleep(3)
 
-        # Wait for Arduino to say it's ready TODO: readline blocks....add timeout eventually
+        # Wait for Arduino to say it's ready TODO: readline is blocking....add timeout eventually
         readyMsg = self.serialInterface.readline()
         if readyMsg == b"READY\n":
             print("Arduino: ", readyMsg)
@@ -21,7 +21,8 @@ class client(object):
             print("Arduino took too long to respond...shutting down")
             exit()
 
-
+    # DEPRECATED: This function was used to read RFIDs from the Arduino, before we switched the 
+    # RFID reader from the Arduino to the PC. 
     def listenForRFID(self):
 
         RFID = self.serialInterface.readline().rstrip().decode()
