@@ -524,7 +524,12 @@ def click_and_draw_line(event, x, y, flags, param):
 
 
 """
-
+This function takes the user through steps for calibrating the 3D reach trajectory reconstructions.
+The user is prompted to input the width+height of some calibration object in each of the 3 perspectives.
+They're then shown the first frame of the supplied video and asked to draw lines separating the 
+3 perspectives and lines across the width and height of the calibration object in each perspective.
+This data is used to calculate a pixels:mm ratio for each perspective. The data is saved to 
+~HomeCageSinglePellet/config/3D_reconstruction_calibration
 """
 def perform_manual_calibration(calibrationFrame):
 
@@ -828,6 +833,9 @@ def load_calibration_data():
         Z_ORIGIN_RIGHTMIRROR = int(f.readline())
 
 
+
+# This function scans a set of (x,y,z) coordinates and throws out any points
+# that are missing one of the dimensions (x,y or z).
 def filter_points_missing_dimension(x,y,z):
 
 
@@ -845,7 +853,9 @@ def filter_points_missing_dimension(x,y,z):
 
     
 
-
+# This functions uses the calibration info from ~/HomeCageSinglePellet/config/3D_reconstruction_calibration.txt
+# to convert the (x,y,z) pixel coordinates of a reach event into approximate mm coordinates (relative to some reference
+# point specified in the calibration data).
 def convert_pixelCoord_to_realWorld(x_points, y_points, z_points):
 
 
@@ -906,6 +916,16 @@ def convert_pixelCoord_to_realWorld(x_points, y_points, z_points):
 # use case.																       #
 # ------------------------------------------------------------------------------#
 
+
+# This function filters the raw deeplabcut h5 output for a particular video to remove
+# any erroneous points.
+#
+# (The calibration file ~/HomeCageSinglePellet/config/3D_reconstruction_calibration.txt
+#  specifies lines in the y direction that separate our frames into 3 different zones
+#   (left mirror, right mirror, center)).
+#
+# Each point is expected to be in one of these 3 zones. If a point appears in the wrong zone,
+# it is considered an error and discarded.
 def filter_trajectory_points(dataframe):
     global LEFTSIDE
     global RIGHTSIDE
@@ -1004,6 +1024,14 @@ def filter_trajectory_points(dataframe):
     return filteredPoints
 
 
+
+# This function takes the filtered deeplabcut h5 output for a reaching event
+# and creates the (x,y,z) coordinates for the reach trajectory.
+#
+# 1. Use the pixel x coordinate in the left/right mirror as the z data for trajectory reconstruction.
+# 2. Use the pixel y coordinate in the left/right mirror as the y data for trajectory reconstruction.
+# 3. Use the pixel x coordinate in the center view as the x data for trajectory reconstruction.
+#
 def gen_reach_trajectory_reconsutrction_xyz(event, points, reachingHand):
 
     x_points = []
@@ -1148,7 +1176,8 @@ def extract_vid_range(start, stop, video, ghostTrailPoints, filteredPoints, colo
 
 
 
-
+# The main funtion is reasonably well laid out, and takes the script in order through
+# the high-level functions that the script performs. The print functions generally describe what's going on.
 def main():
 
 
