@@ -10,10 +10,91 @@ from time import sleep
 import matplotlib.axes as axes
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.patches import Circle
-# -------------------------------------------------#
-# 				<Load Data>						  #
-# -------------------------------------------------#
 
+
+
+"""
+                        SCRIPT FUNCTIONS:
+
+1.
+    This script is used for analyzing deeplabcut .h5 output and identifying all the reach attempts
+    a mouse made in the video. It first filters the raw deeplabcut points to remove
+    any points that are obviously erroneous based on the conditions of our setup (teleporting points,
+    points expected in one mirror showing up in another mirror, etc). These filtered points are 
+    then used to identify segments of video where reaching is occuring. Details on how this works can
+    be found in comments for the extractEvents() function. All the identified reaches are packaged into <ReachEvents> 
+    containing:
+            1. Start frame index (int)
+            2. Stop frame index (int)
+            3. Event type (string)
+            4. pixel x coordinates of reach (list of floats)
+            5. pixel y coordinates of reach (list of floats)
+            6. pixel z coordinates of reach (list of floats)
+
+    Note: We obtain (x,y,z) from a single frame by having deeplabcut track the paw
+    from multiple perspectives in a single video (Mirrors are used to achieve this,
+        watch one of the videos for an example). Because of this, this script is very
+        specific to this system/physical setup/configuration. It was not designed 
+        with modularity or extensibility or general use cases in mind.
+
+
+2. 
+    This script implements functionality for calibrating the recorded frames to approximate 
+    the ratio between pixels in a frame to real world millimeters. This calibration
+    information is used to translate the pixel (x,y,z) information for a reach event
+    and approximate the 3D trajectory of the reach relative to some user-defined/calibrated
+    reference point.
+    
+    Details about this process can be viewed in comments for the perform_manual_calibration() and
+    convert_pixelCoord_to_realWorld() functions.
+    
+    
+3. 
+    This script implements two methods for visualizing the reaches that it extracts.
+    The first method is displaying individual video segments of each reach.
+    The second method is displaying a graph of the reconstructed real-world approximation
+    of the reach trajectory. There is also a function for saving individual videos for each
+    reach.
+    
+    Note: For the video playback of reaches, there is also a function for generating "ghost-trails"
+        behind the tracked points. This looks super cool and is useful for visualizing how well
+        tracking is working. 
+
+4. 
+    This script implements functions for loading/saving calibration data and for saving
+    the data contained in ReachEvent objects to a text file. There are a lot of other
+    components in the analysis pipeline that depend on the format of these 
+    text files. Don't change their format or things will break. 
+    
+"""
+
+
+
+
+
+
+
+
+
+
+
+
+
+"""
+This script is meant to be called from command line (Ideally automatically from another script
+since the inputs are fairly long file paths).
+
+            INPUTS:
+            
+VIDEO_PATH = Path to video being analyzed
+H5_PATH = Path to deeplabcut h5 output for video
+OUTPUT_PATH = Path + name where text-file containing output data from this script will be created
+DISPLAY_VIDEOS = Flag for displaying videos (1 or 0)
+DISPLAY_GRAPHS = Flag for displaying graphs (1 or 0)
+EXTRACT_VIDEO_CLIPS = Flag for saving each reach as a video (1 or 0)
+GEN_CSV = Flag for outputting data for all reaches to a text file (1 or 0)
+PERFORM_CALIBRATION = Flag for performing manual calibration for trajectory reconstruction (1 or 0)
+"""
 VIDEO_PATH = sys.argv[1]
 H5_PATH = sys.argv[2]
 OUTPUT_PATH = sys.argv[3]
@@ -23,33 +104,29 @@ EXTRACT_VIDEO_CLIPS = int(sys.argv[6])
 GEN_CSV = int(sys.argv[7])
 PERFORM_CALIBRATION = int(sys.argv[8])
 
-
-# Load video
+# Load the video
 video = cv2.VideoCapture(VIDEO_PATH)
 frameCount = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
 width = int(video.get(cv2.CAP_PROP_FRAME_WIDTH))
 height = int(video.get(cv2.CAP_PROP_FRAME_HEIGHT))
 fps = video.get(cv2.CAP_PROP_FPS)
 
-# Load coordinates file
+# Load deeplabcut h5 file for video
 print("Loading DeepLabCut data...")
 dataframe = pd.read_hdf(H5_PATH)
 dataframe.to_csv(H5_PATH[:-3] + ".csv")
 print("DeepLabCut data loaded")
-# -------------------------------------------------#
-# 				</Load Data>					  #
-# -------------------------------------------------#
+
 
 
 # -------------------------------------------------#
-# 				<Configure Analysis>			  #
+# 				<Configure Analysis>			   #
 # -------------------------------------------------#
-
-
 # Calibration temp data
 x1, y1, x2, y2 = -1, -1, -1, -1
 drawing = False
-# Calibration Constants
+# Calibration Constants .Set by default from ~/HomeCageSinglePellet/config/3D_reconstruction_calibration.txt.
+# If PERFORM_CALIBRATION is set, then 3D_reconstruction_calibration.txt is updated.
 LEFTSIDE = None
 RIGHTSIDE = None
 LEFT_MIRROR_CALIBRATION_OBJECT_WIDTH = None
@@ -74,13 +151,27 @@ Z_ORIGIN_RIGHTMIRROR = None
 
 
 
-# Pose event parsing config
+# These values configure the extractEvents() function.
+
+# Each frame gets assigned a likelihood value. This value is
+# the average of all the deeplabcut h5 likelihoods for all points on the mouse
+# paw (includes all 3 perspectives). If the likelihood is above this threshold, the frame
+# is considered "positive", if it is below, the frame is considered "negative".
 LIKELIHOOD_THRESHOLD = 0.5
+# This is the threshold number of "positive" frames that must be detected CONTIGUOUSLY
+# for a reaching event to be started.
 MIN_FRAME_COUNT_EVENT_START = 10
+# This is the threshold number of "negative" frames that must be detected CONTIGUOUSLY
+# for a reaching event to be stopped.
 MAX_FRAME_COUNT_EVENT_STOP = 20
+# This is the threshold number of frames that must pass after a reaching event before a new
+# reaching event can be started.
 MIN_FRAME_COUNT_BETWEEN_EVENTS = 30
+# This is the number of padding frames that will be added to the end of a reaching event.
 EVENT_END_PADDING = 80
-# Visual output config
+
+
+# These values configure the trailing ghost points that can be painted onto frames for tracking visualization.
 POINT_SIZE = 4
 LINE_THICKNESS = 3
 N_TRAILING_POINTS = 10
@@ -90,7 +181,7 @@ PAINT_GHOST_TRAILS = True
 # -------------------------------------------------#
 
 
-class PoseEvent:
+class ReachEvent:
 
     def __init__(self, startFrame, stopFrame, eventType):
 
@@ -103,10 +194,33 @@ class PoseEvent:
 
 def packageEvent(frameIndexes, poseName):
 
-    tempEvent = PoseEvent(frameIndexes[0], frameIndexes[len(frameIndexes) - 1], poseName)
+    tempEvent = ReachEvent(frameIndexes[0], frameIndexes[len(frameIndexes) - 1], poseName)
     return tempEvent
 
+"""
 
+This function takes in a list of the (already filtered) points from deeplabcut's h5 output, and 
+finds (most) of the reaching events that occurred in the video which the h5 was generated from.
+
+It works as follows:
+
+    1. Scan the points from a frame and compute the average likelihood of all the tracked points from the h5 file 
+        likelihoods. We call this average <confidence>.
+    
+    2. If <confidence> for the given frame is above <LIKELIHOOD_THRESHOLD>, count the frame as a positive detection. 
+        Else, count the frame as a negative detection.
+        
+    3. If <MIN_FRAME_COUNT_EVENT_START> positive frames are detected contiguously, consider the first of those frames as 
+        the start of a reaching event.
+    
+    4. Continue adding frames to the currently active reaching event until <MIN_FRAME_COUNT_EVENT_STOP> negative frames are 
+        detected contiguously. Once this happens, add <EVENT_END_PADDING> frames to the end of the event, cut the event off, and package it.
+    
+    
+Note: When "frames" are added to an event it means the (x,y,z) points for that frame are added. Only the start and stop frame indexes
+    are saved for accessing the video for that event (no actual video frames are saved in <ReachEvent>.
+    
+"""
 def extractEvents(leftMirrorPawIndexes, centerPawIndexes, rightMirrorPawIndexes, points, poseName):
 
     global LIKELIHOOD_THRESHOLD
@@ -192,6 +306,7 @@ def extractEvents(leftMirrorPawIndexes, centerPawIndexes, rightMirrorPawIndexes,
     return events
 
 
+# Function for displaying the video of a reaching event to screen.
 def review_event(event, videoName, video, points):
         
 
@@ -385,7 +500,8 @@ def print_calibration_info():
     print("Z_ORIGIN_RIGHTMIRROR=" + str(Z_ORIGIN_RIGHTMIRROR))
 
 
-
+# Mouse event callback function for performing manual calibration for trajectory reconstruction.
+# Records (x,y) pixel coordinates of mouse movement if left mouse button is pushed down.
 def click_and_draw_line(event, x, y, flags, param):
 
     global manualCalibrationPoints, x1, y1, x2, y2, drawing, mode
@@ -406,6 +522,10 @@ def click_and_draw_line(event, x, y, flags, param):
     elif event == cv2.EVENT_LBUTTONUP:
         drawing = False
 
+
+"""
+
+"""
 def perform_manual_calibration(calibrationFrame):
 
     # Calibration Constants
