@@ -60,14 +60,15 @@ Assembly is complex and is therefore detailed in HomeCageSinglePellet/Assembly.t
 
 A high level analysis script is provided that runs the data for all animals through a long analysis pipeline. The functions performed on each video include;
 
-Analyze with Deeplabcut2.
-Identify all reaching attempts and record frame indexes where reaches occur.
-Compute 3D trajectory of reaches and estimate magnitude of movement in millimeters.
-Cut videos to remove any footage not within the bounds of a reaching event.
-Neatly package data for each analyzed video in a descriptively named folder within the animals ./Analyses/ directory.
+* Analyze with Deeplabcut2.
+* Identify all reaching attempts and record frame indexes where reaches occur.
+* Compute 3D trajectory of reaches and estimate magnitude of movement in millimeters.
+* Cut videos to remove any footage not within the bounds of a reaching event.
+* Neatly package data for each analyzed video in a descriptively named folder within the animals ./Analyses/ directory.
 
 This analysis is start by entering the HomeCageSinglePellet/src/analysis/ directory and running
-`bash analyze_videos.sh`. This script takes the following input;
+`bash analyze_videos.sh`. 
+This script takes the following input;
 
 **CONFIG_PATH** = Full path to config.yaml file in root directory of DLC2 project.
 
