@@ -1,3 +1,28 @@
+/*
+    This program is a server for controlling the hardware peripherals attached to the HomeCage system.
+    It waits for commands over a serial port (python client in our case) and performs the desired action upon receiving the command.
+    There is no proper message passing system and it simply uses various magic byte values as messages.
+    Note: These bytes can cause different outcomes depending on the state the program is in at the time
+    of receiving. The lack of real message passing system means the program is rather fragile. I recommend
+    not modifying this program too much. Utility may instead be found by recycling specific functions.
+    (For controlling servos, steppers, IR breakers, etc....attached to the Arduino).
+
+
+    This program enters a listening mode on boot and waits for a signal over serial to tell it to start a session.
+    Once this signal is received, the program expects to receive a byte value representing how far the stepper should
+    rotate from the origin (The origin is defined on start-up by retracting the stepper motor until the limit switch
+    is pressed). After the stepper motor is positioned, the program expects to receive repeating requests for
+    pellet presentations (with either arm). The program continues in this state until the IR breaker is connected.
+    At this point the server sends a session termination message to the client and tears the session down, re-entering
+    it's default listening mode.
+
+
+*/
+
+
+
+
+
 #include <Servo.h>
 
 // Config
