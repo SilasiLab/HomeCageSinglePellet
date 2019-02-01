@@ -20,11 +20,12 @@ Dependencies:
 	* libavutil-ffmpeg54
 	* libgtkmm-2.4-dev
 	* libusb-1.0-0
+
 	Note: The Spinnaker dependencies are installed via official Spinnaker SDK install script.
 * Arduino IDE v1.8.5
 
 **Assembly:**
-	*Assembly is complex and is therefore detailed in HomeCageSinglePellet/Assembly.txt
+Assembly is complex and is therefore detailed in HomeCageSinglePellet/Assembly.txt
 	
 **Usage**:
 
@@ -60,23 +61,9 @@ Neatly package data for each analyzed video in a descriptively named folder with
 This analysis is start by entering the HomeCageSinglePellet/src/analysis/ directory and running
 `bash analyze_videos.sh`. This script takes the following input;
 
-**CONFIG_PATH** 
-= Full path to config.yaml file in root directory of DLC2 project.
-**VIDEO_DIRECTORY** 
-= Full path to directory containing videos you want to analyze.
-**NETWORK_NAME** 
-= Full name of DLC2 network you want to use to analyze videos.
-
-
-
-
-
-
-
-
-
-
-
+**CONFIG_PATH**=Full path to config.yaml file in root directory of DLC2 project.
+**VIDEO_DIRECTORY**=Full path to directory containing videos you want to analyze.
+**NETWORK_NAME**=Full name of DLC2 network you want to use to analyze videos.
 
 
 **Troubleshooting**:
