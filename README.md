@@ -25,7 +25,6 @@ The design allows a single mouse at a time to enter the reaching tube. Upon entr
 	* Arduino IDE v1.8.5
 
 **Assembly:**
-
 	*Assembly is complex and is therefore detailed in HomeCageSinglePellet/Assembly.txt
 	
 
@@ -84,13 +83,13 @@ This analysis is start by entering the HomeCageSinglePellet/src/analysis/ direct
 
 **Troubleshooting**:
 
- Is everything plugged in?
- Shutting the system down incorrectly will often cause the camera and camera software to enter a bad state.
-Check if the light on the camera is solid green. If it is, power cycle the camera to reset it.
-Check the HomeCageSinglePellet/src/client/ directory for a file named <KILL>. If this file exists, delete it.
-Make sure the camera is plugged into a USB 3.0 or greater port and that it is not sharing a USB bridge with too many other devices (I.e if you have 43 devices plugged into the back of the computer and none in the front, plug the camera into the front).
-Make sure you are in the correct virtual environment.
-Make sure the HomeCageSinglePellet/config/config.txt file contains the correct configuration.
-Make sure there are 1 to 5 profiles in the HomeCageSinglePellet/AnimalProfiles/ directory. Ensure these profiles contain all the appropriate files and that the save.txt file for each animal contains the correct information. 
+* Is everything plugged in?
+* Shutting the system down incorrectly will often cause the camera and camera software to enter a bad state.
+* Check if the light on the camera is solid green. If it is, power cycle the camera to reset it.
+* Check the HomeCageSinglePellet/src/client/ directory for a file named <KILL>. If this file exists, delete it.
+* Make sure the camera is plugged into a USB 3.0 or greater port and that it is not sharing a USB bridge with too many other 		devices (I.e if you have 43 devices plugged into the back of the computer and none in the front, plug the camera into the front).
+* Make sure you are in the correct virtual environment.
+* Make sure the HomeCageSinglePellet/config/config.txt file contains the correct configuration.
+* Make sure there are 1 to 5 profiles in the HomeCageSinglePellet/AnimalProfiles/ directory. Ensure these profiles contain all 		the appropriate files and that the save.txt file for each animal contains the correct information. 
 
 
