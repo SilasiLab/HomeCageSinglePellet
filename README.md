@@ -1,9 +1,11 @@
 **Overview**:
+
 This system allows the user to host up to 5 mice in their home environment and automatically administer the single pellet reaching test to those animals. The system can run unsupervised and continuously for weeks at a time, allowing all 5 mice to perform an unlimited number of single pellet trials at their leisure. 
 
 The design allows a single mouse at a time to enter the reaching tube. Upon entry, the animal’s RFID tag will be read, and if authenticated, a session will start for that animal. A session is defined as everything that happens from the time an animal enters the reaching tube, to when they leave the tube. At the start of a session, the animal’s profile will be read and the task difficulty will be automatically adjusted by moving the pellet presentation arm to the appropriate distance from the reaching tube. After the difficulty is set, pellets will begin being presented with either the left or right presentation arm, depending on which arm is specified in the mouse’s profile. Pellets will continue to be presented periodically until the mouse leaves the tube, at which point the session will end. Video and other data is recorded for the duration of each session. At session end, all the data for the session is saved in an organized way. 
 
 **Installation**:
+
     Dependencies:
 	* Ubuntu v16.04 LTS: Kernel version 4.4.19-35 or later
 	* Python v3.5.2
@@ -23,10 +25,12 @@ The design allows a single mouse at a time to enter the reaching tube. Upon entr
 	* Arduino IDE v1.8.5
 
 **Assembly:**
+
 	*Assembly is complex and is therefore detailed in HomeCageSinglePellet/Assembly.txt
 	
 
 **Usage**:
+
 1. Implant RFID tags in a group of <=5 animals. Record the RFID number of each.
 
 2. Enter your virtual environment the HomeCage system was installed in.
@@ -47,6 +51,7 @@ The design allows a single mouse at a time to enter the reaching tube. Upon entr
 
 
 **Analysis**:
+
 A high level analysis script is provided that runs the data for all animals through a long analysis pipeline. The functions performed on each video include;
 
 Analyze with Deeplabcut2.
@@ -58,9 +63,12 @@ Neatly package data for each analyzed video in a descriptively named folder with
 This analysis is start by entering the HomeCageSinglePellet/src/analysis/ directory and running
 `bash analyze_videos.sh`. This script takes the following input;
 
-**CONFIG_PATH** = Full path to config.yaml file in root directory of DLC2 project.
-**VIDEO_DIRECTORY** = Full path to directory containing videos you want to analyze.
-**NETWORK_NAME** = Full name of DLC2 network you want to use to analyze videos.
+**CONFIG_PATH** 
+= Full path to config.yaml file in root directory of DLC2 project.
+**VIDEO_DIRECTORY** 
+= Full path to directory containing videos you want to analyze.
+**NETWORK_NAME** 
+= Full name of DLC2 network you want to use to analyze videos.
 
 
 
