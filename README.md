@@ -14,7 +14,8 @@ Dependencies:
 	* pySerial	
 	* numpy
 	* OpenCV v3.4.x
-	* tkinter 	
+	* tkinter 
+	* matplotlib
 * Flir Spinnaker SDK v1.10.31
 	* libavcodec-ffmpeg56
 	* libavformat-ffmpeg56
@@ -27,8 +28,39 @@ Dependencies:
 	Note: The Spinnaker dependencies are installed via official Spinnaker SDK install script.
 * Arduino IDE v1.8.5
 
-
-
+1. Install Ubuntu 16.04 LTS on your machine.
+2. Install Anaconda on your machine.
+3. Install the Flir Spinnaker SDK v1.10.31.
+4. Install Arduino IDE v1.8.5
+5. Install OpenCV for C++
+	- `sudo apt-get install build-essential cmake git libgtk2.0-dev pkg-config libavcodec-dev libavformat-dev libswscale-dev`
+	- `sudo apt-get install libjpeg-dev libpng-dev libtiff5-dev libjasper-dev libdc1394-22-dev libeigen3-dev libtheora-dev 			libvorbis-dev libxvidcore-dev libx264-dev sphinx-common libtbb-dev yasm libfaac-dev libopencore-amrnb-dev 			libopencore-amrwb-dev libopenexr-dev libgstreamer-plugins-base1.0-dev libavutil-dev libavfilter-dev 				libavresample-dev`
+	- `suso -s`
+	- `cd /opt`
+	- Download OpenCV source from https://github.com/opencv/opencv/releases/tag/3.4.4 and unpack it into /opt
+	- Download OpenCV_contrib source from https://github.com/opencv/opencv_contrib/releases/3.4.4 and unpack it into /opt
+	- `cd opencv`
+	- `mkdir release`
+	- `cd release`
+	- `cmake -D BUILD_TIFF=ON -D WITH_CUDA=OFF -D ENABLE_AVX=OFF -D WITH_OPENGL=OFF -D WITH_OPENCL=OFF -D WITH_IPP=OFF -D 			WITH_TBB=ON -D BUILD_TBB=ON -D WITH_EIGEN=OFF -D WITH_V4L=OFF -D WITH_VTK=OFF -D BUILD_TESTS=OFF -D 				BUILD_PERF_TESTS=OFF -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=/usr/local -D 						OPENCV_EXTRA_MODULES_PATH=/opt/opencv_contrib/modules /opt/opencv/`
+	- `make j4`
+	- `make install`
+	- `ldconfig`
+	- `exit`
+	- `cd`
+	- `pkg-config --modversion opencv`
+	- If everything worked correctly, output should read "3.4.4"
+	
+5. Create and configure a virtual environment for installing the HomeCageSinglePellet code.
+	- `conda create -n <yourenvname> python=3.5.2 anaconda`
+	- `conda activate <yourenvname>`
+	- `conda install -c conda-forge opencv=3.4.4`
+	- `conda install -c anaconda numpy`
+	- `conda install -c anaconda pyserial`
+	- `conda install -c anaconda tk`
+	- `conda install -c conda-forge matplotlib`
+	
+	
 **Assembly:**
 
 Assembly is complex and is therefore detailed in HomeCageSinglePellet/Assembly.txt
@@ -37,21 +69,19 @@ Assembly is complex and is therefore detailed in HomeCageSinglePellet/Assembly.t
 
 **Usage**:
 
-1. Implant RFID tags in a group of <=5 animals. Record the RFID number of each.
+1. Enter the virtual environment that the system was installed in (e.g `source activate <my_env>`).
 
-2. Enter the virtual environment that the system was installed in (e.g `source activate <my_env>`).
-
-3. Enter HomeCageSinglePellet/src/client/ and run `python -B genProfiles.py`. The terminal 
+2. Enter HomeCageSinglePellet/src/client/ and run `python -B genProfiles.py`. The terminal 
 	will walk you through entering your new animals into the system.
 
-4. Open HomeCageSinglePellet/config/config.txt and set the system configuration you want.
+3. Open HomeCageSinglePellet/config/config.txt and set the system configuration you want.
 
-5. Enter HomeCageSinglePellet/src/client/ and run `python -B main.py`
+4. Enter HomeCageSinglePellet/src/client/ and run `python -B main.py`
 
-6. To test that everything is running correctly, block the IR beam breaker with something
+5. To test that everything is running correctly, block the IR beam breaker with something
 	and scan one of the system’s test tags. If a session starts properly, it’s working.
 
-7. To shut the system down cleanly; 
+6. To shut the system down cleanly; 
 
 	- Ensure no sessions are currently running. 
 	- Press the quit button on the GUI.
