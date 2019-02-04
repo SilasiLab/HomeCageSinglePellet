@@ -23,6 +23,7 @@ Dependencies:
 	* libavutil-ffmpeg54
 	* libgtkmm-2.4-dev
 	* libusb-1.0-0
+	
 	Note: The Spinnaker dependencies are installed via official Spinnaker SDK install script.
 * Arduino IDE v1.8.5
 
@@ -51,9 +52,10 @@ Assembly is complex and is therefore detailed in HomeCageSinglePellet/Assembly.t
 	and scan one of the system’s test tags. If a session starts properly, it’s working.
 
 7. To shut the system down cleanly; 
-	a. Ensure no sessions are currently running. 
-	b. Press the quit button on the GUI.
-	c. Ctrl+c out of the program running in the terminal.
+
+	- Ensure no sessions are currently running. 
+	- Press the quit button on the GUI.
+	- Ctrl+c out of the program running in the terminal.
 
 
 
@@ -68,7 +70,8 @@ A high level analysis script is provided that runs the data for all animals thro
 * Neatly package data for each analyzed video in a descriptively named folder within the animals ./Analyses/ directory.
 
 This analysis is started by entering the HomeCageSinglePellet/src/analysis/ directory and running
-`bash analyze_videos.sh <CONFIG_PATH> <VIDEO_DIRECTORY> <NETWORK_NAME>`. 
+`bash analyze_videos.sh <CONFIG_PATH> <VIDEO_DIRECTORY> <NETWORK_NAME>`
+
 This script takes the following input;
 
 **CONFIG_PATH** = Full path to config.yaml file in root directory of DLC2 project.
@@ -85,7 +88,7 @@ This script takes the following input;
 * Is everything plugged in?
 * Shutting the system down incorrectly will often cause the camera and camera software to enter a bad state.
 	* Check if the light on the camera is solid green. If it is, unplug the camera and plug it back in.
-	* Check the HomeCageSinglePellet/src/client/ directory for a file named <KILL>. If this file exists, delete it.
+	* Check the HomeCageSinglePellet/src/client/ directory for a file named KILL. If this file exists, delete it.
 	* Make sure the camera is plugged into a USB 3.0 or greater port and that it is not sharing a USB bridge with too many 			other devices (I.e if you have 43 devices plugged into the back of the computer and none in the front, plug the 		camera into the front).
 * Make sure you are in the correct virtual environment.
 * Make sure the HomeCageSinglePellet/config/config.txt file contains the correct configuration. (If the file gets deleted it will be replaced by a default version at system start)
