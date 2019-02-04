@@ -36,7 +36,7 @@ The design allows a single mouse at a time to enter the reaching tube. Upon entr
 5. Install OpenCV for C++.
 	- `sudo apt-get install build-essential cmake git libgtk2.0-dev pkg-config libavcodec-dev libavformat-dev libswscale-dev`
 	- `sudo apt-get install libjpeg-dev libpng-dev libtiff5-dev libjasper-dev libdc1394-22-dev libeigen3-dev libtheora-dev 			libvorbis-dev libxvidcore-dev libx264-dev sphinx-common libtbb-dev yasm libfaac-dev libopencore-amrnb-dev 			libopencore-amrwb-dev libopenexr-dev libgstreamer-plugins-base1.0-dev libavutil-dev libavfilter-dev 				libavresample-dev`
-	- `suso -s`
+	- `sudo -s`
 	- `cd /opt`
 	- Download OpenCV source from https://github.com/opencv/opencv/releases/tag/3.4.4 and unpack it into /opt
 	- Download OpenCV_contrib source from https://github.com/opencv/opencv_contrib/releases/3.4.4 and unpack it into /opt
@@ -60,6 +60,9 @@ The design allows a single mouse at a time to enter the reaching tube. Upon entr
 	- `conda install -c anaconda pyserial`
 	- `conda install -c anaconda tk`
 	- `conda install -c conda-forge matplotlib`
+
+6. Download the HCSP source code from https://github.com/SilasiLab/HomeCageSinglePellet and unpack it.
+7. Done!
 	
 	
 **Assembly:**
@@ -70,10 +73,9 @@ Assembly is complex and is therefore detailed in HomeCageSinglePellet/Assembly.t
 
 **Usage**:
 
-1. Enter the virtual environment that the system was installed in (e.g `source activate <my_env>`).
+1. Enter the virtual environment that the system was installed in by typing `source activate <my_env>` into a terminal.
 
-2. Enter HomeCageSinglePellet/src/client/ and run `python -B genProfiles.py`. The terminal 
-	will walk you through entering your new animals into the system.
+2. Use `cd` to navigate to HomeCageSinglePellet/src/client/ and then run `python -B genProfiles.py`. The text prompts will walk you through entering your new animals into the system.
 
 3. Open HomeCageSinglePellet/config/config.txt and set the system configuration you want.
 
