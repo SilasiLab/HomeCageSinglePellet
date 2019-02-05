@@ -1,5 +1,6 @@
 import gui
 import arduinoClient
+import systemCheck
 import time
 import socket
 import sys
@@ -10,10 +11,10 @@ from subprocess import PIPE, Popen
 import os
 import cv2
 import random
-from pelletClassifier import CNN
 
 
 
+systemCheck.check_directory_structure()
 # Load all configuration information for running the system.
 # Note: Configuration information for data analysis does not come from here.
 with open("../../config/config.txt") as config:
@@ -187,14 +188,12 @@ class SessionController(object):
 		Attributes:
 			profile_list: A list containing all animal profiles.
 			arduino_client: An object that wraps a serial interface for talking to the Arduino server.
-            pelletClassifier: Object that handles pellet detection (Currently not being used).
 	"""
 
-    def __init__(self, profile_list, arduino_client, pelletClassifier):
+    def __init__(self, profile_list, arduino_client):
 
         self.profile_list = profile_list
         self.arduino_client = arduino_client
-        self.pelletClassifier = pelletClassifier
 
     def set_profile_list(self, profileList):
 
@@ -283,11 +282,6 @@ class SessionController(object):
 
         while True:
 
-            #frame = cv2.imread("/home/sliasi/HomeCageSinglePellet/temp/pelletClassifierFatMouse.jpg")
-            #pelletExists = self.pelletClassifier.predict(frame)
-            #print(pelletExists)
-
-
             if (time.time() - now > 7):
                 if profile.dominant_hand == "LEFT":
                     self.arduino_client.serialInterface.write(b'1')
@@ -327,9 +321,7 @@ def sys_init():
     arduino_client = arduinoClient.client("/dev/ttyUSB0", 9600)
     ser = serial.Serial('/dev/ttyUSB1', 9600)
     guiProcess = launch_gui()
-    modelWeightPath = "pelletModel/model.h5"
-    pelletClassifier = CNN(modelWeightPath)
-    session_controller = SessionController(profile_list, arduino_client, pelletClassifier)
+    session_controller = SessionController(profile_list, arduino_client)
     return profile_list, arduino_client, session_controller, ser, guiProcess
 
 
