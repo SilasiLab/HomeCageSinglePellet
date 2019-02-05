@@ -30,9 +30,9 @@ The design allows a single mouse at a time to enter the reaching tube. Upon entr
 
 **Installation Steps:**
 1. Install Ubuntu 16.04 LTS on your machine.
-2. Install Anaconda.
-3. Install the Flir Spinnaker SDK v1.10.31.
-4. Install Arduino IDE v1.8.5.
+2. Install Anaconda. (https://www.anaconda.com/distribution/)
+3. Install the Flir Spinnaker SDK v1.10.31 (https://www.ptgrey.com/support/downloads)
+4. Install Arduino IDE v1.8.5. (https://www.arduino.cc/en/Main/Software)
 5. Install OpenCV for C++.
 	- `sudo apt-get install build-essential cmake git libgtk2.0-dev pkg-config libavcodec-dev libavformat-dev libswscale-dev`
 	- `sudo apt-get install libjpeg-dev libpng-dev libtiff5-dev libjasper-dev libdc1394-22-dev libeigen3-dev libtheora-dev 			libvorbis-dev libxvidcore-dev libx264-dev sphinx-common libtbb-dev yasm libfaac-dev libopencore-amrnb-dev 			libopencore-amrwb-dev libopenexr-dev libgstreamer-plugins-base1.0-dev libavutil-dev libavfilter-dev 				libavresample-dev`
