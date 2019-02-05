@@ -108,6 +108,7 @@ This analysis is started by entering the HomeCageSinglePellet/src/analysis/ dire
 This script takes the following input;
 
 **CONFIG_PATH** = Full path to config.yaml file in root directory of DLC2 project.
+![alt text](https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/CONFIG_PATH_ANALYSIS.png)
 
 **VIDEO_DIRECTORY** = Full path to directory containing videos you want to analyze.
 
