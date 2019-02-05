@@ -110,9 +110,10 @@ This script takes the following input;
 **CONFIG_PATH** = Full path to config.yaml file in root directory of DLC2 project.
 ![alt text](https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/CONFIG_PATH_ANALYSIS.png)
 
-**VIDEO_DIRECTORY** = Full path to directory containing videos you want to analyze.
+**VIDEO_DIRECTORY** = Full path to directory containing videos you want to analyze. (e.g <~/HomeCageSinglePellet/AnimalProfiles/MOUSE1/Videos/>)
 
-**NETWORK_NAME** = Full name of DLC2 network you want to use to analyze videos.
+**NETWORK_NAME** = Full name of DLC2 network you want to use to analyze videos. (e.g <DeepCut_res
+net50_HomeCageSinglePelletNov18shuffle1_950000>)
 
 
 
