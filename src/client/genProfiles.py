@@ -1,3 +1,9 @@
+"""
+    Author: Julian Pitney
+    Email: JulianPitney@gmail.com
+    Organization: University of Ottawa (Silasi Lab)
+"""
+
 import os
 
 def gen_profile(mouseName):

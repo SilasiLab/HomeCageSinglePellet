@@ -1,3 +1,10 @@
+"""
+    Author: Julian Pitney
+    Email: JulianPitney@gmail.com
+    Organization: University of Ottawa (Silasi Lab)
+"""
+
+
 import serial
 from time import sleep
 

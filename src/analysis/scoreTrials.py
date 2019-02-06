@@ -1,3 +1,10 @@
+"""
+    Author: Julian Pitney
+    Email: JulianPitney@gmail.com
+    Organization: University of Ottawa (Silasi Lab)
+"""
+
+
 from tkinter import *
 import PIL
 from PIL import ImageTk

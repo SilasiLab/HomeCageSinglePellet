@@ -1,3 +1,11 @@
+"""
+    Author: Julian Pitney
+    Email: JulianPitney@gmail.com
+    Organization: University of Ottawa (Silasi Lab)
+"""
+
+
+
 import csv
 import datetime
 import time

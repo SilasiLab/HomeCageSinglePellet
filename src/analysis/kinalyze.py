@@ -1,3 +1,10 @@
+"""
+    Author: Julian Pitney
+    Email: JulianPitney@gmail.com
+    Organization: University of Ottawa (Silasi Lab)
+"""
+
+
 import pandas as pd
 import numpy as np
 import csv
