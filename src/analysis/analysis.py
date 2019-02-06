@@ -27,11 +27,12 @@ def readAllFiles():
                         txtFileList.append(entireTxtDir)
     return txtFileList
 
-def txt2Reaches(txtFile):
+def txt2Reaches(txtFile, dict):
     '''
     This function takes the directory of txt file as input, and convert the content of it to a dictionary.
     This dictionary contains some global features and the details for each reach.
-    :param txtFile:
+    :param txtFile: file name of a txt file, containg the scored data
+    :param dict: a dict holding all the labels
     :return:
     A dictionary contains some global features and the details for each reach.
     '''
@@ -47,8 +48,6 @@ def txt2Reaches(txtFile):
                 }
 
     labels = []
-
-    dict = {'Background': 0, 'Invalid Trial': 1, 'Pellet Knocked Off': 2, 'Grasp2': 3, 'Successful Grasp': 4}
     numReaches = 0
     pathForwardLength = 0.
     pathBackwardLength = 0.
@@ -206,21 +205,24 @@ def write2CSV(data, targetDir):
         writer.writerow(line)
     f.close()
 
-def run(targetDir):
+def run(targetDir, dict):
     '''
     This is the main entrance of analysis.py
     :param targetDir: a folder to hold the output csv files
+    :param dict: A dictionary contains some global features and the details for each reach.
     :return: nothing
     '''
     txtFileList = readAllFiles()
+
     for i in tqdm(range(len(txtFileList))):
         baseName = os.path.basename(txtFileList[i])
         baseName = baseName.replace('_reaches_scored', '').replace('txt', 'csv')
         targetFile = os.path.join(targetDir, baseName)
-        data = txt2Reaches(txtFileList[i])
+        data = txt2Reaches(txtFileList[i], dict)
         write2CSV(data, targetFile)
 
 if __name__ == '__main__':
 
     targetDir = "/home/junzheng/work/silasi/analyses/test"
-    run(targetDir)
+    dict = {'Background': 0, 'Invalid Trial': 1, 'Pellet Knocked Off': 2, 'Grasp2': 3, 'Successful Grasp': 4}
+    run(targetDir, dict)
