@@ -68,8 +68,7 @@ The design allows a single mouse at a time to enter the reaching tube. Upon entr
 	
 	
 **Assembly:**
-
-Assembly is complex and is therefore detailed in HomeCageSinglePellet/Assembly.txt
+Coming soon...
 
 
 
