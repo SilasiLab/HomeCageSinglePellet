@@ -63,6 +63,7 @@ The design allows a single mouse at a time to enter the reaching tube. Upon entr
 
 6. Download the HCSP source code from https://github.com/SilasiLab/HomeCageSinglePellet and unpack it.
 7. Optional (Only if you want to use the analysis features): Install Deeplabcut using the Anaconda based pip installation method. (https://github.com/AlexEMG/DeepLabCut/blob/master/docs/installation.md)
+8. Optional (Only if you want to use the anaylsis features): Move the file `HomeCageSinglePellet/src/analysis/HCSP_analyze.py` into `~/.conda/envs/DLC2/lib/python3.6/site-packages/deeplabcut` (Where DLC2 is the name of the anaconda virtual environment where you installed Deeplabcut).
 8. Done!
 	
 	
