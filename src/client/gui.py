@@ -2,8 +2,23 @@ from tkinter import *
 from time import sleep
 import os
 
+# This is the GUI for configuring AnimalProfiles. It reads profiles from the ~/HomeCageSinglePellet/AnimalProfiles/ directory.
+# It expects to find 5 profiles there and will not work with any other number. Profiles should be named as follows: 
+# MOUSE1, MOUSE2, MOUSE3, MOUSE4, MOUSE5. Do not use other names. This GUI gets instantiated in its own process that runs
+# concurrently with the SessionController process.
+#
+# Disclaimer: This was not well written. However, it's pretty straightforward. 
+# Create button -> Assign function to it -> Position it -> Pack it into tk frame.
+# Nothing fancy going on. Just note the dependancy tree is a mess and changing one thing 
+# might affect something seemingly unrelated. Advise not modifying unless really needed.
+#
+#
+# Most of the buttons are attached to a function that simply reads and writes to a profileState. They will also update text boxes
+# when appropriate. It's mostly clear just by reading it. 
 class GUI:
 
+
+    # All of the buttons are intialized and rendered inside __init__. 
 	def __init__(self, master, animalProfilePath):
 
 
@@ -239,7 +254,12 @@ class GUI:
 
 
 
-	# Search for correct profileState by <mouseNumber>
+	# Since the profiles might be loaded into <profileStates> in an arbitrary order,
+    # we need to identify which profileState index corresponds to which profile number.
+    # This function just takes a profile/mouse number and searches <profileStates> for the 
+    # profileState corresponding to that mouse number. It then returns the correct index. 
+    #
+    # E.G MOUSE1's profileState index might be 4
 	def find_profile_state_index(self, mouseNumber):
 
 		for x in range(0,len(self.profileStates)):

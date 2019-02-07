@@ -5,6 +5,18 @@ import cv2
 import os, sys
 
 
+# This file defines and implements a GUI that allows the user to load session information from a particular session, from a particular animal,
+# and manually annotate the video associated with that session. The annotations are saved in a new file called reaches_scoring.txt.
+#
+# 1. Select an animal to score videos for.
+# 2. Select a video to score.
+# 3. Use the hotkeys or buttons to score all the reaches in that video.
+# 4. After you score the last reach for a video, the scoring data for that video is saved.
+# 5. Repeat.
+#
+# The profiles are read from the directory specified in this function. This script expects the same ~/HomeCageSinglePellet/AnimalProfiles/ directory
+# sturcture that the rest of the system expects. Don't change it.
+
 def get_profile_list():
     return next(os.walk('../../AnimalProfiles'))[1]
 
@@ -16,7 +28,7 @@ def gen_profiles(profileNames):
 
     return profiles
 
-
+# Wrapper class for holding info about a particular profile
 class AnimalProfile(object):
 
     def __init__(self, profileName):
@@ -26,7 +38,7 @@ class AnimalProfile(object):
     def get_video_list(self, profileName):
         return next(os.walk('../../AnimalProfiles/' + profileName + "/Analyses"))
 
-
+# Wrapper class for holding info about a particular reach
 class Reach(object):
 
     def __init__(self, start, stop, trajectoryCoords,category):
@@ -34,6 +46,9 @@ class Reach(object):
         self.stop = stop
         self.trajectoryCoords = trajectoryCoords
         self.category = category
+
+
+
 
 class Application(Frame):
     currentProfile = None
@@ -64,6 +79,11 @@ class Application(Frame):
         self.createWidgets()
 
 
+
+    # This function gets called whenever the last reach in a video is scored.
+    # It saves all the scoring data for the completed video in a new file.
+    # This new file contains all the same data as the reaches.txt file, in addition
+    # to the new scoring data for each reach.
     def saveScoring(self):
         reaches = self.currentReaches
         self.currentReaches = []
@@ -95,6 +115,24 @@ class Application(Frame):
             print("Scoring saved!")
         self.change_animal_dropdown()
 
+
+
+
+# START OF SCORING BUTTON FUNCTIONS
+#-----------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------
+#
+# All the functions in this block (lines 121-864) are functions bound to scoring buttons.
+# They all do the same thing for their respective button.
+# 1. Set the appropriate category for the current reach.
+# 2. Check if it's the last reach in the current video.
+#    If it is, save the scoring information and reset all the video/reach variables.
+#    If it isn't, increment to the next reach in the video.
+#
+# There's probably a good way to use 1 function for all these buttons since they all do roughly the same
+# thing, but copy and pasting ~30 times took like 10 minutes and works fine. Sorry if you need to change these lol.
+# If you end up using this a lot, reworking all these into one overloaded function should be pretty easy.
+#-----------------------------------------------------------------------------------------------------------------------
     def s1_left(self, event=None):
 
         if self.currentReachIndex == None:
@@ -831,7 +869,22 @@ class Application(Frame):
 
 
 
+# END OF SCORING BUTTON FUNCTIONS
+#-----------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------
 
+
+
+
+    # This function displays frames from the current reach to the GUI.
+    # There is some logic for controlling looping of the current reach,
+    # reading the correct frame from the current video, what to do if there
+    # is no video, etc.
+    # It also paints the current reach number onto the frame for the user to see
+    # how far along they are.
+    #
+    # This function calls itself recursively to continue displaying
+    # until one of the base cases is detected.
     def play_video(self, event=None):
 
         if self.cap == None or self.currentReachIndex == None:
@@ -859,13 +912,17 @@ class Application(Frame):
         self.currentFrame += 1
         self.lmain.after(1, self.play_video)
 
+    # This function displays the default stock image to the GUI.
     def show_frame(self):
         img = PIL.Image.fromarray(self.defaultImg)
         imgtk = PIL.ImageTk.PhotoImage(image=img)
         self.lmain.imgtk = imgtk
         self.lmain.configure(image=imgtk)
 
-
+    # This function handles what happens when an animal is selected in the Animal Selection
+    # drop down menu. It scans the appropriate directory for that animal and loads all the
+    # required videos into the video scroll list. It colour codes these videos based on
+    # their scoring status (dark sea green = already scored, peachpuff2=no reaches found, steelblue=ready for scoring).
     def change_animal_dropdown(self, *args):
         self.currentProfile = self.find_animal_profile(self.animalDropdownVar.get())
         self.videoListBox.delete(0, END)
@@ -903,6 +960,9 @@ class Application(Frame):
                 return profile
         return -1
 
+    # This fucntion is called when a particular video is selected by the user.
+    # It loads the video itself, all the reaching data for that video, and begins
+    # playing the first reach for that video in the GUI.
     def loadVideo(self):
         selections = map(int, self.videoListBox.curselection())
         items = [self.currentProfile.videoList[1][int(item)] for item in selections]
@@ -918,6 +978,9 @@ class Application(Frame):
         self.loadVideoReachData()
         self.play_video()
 
+    # This function loads the reaching data for <self.currentVideo>.
+    # This function expects the reaching data in one exact format.
+    # It has no tolerance to changing formats.
     def loadVideoReachData(self):
 
         try:
@@ -962,7 +1025,7 @@ class Application(Frame):
             self.currentReachIndex = 0
 
 
-
+    # All GUI elements are initialized and rendered in this function.
     def createWidgets(self):
 
         topFrame = Frame(self.master, width=500, height=500)
@@ -1070,7 +1133,9 @@ class Application(Frame):
 
 
 
-
+# 1. Create tk app
+# 2. Bind all the hotkeys
+# 3. enter main GUI loop
 app = Application()
 app.master.title('HCSP Scoring Interface')
 app.master.bind('q',app.s1_left)

@@ -1,7 +1,29 @@
+/*
+    This program is a server for controlling the hardware peripherals attached to the HomeCage system.
+    It waits for commands over a serial port (python client in our case) and performs the desired action upon receiving the command.
+    There is no proper message passing system and it simply uses various magic byte values as messages.
+    Note: These bytes can cause different outcomes depending on the state the program is in at the time
+    of receiving. The lack of real message passing system means the program is rather fragile. I recommend
+    not modifying this program too much. Utility may instead be found by recycling specific functions.
+    (For controlling servos, steppers, IR breakers, etc....attached to the Arduino).
+
+
+    This program enters a listening mode on boot and waits for a signal over serial to tell it to start a session.
+    Once this signal is received, the program expects to receive a byte value representing how far the stepper should
+    rotate from the origin (The origin is defined on start-up by retracting the stepper motor until the limit switch
+    is pressed). After the stepper motor is positioned, the program expects to receive repeating requests for
+    pellet presentations (with either arm). The program continues in this state until the IR breaker is connected.
+    At this point the server sends a session termination message to the client and tears the session down, re-entering
+    it's default listening mode.
+
+
+*/
+
+
+
+
+
 #include <Servo.h>
-
-bool SIMULATION_MODE = false;
-
 
 // Config
 const int servo1Pin = 10;
@@ -12,14 +34,14 @@ bool servo1_up_flag = false;
 bool servo2_up_flag = false;
 const int SERVO_SETTLE_DELAY = 300;
 // Higher numbers make the arm go higher
-int SERVO1_UP_POS = 120;
-// Low numbers make the arm go lower
-int SERVO1_DOWN_POS = 50;
+int SERVO1_UP_POS = 72;
+// Low numbers makehe arm go lower
+int SERVO1_DOWN_POS = 140;
 // Lower numbers make the arm go higher
-int SERVO2_UP_POS = 57;
+int SERVO2_UP_POS = 110;
 // High numbers make the arm go lower
-int SERVO2_DOWN_POS = 122;
-int SERVO_PULSE_DELAY = 15;
+int SERVO2_DOWN_POS = 45;
+int SERVO_PULSE_DELAY = 16;
 int servo1Pos = SERVO1_DOWN_POS;
 int servo2Pos = SERVO2_DOWN_POS;
 typedef enum {left,right} whichServo;
@@ -57,14 +79,14 @@ int zeroServos() {
   servo2.attach(servo2Pin);
 
 
-  for (int i = servo1Pos; i >= SERVO1_DOWN_POS; i -= 1) {
+  for (int i = servo1Pos; i <= SERVO1_DOWN_POS; i += 1) {
       servo1.write(i);
       delay(SERVO_PULSE_DELAY);
     }   
   delay(SERVO_SETTLE_DELAY);
   servo1Pos = SERVO1_DOWN_POS;;
 
-  for (int i = servo2Pos; i <= SERVO2_DOWN_POS; i += 1) {
+  for (int i = servo2Pos; i >= SERVO2_DOWN_POS; i -= 1) {
       servo2.write(i);
       delay(SERVO_PULSE_DELAY);
     }   
@@ -82,7 +104,7 @@ int lowerServo1(){
  
   servo1.attach(servo1Pin);
    
-  for (int i = servo1Pos; i >= SERVO1_DOWN_POS; i -= 1) {
+  for (int i = servo1Pos; i <= SERVO1_DOWN_POS; i += 1) {
       servo1.write(i);
       delay(SERVO_PULSE_DELAY);
     }   
@@ -97,7 +119,7 @@ int lowerServo2(){
 
   servo2.attach(servo2Pin);  
 
-  for (int i = servo2Pos; i <= SERVO2_DOWN_POS; i += 1) {
+  for (int i = servo2Pos; i >= SERVO2_DOWN_POS; i -= 1) {
       servo2.write(i);
       delay(SERVO_PULSE_DELAY);
     }   
@@ -118,13 +140,13 @@ int displayPellet(whichServo side) {
     servo1.attach(servo1Pin);
 
     // Lower arm to grab pellet.
-    for (int i = servo1Pos; i >= SERVO1_DOWN_POS; i -= 1) {
+    for (int i = servo1Pos; i <= SERVO1_DOWN_POS; i += 1) {
       servo1.write(i);
       delay(SERVO_PULSE_DELAY);
     }   
     
     // Raise arm to display pellet
-    for (int i = SERVO1_DOWN_POS; i <= SERVO1_UP_POS; i += 1) {
+    for (int i = SERVO1_DOWN_POS; i >= SERVO1_UP_POS; i -= 1) {
       servo1.write(i);
       delay(SERVO_PULSE_DELAY);
     }
@@ -137,12 +159,12 @@ int displayPellet(whichServo side) {
      
     servo2.attach(servo2Pin);
     // Lower arm to grab pellet.
-    for (int i = servo2Pos; i <= SERVO2_DOWN_POS; i += 1) {
+    for (int i = servo2Pos; i >= SERVO2_DOWN_POS; i -= 1) {
       servo2.write(i);
       delay(SERVO_PULSE_DELAY);
     }   
     // Raise arm to display pellet
-    for (int i = SERVO2_DOWN_POS; i >= SERVO2_UP_POS; i -= 1) {
+    for (int i = SERVO2_DOWN_POS; i <= SERVO2_UP_POS; i += 1) {
       servo2.write(i);
       delay(SERVO_PULSE_DELAY);
     }
@@ -179,7 +201,7 @@ int zeroStepper() {
     delay(1);
   }
 
-  for(int i = 0; i < 200; i++)
+  for(int i = 0; i < 50; i++)
   {
     digitalWrite(A4, HIGH);
     delay(1);
@@ -291,20 +313,11 @@ bool listenForStartCommand() {
     }
     
     if(authByte == 'A') {
-      SIMULATION_MODE = false;
+
       return true;
     }
     else if (authByte == 'Y' ) {
-      SIMULATION_MODE = false;
       digitalWrite(ledPin,HIGH);
-      return false;
-    }
-    else if (authByte == 'S') {
-      SIMULATION_MODE = true;
-      return true;
-    }
-    else if (authByte == 'Z') {
-      SIMULATION_MODE = true;
       return false;
     }
 
@@ -397,107 +410,19 @@ int startSession() {
 }
 
 
-int startSimulatedSession() {
-  
-  long StartTime = millis();
-  long CurrentTime = StartTime;
-  long randomDuration = random(1,20000);
-  
-  while((CurrentTime - StartTime) < randomDuration) {
-
-    CurrentTime = millis();
-
-    char cmd;
-    char stepperDist;
-    
-    if(Serial.available() > 0) {
-
-      cmd = Serial.read();
-      
-      switch(cmd){
-        
-        case ('1'):
-          displayPellet(right);
-          break;
-          
-        case ('2'):
-          displayPellet(left);
-          break;
-          
-        case ('3'):
-
-          // Give client a second to respond
-          delay(1000);
-          stepperDist = Serial.read();
-          
-          switch(stepperDist){
-            case('0'):
-              zeroStepper();
-              break;
-            case('1'):
-              moveStepper(stepsToMmRatio * 1);
-              break;
-            case('2'):
-              moveStepper(stepsToMmRatio * 2);
-              break;
-            case('3'):
-              moveStepper(stepsToMmRatio * 3);
-              break;
-            case('4'):
-              moveStepper(stepsToMmRatio * 4);
-              break;
-            case('5'):
-              moveStepper(stepsToMmRatio * 5);
-              break;
-            case('6'):
-              moveStepper(stepsToMmRatio * 6);
-              break;
-            default:
-              break;  
-            }
-            
-        default:
-          break;
-      }
-    }
-    
-  }
-
-
-  char termCmd;
-  // Send session end message.
-  Serial.write("TERM\n");
-
-  if(servo1_up_flag)
-  {
-    lowerServo1();
-    servo1_up_flag = false;
-  }
-  if(servo2_up_flag)
-  {
-    lowerServo2();
-    servo2_up_flag = false;
-  }
-  // Flush serial buffer.
-  while(Serial.read() >= 0) {
-    continue;
-  }
-
-  return 0;  
-}
-
 
 void loop() { 
 
+  while(1){
+    displayPellet(right);
+    delay(2000);
+    displayPellet(left);
+    delay(2000);
+  }
+
+
   if(listenForStartCommand()){
-
-      if(SIMULATION_MODE) {
-        startSimulatedSession();
-      }
-      else {
-        startSession();
-      }
-  }       
+      startSession();
+  }
+         
 }
-
- 

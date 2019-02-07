@@ -11,6 +11,7 @@
 #include <fstream>
 #include <opencv2/highgui.hpp>
 #include <opencv2/core.hpp>
+#include <opencv2/imgcodecs.hpp>
 #include <stdlib.h>
 #include <chrono>
 
@@ -20,6 +21,57 @@ using namespace Spinnaker::GenICam;
 using namespace std;
 using namespace std::chrono;
 using namespace cv;
+
+
+/*
+
+This program captures video from a Flir Blackfly S camera (It may work with other cameras
+that use the Spinnaker API).
+Note: Most of this code is chopped up bits from the official Spinnaker SDK examples.
+	Read those examples for the best available documentation.
+
+
+Input Args:
+
+	WIDTH = width of frames that will be captured
+	HEIGHT = height of frmaes that will be captured
+	OFFSET_X = x_offset of frame from top left corner of camera sensor
+	OFFSET_Y = y_offset of frame from top left corner of camera sensor
+	FPS = Acquisition FPS camera will be set to (careful: If your machine can't keep up with this fps you won't get an error, your videos will just look sped up)
+	EXPOSURE = integer representing exposure time in microseconds
+	BITRATE = integer representing bitrate
+	PREVIEW_WINDOW = integer flag for turning preview window on or off (Note the preview window will significantly lower your max fps)
+
+Note: In the HomeCage system, these args are supplied by the python client when it spawns this process for recording.
+
+
+Compiling:
+
+	Compile the same way the Spinnaker SDK examples are compiled.
+
+	1. Run Spinnaker SDK installer for version specified in HomeCageSinglePellet/INSTALL.txt
+	2. Install OpenCV 3.4.x for C++
+	3. Modify the Makefile supplied with this cpp file to point to wherever you installed OpenCV
+	4. Move this source file and the Makefile to /usr/src/spinnaker/src/SessionVideo/ (Create SessionVideo yourself)
+	5. run make
+
+
+Note: This program will print the actual recording time and the expected recording time.
+	Expected recording time is based on requested fps and number of frames captured.
+	(100 frames at 10 fps expects to take 10 seconds to capture). Actual recording time is
+	measured using std::chrono. If actual and expected times differ, you're not getting the
+	fps you requested.
+
+Note: The AcquireImages() function captures until it detects the existence of a file called KILL in the working
+	directory that this program is running from. In the HomeCage system this file is created and deleted by the python client.
+	Obviously, this is terrible way to handle IPC. Socket communication was in the works but never got finished.
+
+Note: The block in AcquireImages that displays spinnaker frames to an OpenCV window is explained in detail
+	on github under SilasiLab/Spinnaker-Utilities/ in the file displaySpinnakerFramesOpenCV.cpp
+
+*/
+
+
 
 
 
@@ -33,10 +85,12 @@ int EXPOSURE = 200;
 int BITRATE = 8000000;
 bool PREVIEW_WINDOW = false;
 
-
 int FRAMES_RECORDED = 0;
 int TARGET_ACQUISITION_DURATION = 0;
 int ACTUAL_ACQUISITION_DURATION = 0;
+
+int pelletClassifierFrameInterval = 100;
+
 
 
 enum aviType
@@ -416,6 +470,7 @@ try
     namedWindow("PtGrey Live Feed", WINDOW_AUTOSIZE);
     int n_frames = 0;
     high_resolution_clock::time_point start = high_resolution_clock::now();
+    int pelletClassifierFrameCount = 0;
 	while(1)
 	{
         if(file_exists("KILL"))
@@ -434,18 +489,29 @@ try
 			}
 			else
 			{
+                pelletClassifierFrameCount++;
+				void* img_ptr = pResultImage->GetData();
+				Mat img(HEIGHT, WIDTH, CV_8UC1, img_ptr);
+
                 if(PREVIEW_WINDOW)
                 {
-				    void* img_ptr = pResultImage->GetData();
-				    Mat img(HEIGHT, WIDTH, CV_8UC1, img_ptr);
 				    imshow("PtGrey Live Feed", img);
 		            waitKey(1);
 		        }
 		        else
 		        {
+
+		            if(pelletClassifierFrameCount > pelletClassifierFrameInterval)
+		            {
+		                imwrite("/home/sliasi/HomeCageSinglePellet/temp/pelletClassifierFatMouse.jpg", img);
+		                pelletClassifierFrameCount = 0;
+		            }
+
+
 				    aviRecorder.AVIAppend(pResultImage);
 				    pResultImage->Release();
 				    n_frames++;
+				    pelletClassifierFrameCount++;
 				}
 			}
 		}

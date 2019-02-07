@@ -206,6 +206,7 @@ def write2CSV(data, targetDir):
     f.close()
 
 def run(targetDir, dict):
+
     '''
     This is the main entrance of analysis.py
     :param targetDir: a folder to hold the output csv files
@@ -221,8 +222,38 @@ def run(targetDir, dict):
         data = txt2Reaches(txtFileList[i], dict)
         write2CSV(data, targetFile)
 
+def runTest(dict):
+
+    '''
+    This is the main entrance of analysis.py
+    :param targetDir: a folder to hold the output csv files
+    :param dict: A dictionary contains some global features and the details for each reach.
+    :return: nothing
+    '''
+    txtFileList = readAllFiles()
+
+    for i in tqdm(range(len(txtFileList))):
+        data = txt2Reaches(txtFileList[i], dict)
+        targetFile = txtFileList[i].replace('_reaches_scored', '_analysed').replace('txt', 'csv')
+        write2CSV(data, targetFile)
+
+def runOneFile(txtFile, dict):
+
+    '''
+    Take one txt file directory and the labels dictionary as input
+    And this function will generate a analysed result csv file in the same directory as the txt file.
+
+    :param dict: A dictionary contains some global features and the details for each reach.
+    :return: nothing
+    '''
+
+    data = txt2Reaches(txtFile, dict)
+    targetFile = txtFile.replace('_reaches_scored', '_analysed').replace('txt', 'csv')
+    write2CSV(data, targetFile)
+
 if __name__ == '__main__':
 
     targetDir = "/home/junzheng/work/silasi/analyses/test"
     dict = {'Background': 0, 'Invalid Trial': 1, 'Pellet Knocked Off': 2, 'Grasp2': 3, 'Successful Grasp': 4}
     run(targetDir, dict)
+
