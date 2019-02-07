@@ -17,6 +17,10 @@
     it's default listening mode.
 
 
+    Author: Julian Pitney
+    Email: JulianPitney@gmail.com
+    Organization: University of Ottawa (Silasi Lab)
+
 */
 
 

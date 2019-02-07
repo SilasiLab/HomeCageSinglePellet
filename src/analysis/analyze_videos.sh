@@ -31,6 +31,12 @@
 #    and trial outcome for every reach in that video.
 #
 # 6. Repeat for each video found.
+#
+#
+#    Author: Julian Pitney
+#    Email: JulianPitney@gmail.com
+#    Organization: University of Ottawa (Silasi Lab)
+
 
 CONFIG_PATH=$1
 VIDEO_DIRECTORY=$2
