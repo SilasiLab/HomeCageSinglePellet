@@ -4,7 +4,7 @@
     Organization: University of Ottawa (Silasi Lab)
 """
 
-
+import analysis
 from tkinter import *
 import PIL
 from PIL import ImageTk
@@ -121,6 +121,12 @@ class Application(Frame):
 
             print("Scoring saved!")
         self.change_animal_dropdown()
+        analysis.runOneFile(savePath,{"SUCCESS_1_LEFT": 0, "SUCCESS_2_LEFT": 1, "SUCCESS_3_LEFT": 2, "ATTEMPT_1_LEFT": 3, "ATTEMPT_2_LEFT": 4, "ATTEMPT_3_LEFT": 5,"DROP_LEFT": 6,
+                                      "KNOCK_LEFT": 7,"SUCCESSFUL_LICK_LEFT": 8, "FAILED_LICK_LEFT": 9, "INVALID_LEFT": 10, "MACHINE_FAIL_LEFT": 11, "SUCCESS_1_RIGHT": 12,
+                                      "SUCCESS_2_RIGHT": 13, "SUCCESS_3_RIGHT": 14, "ATTEMPT_1_RIGHT": 15, "ATTEMPT_2_RIGHT": 16, "ATTEMPT_3_RIGHT": 17, "DROP_RIGHT": 18,
+                                      "KNOCK_RIGHT": 19, "SUCCESSFUL_LICK_RIGHT": 20, "FAILED_LICK_RIGHT": 21, "INVALID_RIGHT": 22, "MACHINE_FAIL_RIGHT": 23,
+                                      "USER_DEFINED_1": 24, "USER_DEFINED_2": 25, "USER_DEFINED_3": 26, "USER_DEFINED_4": 27, "USER_DEFINED_5": 28,
+                                      "USER_DEFINED_6": 29, "USER_DEFINED_7": 30, "USER_DEFINED_8": 31, "USER_DEFINED_9": 32,} )
 
 
 
