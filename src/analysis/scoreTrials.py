@@ -73,7 +73,7 @@ class Application(Frame):
         Frame.__init__(self, master)
 
         self.cap = None
-        self.defaultImg = cv2.imread('../../resources/default.png')
+        self.defaultImg = cv2.imread('../../resources/Images/default.png')
         self.lmain = None
 
         self.profileNames = get_profile_list()
