@@ -206,28 +206,11 @@ def write2CSV(data, targetDir):
         writer.writerow(line)
     f.close()
 
-def run(targetDir, dict):
-
-    '''
-    This is the main entrance of analysis.py
-    :param targetDir: a folder to hold the output csv files
-    :param dict: A dictionary contains some global features and the details for each reach.
-    :return: nothing
-    '''
-    txtFileList = readAllFiles()
-
-    for i in tqdm(range(len(txtFileList))):
-        baseName = os.path.basename(txtFileList[i])
-        baseName = baseName.replace('_reaches_scored', '').replace('txt', 'csv')
-        targetFile = os.path.join(targetDir, baseName)
-        data = txt2Reaches(txtFileList[i], dict)
-        write2CSV(data, targetFile)
 
 def runTest(dict):
 
     '''
-    This is the main entrance of analysis.py
-    :param targetDir: a folder to hold the output csv files
+    This is the main entrance of analysis.py, the analysed data will be saved in the same folder as the scored data txt.
     :param dict: A dictionary contains some global features and the details for each reach.
     :return: nothing
     '''
