@@ -72,6 +72,7 @@ The design allows a single mouse at a time to enter the reaching tube. Upon entr
 **Attach headers to the PCB**
 
 1. Attach female headers for the Arduino onto the PCB.
+![alt text](https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP1-2.png)
 
 2. Attach male headers onto the CAMTRIG, MSZ, SERVO1, SERVO2, RFID and IRBREAK holes on the PCB.
 
