@@ -306,6 +306,8 @@ def extractEvents(leftMirrorPawIndexes, centerPawIndexes, rightMirrorPawIndexes,
                     eventFramePadding.append(i)
 
             tempEventFrameRange = eventFramePadding + tempEventFrameRange
+            for el in tempEventFrameRange:
+                print(el)
             eventFramePadding = []
 
         row += 1
