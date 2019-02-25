@@ -144,13 +144,13 @@ connector to the positive lead of the first power connector.
 18. Thread the stepper coupler bolt through the hopper nut.
 
 19. Attach both front surface mirrors to the mirror mount piece with double sided tape.
-<img width="600" height="600" src="https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP21.png">
+<img width="900" height="600" src="https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP21.png">
 
 20. Slide the front-wall/mirror holder piece over the end of the acrylic tube.
 <img width="600" height="600" src="https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP22.png">
 
 21. Use your favorite adhesive to attach the IR-Breaker to the IR-Breaker holder.
-<img width="600" height="600" src="https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP23.png">
+<img width="900" height="600" src="https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP23.png">
 
 22. Slide the IR-Breaker holder over the tube so that the beam runs across the bottom of the tube 
 (Where the mice feet will be).
@@ -158,10 +158,10 @@ connector to the positive lead of the first power connector.
 23. Plug the USB adapter into your RFID sensor and hotglue it to the acrylic tube as shown. 
 (Note: Push the IR-Breaker holder up against the RFID module so that it's sandwiched between
 the IR-Breaker holder and the front-wall/mirror holder, and hot glue it all in place).
-<img width="600" height="600" src="https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP25.png">
+<img width="600" height="900" src="https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP25.png">
 
 24. Slot the assembled acrylic tube into the square hole on the rail baseplate mount as shown.
-<img width="600" height="600" src="https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP26.png">
+<img width="900" height="600" src="https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP26.png">
 
 25. Line up both servos as shown in the picture. Rotate the servo splines as far as they will go in the 
 directions shown in the picture.
