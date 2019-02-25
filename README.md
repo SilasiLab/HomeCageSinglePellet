@@ -71,12 +71,15 @@ The design allows a single mouse at a time to enter the reaching tube. Upon entr
 
 **Attach headers to the PCB**
 
-1. Attach female headers for the Arduino onto the PCB. Attach male headers onto the CAMTRIG, MSZ, SERVO1, SERVO2, RFID and IRBREAK holes on the PCB.
+1. Attach female headers for the Arduino onto the PCB. Attach male headers onto the CAMTRIG, MSZ, SERVO1, SERVO2, RFID and
+IRBREAK holes on the PCB.
+
 ![alt text](https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP1-2.png)
 
 2. Solder the stepper driver to the PCB in the orientation shown in the picture. (Note that the holes on 
 	the PCB are spaced too far apart for the stepper driver pins, so we've hacked together an adapter.
 	(The green PCB in the picture). You'll need to address this until someone gets around to fixing the PCB layout).
+	
 ![alt text](https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP3.png)
 	
 3. Solder the capacitor across C1 as shown in the picture.
