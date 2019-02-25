@@ -109,17 +109,17 @@ power connector you screwed in in step 4.
 power connector you screwed in in step 4. 
 : ![alt text](https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP10.png)
 
-10. Place the PCB into the box and drill holes into the box where the mount holes on the PCB line up. Then mount the 
-PCB with some bolts. Metal bolts are fine, they won't touch anything that will be a problem. Use nylon 
-washers if you're nervous.
+10. Place the PCB into the box and drill holes into the box where the mount holes on the PCB line up. 
+Then mount the PCB with some bolts. Metal bolts are fine, they won't touch anything that will be a problem. 
+Use nylon washers if you're nervous.
 : ![alt text](https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP11.png)
 
-11. Solder the remaining positive input power lead that you attached to the voltage regulator in step 5 to the positive
-MOTORPWR pad on the PCB.
-: ![alt text](https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP12.png)
+11. Solder the remaining positive input power lead that you attached to the voltage regulator in 
+step 5 to the positive MOTORPWR pad on the PCB.
+:  ![alt text](https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP12.png)
 
-12. Solder the remaining negative input power lead that you attached to the voltage regulator in step 5 to the negative
-MOTORPWR pad on the PCB.
+12. Solder the remaining negative input power lead that you attached to the voltage regulator in 
+step 5 to the negative MOTORPWR pad on the PCB.
 : ![alt text](https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP13.png)
 
 13. Screw in the second circular power connector to the remaining hole in the box. Solder a wire from the negative lead of the
@@ -155,24 +155,24 @@ connector to the positive lead of the first power connector.
 22. Slide the IR-Breaker holder over the tube so that the beam runs across the bottom of the tube 
 (Where the mice feet will be).
 
-23. Plug the USB adapter into your RFID sensor and hotglue it to the acrylic tube as shown. (Note:
-Push the IR-Breaker holder up against the RFID module so that it's sandwiched between
+23. Plug the USB adapter into your RFID sensor and hotglue it to the acrylic tube as shown. 
+(Note: Push the IR-Breaker holder up against the RFID module so that it's sandwiched between
 the IR-Breaker holder and the front-wall/mirror holder, and hot glue it all in place).
 : ![alt text](https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP25.png)
 
 24. Slot the assembled acrylic tube into the square hole on the rail baseplate mount as shown.
 : ![alt text](https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP26.png)
 
-25. Line up both servos as shown in the picture. Rotate the servo splines as far as they will go in the directions shown in the
-picture.
+25. Line up both servos as shown in the picture. Rotate the servo splines as far as they will go in the 
+directions shown in the picture.
 : ![alt text](https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP27-28.png)
 
 26. Use an allen key to insert the set screws into the tips of the hopper arms.
 : ![alt text](https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP29.png)
 
-27. Attach the hopper arms to the servo spline as shown in the picture. (Note: This is why we rotated the servo
-spline as far as possible in step 28, so that you can set the maximum retraction point of the hopper arms 
-by attaching them how you like).
+27. Attach the hopper arms to the servo spline as shown in the picture. (Note: This is why we 
+rotated the servo spline as far as possible in step 28, so that you can set the maximum retraction 
+point of the hopper arms by attaching them how you like).
 : ![alt text](https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP30.png)
 
 28. Line the servos with attached hopper arms up as shown in the picture and use your favourite adhesive to 
