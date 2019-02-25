@@ -68,7 +68,97 @@ The design allows a single mouse at a time to enter the reaching tube. Upon entr
 	
 	
 **Assembly:**
-Coming soon...
+
+**Attach headers to the PCB**
+
+1. Attach female headers for the Arduino onto the PCB.
+
+2. Attach male headers onto the CAMTRIG, MSZ, SERVO1, SERVO2, RFID and IRBREAK holes on the PCB.
+
+3. Solder the stepper driver to the PCB in the orientation shown in the picture. (Note that the holes on 
+	the PCB are spaced too far apart for the stepper driver pins, so we've hacked together an adapter.
+	(The green PCB in the picture). You'll need to address this until someone gets around to fixing the PCB layout).
+	
+4. Solder the capacitor across C1 as shown in the picture.
+
+**Install the voltage regulator and power connectors**
+
+5. Attach 6 leads to the voltage regulator.
+	- 2 Leads to the positive input pad.
+	- 2 leads to the negative input pad.
+	- 1 lead to the positive output pad.
+	- 1 lead to the negative output pad.
+	
+6. Short the neutral and ground leads on the circular power connectors by soldering a small wire across them.
+
+7. Line up the voltage regulator in the box and drill holes through the box where you want to mount the regulator.
+
+8. Screw one of the circular power connectors into the bottom hole.
+
+9. Solder one of the negative input leads you attached to the voltage regulator in step 1 onto the negative lead of the 
+	power connector you screwed in in step 4.
+	
+10. Solder one of the positive input leads you attached to the voltage regulator in step 1 onto the positive lead of the
+	power connector you screwed in in step 4. 
+	
+11. Place the PCB into the box and drill holes into the box where the mount holes on the PCB line up. Then mount the 
+	PCB with some bolts. Metal bolts are fine, they won't touch anything that will be a problem. Use nylon 
+	washers if you're nervous.
+	
+12. Solder the remaining positive input power lead that you attached to the voltage regulator in step 5 to the positive
+	MOTORPWR pad on the PCB.
+
+13. Solder the remaining negative input power lead that you attached to the voltage regulator in step 5 to the negative
+	MOTORPWR pad on the PCB.
+	
+14. Screw in the second circular power connector to the remaining hole in the box.
+
+15. Solder a wire from the negative lead of the second power connector to the negative lead of the first power connctor.
+
+16. Solder a wire from the positive lead of the second power connector to the positive lead of the first power connector.
+
+**Assemble the pellet delivery system**
+
+17. Line the hopper rail piece up on the baseplate and screw in the 4 screws that hold it in place.
+
+18. INSERT STEPPER INSTALLATION STEP HERE
+
+19. INSERT MICROSWITCH INSTALLATION STEP HERE
+
+20. Slide the hopper onto the rails and slot a nut through the stepper coupler attached hole.
+
+21. Thread the stepper coupler bolt through the hopper nut.
+
+21. Attach both front surface mirrors to the mirror mount piece with double sided tape.
+
+22. Slide the front-wall/mirror holder piece over the end of the acrylic tube.
+
+23. Use your favorite adhesive to attach the IR-Breaker to the IR-Breaker holder.
+
+24. Slide the IR-Breaker holder over the tube so that the beam runs across the bottom of the tube 
+	(Where the mice feet will be).
+	
+25. Plug the USB adapter into your RFID sensor and hotglue it to the acrylic tube as shown. (Note:
+	Push the IR-Breaker holder up against the RFID module so that it's sandwiched between
+	the IR-Breaker holder and the front-wall/mirror holder, and hot glue it all in place).
+	
+26. Slot the assembled acrylic tube into the square hole on the rail baseplate mount as shown.
+
+27. Line up both servos as shown in the picture.
+
+28. Rotate the servo splines as far as they will go in the directions shown in the picture.
+
+29. Use an allen key to insert the set screws into the tips of the hopper arms.
+
+30. Attach the hopper arms to the servo spline as shown in the picture. (Note: This is why we rotated the servo
+	spline as far as possible in step 28, so that you can set the maximum retraction point of the hopper arms 
+	by attaching them how you like).
+	
+31. Line the servos with attached hopper arms up as shown in the picture and use your favourite adhesive to 
+	adhere them to the servo mount points on the hopper.
+	
+ 
+
 
 
 

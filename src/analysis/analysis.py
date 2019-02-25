@@ -113,44 +113,45 @@ def txt2Reaches(txtFile, dict):
                 tempReach['path_paw'].append([float(listLine[0]), float(listLine[1]), float(listLine[2])])
 
         if i >= 5:
+            if len(tempReach['speed_per_moment']) > 0:
+                maxSpeed = max(tempReach['speed_per_moment'])
+                tempReach['max_speed'] = maxSpeed
+                tempReach['max_speed_coordinates'] = tempReach['speed_per_moment'].index(maxSpeed)
+                minSpeed = min(tempReach['speed_per_moment'])
+                tempReach['min_speed'] = minSpeed
+                tempReach['min_speed_coordinates'] = tempReach['speed_per_moment'].index(minSpeed)
+                tempReach['reach_frame'] = reachFrame
+                tempReach['path_length_paw_forward'] = pathForwardLength
+                tempReach['path_length_paw_backward'] = pathBackwardLength
+                dataList['reaches'].append(tempReach)
 
-            maxSpeed = max(tempReach['speed_per_moment'])
-            tempReach['max_speed'] = maxSpeed
-            tempReach['max_speed_coordinates'] = tempReach['speed_per_moment'].index(maxSpeed)
-            minSpeed = min(tempReach['speed_per_moment'])
-            tempReach['min_speed'] = minSpeed
-            tempReach['min_speed_coordinates'] = tempReach['speed_per_moment'].index(minSpeed)
-            tempReach['reach_frame'] = reachFrame
-            tempReach['path_length_paw_forward'] = pathForwardLength
-            tempReach['path_length_paw_backward'] = pathBackwardLength
-            dataList['reaches'].append(tempReach)
-
-            reachFrame = 0
-            pathForwardLength = 0.
-            pathBackwardLength = 0.
-            labels = []
-            i = 0
-            tempReach = {
-                'id': none,
-                'start_frame': none,
-                'end_frame': none,
-                'label': none,
-                'max_speed': none,
-                'max_speed_coordinates': none,
-                'min_speed': none,
-                'min_speed_coordinates': none,
-                'path_length_paw_forward': none,
-                'path_length_paw_backward': none,
-                'reach_frame': none,
-                'speed_per_moment': [],
-                'path_paw': [],
-            }
-            numReaches += 1
+                reachFrame = 0
+                pathForwardLength = 0.
+                pathBackwardLength = 0.
+                labels = []
+                i = 0
+                tempReach = {
+                    'id': none,
+                    'start_frame': none,
+                    'end_frame': none,
+                    'label': none,
+                    'max_speed': none,
+                    'max_speed_coordinates': none,
+                    'min_speed': none,
+                    'min_speed_coordinates': none,
+                    'path_length_paw_forward': none,
+                    'path_length_paw_backward': none,
+                    'reach_frame': none,
+                    'speed_per_moment': [],
+                    'path_paw': [],
+                }
+                numReaches += 1
     maxSpeed = 0
-    minSpeed = 100
+    minSpeed = float('inf')
     maxId = 0
     minId = 0
     for i in range(len(dataList['reaches'])):
+
         if dataList['reaches'][i]['max_speed'] > maxSpeed:
             maxSpeed = dataList['reaches'][i]['max_speed']
             maxId = dataList['reaches'][i]['id']
@@ -205,28 +206,11 @@ def write2CSV(data, targetDir):
         writer.writerow(line)
     f.close()
 
-def run(targetDir, dict):
-
-    '''
-    This is the main entrance of analysis.py
-    :param targetDir: a folder to hold the output csv files
-    :param dict: A dictionary contains some global features and the details for each reach.
-    :return: nothing
-    '''
-    txtFileList = readAllFiles()
-
-    for i in tqdm(range(len(txtFileList))):
-        baseName = os.path.basename(txtFileList[i])
-        baseName = baseName.replace('_reaches_scored', '').replace('txt', 'csv')
-        targetFile = os.path.join(targetDir, baseName)
-        data = txt2Reaches(txtFileList[i], dict)
-        write2CSV(data, targetFile)
 
 def runTest(dict):
 
     '''
-    This is the main entrance of analysis.py
-    :param targetDir: a folder to hold the output csv files
+    This is the main entrance of analysis.py, the analysed data will be saved in the same folder as the scored data txt.
     :param dict: A dictionary contains some global features and the details for each reach.
     :return: nothing
     '''
