@@ -112,7 +112,7 @@ power connector you screwed in in step 4.
 10. Place the PCB into the box and drill holes into the box where the mount holes on the PCB line up. 
 Then mount the PCB with some bolts. Metal bolts are fine, they won't touch anything that will be a problem. 
 Use nylon washers if you're nervous.
-: ![alt text](https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP11.png)
+<img align="right" width="600" height="600" src="https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP11.png">
 
 11. Solder the remaining positive input power lead that you attached to the voltage regulator in 
 step 5 to the positive MOTORPWR pad on the PCB.
@@ -120,7 +120,7 @@ step 5 to the positive MOTORPWR pad on the PCB.
 
 12. Solder the remaining negative input power lead that you attached to the voltage regulator in 
 step 5 to the negative MOTORPWR pad on the PCB.
-: ![alt text](https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP13.png)
+<img align="right" width="600" height="600" src="https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP113.png">
 
 13. Screw in the second circular power connector to the remaining hole in the box. Solder a wire from the negative lead of the
 second power connector to the negative lead of the first power connctor. Solder a wire from the positive lead of the second power
