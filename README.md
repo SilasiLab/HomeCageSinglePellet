@@ -103,11 +103,11 @@ IRBREAK holes on the PCB.![alt text](https://raw.githubusercontent.com/SilasiLab
 
 8. Solder one of the negative input leads you attached to the voltage regulator in step 1 onto the negative lead of the 
 power connector you screwed in in step 4.
-![alt text](https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP9.png)
+ ![alt text](https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP9.png)
 
 9. Solder one of the positive input leads you attached to the voltage regulator in step 1 onto the positive lead of the
 power connector you screwed in in step 4. 
-Format: ![alt text](https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP10.png)
+ ![alt text](https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP10.png)
 
 10. Place the PCB into the box and drill holes into the box where the mount holes on the PCB line up. Then mount the 
 PCB with some bolts. Metal bolts are fine, they won't touch anything that will be a problem. Use nylon 
