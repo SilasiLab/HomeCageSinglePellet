@@ -69,6 +69,12 @@ The design allows a single mouse at a time to enter the reaching tube. Upon entr
 	
 # **Assembly:**
 
+### **Prerequisites:**
+
+1. Obtain all the parts listed in HomeCageSinglePellet/resources/partsList.xls
+2. Have the PCB schematic HomeCageSinglePellet/resources/PCB/nano.brd manufactured
+3. 3D print all the .stl files contained in HomeCageSinglePellet/resources/CAD/STL/
+
 ### **Attach headers and components to the PCB**
 
 1. Attach female headers for the Arduino onto the PCB. Attach male headers onto the CAMTRIG, MSZ, SERVO1, SERVO2, RFID and
