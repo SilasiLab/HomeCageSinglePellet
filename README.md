@@ -177,7 +177,10 @@ point of the hopper arms by attaching them how you like).
 <img width="600" height="600" src="https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP30.png">
 
 27. Line the servos with attached hopper arms up as shown in the picture and use your favourite adhesive to 
-adhere them to the servo mount points on the hopper.
+adhere them to the servo mount points on the hopper. **Note:** This step can be finicky. Before you adhere the servos to the 
+hopper, ensure the hopper arms will rotate easily at their pivot point and that they slide easily through the holes in the 
+hopper. If there is too much friction the arms will vibrate and jump around as they move, and since their function is to 
+balance millet seeds on a small set screw, vibrations are bad.
 <img width="600" height="600" src="https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP31.png">
 
 28. This step is where we will glue the acrylic tube permanently into the sqaure 3D printed hole it sits in. Rotate the stepper
