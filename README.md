@@ -1,4 +1,4 @@
-#**Overview**:
+# **Overview**:
 
 This system allows the user to host up to 5 mice in their home environment and automatically administer the single pellet reaching test to those animals. The system can run unsupervised and continuously for weeks at a time, allowing all 5 mice to perform an unlimited number of single pellet trials at their leisure. 
 
@@ -8,7 +8,7 @@ The design allows a single mouse at a time to enter the reaching tube. Upon entr
 
 
 
-#**Dependencies:**
+# **Dependencies:**
 * Ubuntu v16.04 LTS: Kernel version 4.4.19-35 or later
 * Python v3.5.2
 	* pySerial	
@@ -28,7 +28,7 @@ The design allows a single mouse at a time to enter the reaching tube. Upon entr
 	Note: The Spinnaker dependencies are installed via official Spinnaker SDK install script.
 * Arduino IDE v1.8.5
 
-#**Softwarre Installation:**
+# **Softwarre Installation:**
 1. Install Ubuntu 16.04 LTS on your machine.
 2. Install Anaconda. (https://www.anaconda.com/distribution/)
 3. Install the Flir Spinnaker SDK v1.10.31 (https://www.ptgrey.com/support/downloads)
@@ -67,9 +67,9 @@ The design allows a single mouse at a time to enter the reaching tube. Upon entr
 8. Done!
 	
 	
-#**Assembly:**
+# **Assembly:**
 
-###**Attach headers and components to the PCB**
+### **Attach headers and components to the PCB**
 
 1. Attach female headers for the Arduino onto the PCB. Attach male headers onto the CAMTRIG, MSZ, SERVO1, SERVO2, RFID and
 IRBREAK holes on the PCB.
@@ -82,7 +82,7 @@ need to do this until someone gets around to fixing the PCB layout.
 	
 3. Solder the capacitor across C1 as shown in the picture.
 
-###**Install the voltage regulator and power connectors**
+### **Install the voltage regulator and power connectors**
 
 4. Attach 6 leads to the voltage regulator:
 	- 2 Leads to the positive input pad.
@@ -127,7 +127,7 @@ second power connector to the negative lead of the first power connctor. Solder 
 connector to the positive lead of the first power connector.
 <img width="600" height="600" src="https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP14-16.png">
 
-###**Assemble the pellet delivery system and mouse tube**
+### **Assemble the pellet delivery system and mouse tube**
 
 14. Line the hopper rail piece up on the baseplate and screw in the 4 screws that hold it in place.
 <img width="600" height="600" src="https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP17.png">
@@ -204,8 +204,8 @@ SERVO1 signal pin on the PCB.
 
 
 
-#**Usage**:
-###**Running the Device**
+# **Usage**:
+### **Running the Device**
 1. Enter the virtual environment that the system was installed in by typing `source activate <my_env>` into a terminal.
 
 2. Use `cd` to navigate to HomeCageSinglePellet/src/client/ and then run `python -B genProfiles.py`. The text prompts will walk you through entering your new animals into the system.
@@ -225,7 +225,7 @@ SERVO1 signal pin on the PCB.
 
 
 
-###**Analysis**:
+### **Analysis**:
 
 A high level analysis script is provided that runs the data for all animals through a long analysis pipeline. The functions performed on each video include;
 
@@ -254,7 +254,7 @@ Another script (`HomeCageSinglePellet/src/analysis/scoreTrials.py`) is provided 
 **Note:** All the analysis functions read and write all their data to/from `HomeCageSinglePellet/AnimalProfiles/<animal_name>/Analyses/`. Information for each video is saved in a unique folder whose name includes video creation date, animal RFID, cage number and session number. (e.g `2019-01-25_14:36:31_002FBE737B99_67465_5233`). Each of these folders will contain the raw video, the deeplabcut output from analyzing the video (.h5 and .csv formats). In addition, if >=1 reaches were found in the video, the folder will contain a file named date_time_rfid_cage_number_session_number_reaches.txt (e.g `2019-01-25_14:36:31_002FBE737B99_67465_5233_reaches.txt`). This file contains the start and stop frame indexes of each reach in the video and (x,y,z) vectors for each reach. In addition, once a video has been scored manually using `scoreTrials.py`, a file named date_time_rfid_cage_number_session_number_reaches_scored.txt (e.g `2019-01-25_14:36:31_002FBE737B99_67465_5233_reaches_scored.txt`) will be added to the video's folder. This file is the same as date_time_rfid_cage_number_session_number_reaches.txt, except that it also contains a category identifier for every reach.
 
 
-#**Troubleshooting**:
+# **Troubleshooting**:
 
 * Is everything plugged in?
 * Shutting the system down incorrectly will often cause the camera and camera software to enter a bad state.
