@@ -69,7 +69,7 @@ The design allows a single mouse at a time to enter the reaching tube. Upon entr
 	
 **Assembly:**
 
-**Attach headers to the PCB**
+**Attach headers and components to the PCB**
 
 1. Attach female headers for the Arduino onto the PCB. Attach male headers onto the CAMTRIG, MSZ, SERVO1, SERVO2, RFID and
 IRBREAK holes on the PCB.
@@ -127,8 +127,7 @@ second power connector to the negative lead of the first power connctor. Solder 
 connector to the positive lead of the first power connector.
 <img width="600" height="600" src="https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP14-16.png">
 
-
-**Assemble the pellet delivery system**
+**Assemble the pellet delivery system and mouse tube**
 
 14. Line the hopper rail piece up on the baseplate and screw in the 4 screws that hold it in place.
 <img width="600" height="600" src="https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP17.png">
@@ -137,49 +136,70 @@ connector to the positive lead of the first power connector.
 <img width="600" height="600" src="https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP18.png">
 <img width="600" height="600" src="https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP18.2.png">
 
-16. INSERT MICROSWITCH INSTALLATION STEP HERE
+16. Attach the screw to the stepper coupler. Slide the hopper onto the rails and insert the nut into the slot where the stepper coupler screw will go. Then thread the shaft coming out of the coupler into the nut. 
+<img width="600" height="300" src="https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP17_NEW.png">
 
-17. Slide the hopper onto the rails and slot a nut through the stepper coupler attached hole.
+17. Rotate the stepper coupler until the screw is all the way into the hopper nut. Solder two leads to the microswitch,
+one on the left and right prongs coming out of the switch. Use superglue to glue the microswitch down so it will be pressed
+when the hopper reaches it's closest point to the motor. 
+<img width="600" height="600" src="https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP18_NEW.png">
 
-18. Thread the stepper coupler bolt through the hopper nut.
-
-19. Attach both front surface mirrors to the mirror mount piece with double sided tape.
+18. Attach both front surface mirrors to the mirror mount piece with double sided tape.
 <img width="900" height="600" src="https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP21.png">
 
-20. Slide the front-wall/mirror holder piece over the end of the acrylic tube.
+19. Slide the front-wall/mirror holder piece over the end of the acrylic tube.
 <img width="600" height="600" src="https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP22.png">
 
-21. Use your favorite adhesive to attach the IR-Breaker to the IR-Breaker holder.
+20. Use your favorite adhesive to attach the IR-Breaker to the IR-Breaker holder.
 <img width="900" height="600" src="https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP23.png">
 
-22. Slide the IR-Breaker holder over the tube so that the beam runs across the bottom of the tube 
+21. Slide the IR-Breaker holder over the tube so that the beam runs across the bottom of the tube 
 (Where the mice feet will be).
+<img width="600" height="600" src="https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP22_NEW.png">
 
-23. Plug the USB adapter into your RFID sensor and hotglue it to the acrylic tube as shown. 
+22. Plug the USB adapter into your RFID sensor and hotglue it to the acrylic tube as shown. 
 (Note: Push the IR-Breaker holder up against the RFID module so that it's sandwiched between
 the IR-Breaker holder and the front-wall/mirror holder, and hot glue it all in place).
 <img width="600" height="900" src="https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP25.png">
 
-24. Slot the assembled acrylic tube into the square hole on the rail baseplate mount as shown.
+23. Slot the assembled acrylic tube into the square hole on the rail baseplate mount as shown.
 <img width="900" height="600" src="https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP26.png">
 
-25. Line up both servos as shown in the picture. Rotate the servo splines as far as they will go in the 
+24. Line up both servos as shown in the picture. Rotate the servo splines as far as they will go in the 
 directions shown in the picture.
 <img width="600" height="600" src="https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP27-28.png">
 
-26. Use an allen key to insert the set screws into the tips of the hopper arms.
+25. Use an allen key to insert the set screws into the tips of the hopper arms.
 <img width="600" height="600" src="https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP29.png">
 
-27. Attach the hopper arms to the servo spline as shown in the picture. (Note: This is why we 
+26. Attach the hopper arms to the servo spline as shown in the picture. (Note: This is why we 
 rotated the servo spline as far as possible in step 28, so that you can set the maximum retraction 
 point of the hopper arms by attaching them how you like).
 <img width="600" height="600" src="https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP30.png">
 
-28. Line the servos with attached hopper arms up as shown in the picture and use your favourite adhesive to 
+27. Line the servos with attached hopper arms up as shown in the picture and use your favourite adhesive to 
 adhere them to the servo mount points on the hopper.
 <img width="600" height="600" src="https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP31.png">
 
-29. Assembly complete!
+28. This step is where we will glue the acrylic tube permanently into the sqaure 3D printed hole it sits in. Rotate the stepper
+coupler until the hopper is as close as it can get to the motor. Now rotate the hopper arms up so that they are sitting infront 
+of the tube opening as shown. On bootup the stepper motor will "zero" the hopper using the limit switch. We want this zero point
+to put our pellet presentation arms directly infront of the tube opening. Additionally we want the tube to sit at a high enough angle that the hopper will not catch on the mirrors or any part of the tube assembly when it moves. Once you're satisfied that both these requirements are met, glue the tube into place. 
+<img width="600" height="600" src="https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP29_NEW.png">
+
+29. Splice the power wires of both servo motors together. Splice the ground wires of both servo motors together. Splice the servo power wire into the lead coming out of the voltage regulator positive output. Splice the servo ground wire into the lead coming out of the voltage regulator negative output.
+<img width="600" height="800" src="https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP14_NEW.png">
+
+30. Plug the leftmost servo signal wire into the SERV02 signal pin on the PCB. Plug the rightmost servo signal wire into the 
+SERVO1 signal pin on the PCB.
+<img width="600" height="600" src="https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP15_NEW.png">
+
+31. Splice the power wires of the IRbreak LED and photo diode together. Splice the ground wires of the IRBreak LED and photo diode together. Plug the spliced power, spliced ground and signal line of the IRbreaker into the IRBREAK pins on the PCB. 
+<img width="600" height="600" src="https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP16_NEW.png">
+
+32. Plug the microswitch wires into the MSZ pins on the PCB. (TODO: Figure out which wire goes onto which pin and add a picture)
+
+33. Assembly complete!
  
 
 
