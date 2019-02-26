@@ -28,7 +28,7 @@ The design allows a single mouse at a time to enter the reaching tube. Upon entr
 	Note: The Spinnaker dependencies are installed via official Spinnaker SDK install script.
 * Arduino IDE v1.8.5
 
-# **Softwarre Installation:**
+# **Software Installation:**
 1. Install Ubuntu 16.04 LTS on your machine.
 2. Install Anaconda. (https://www.anaconda.com/distribution/)
 3. Install the Flir Spinnaker SDK v1.10.31 (https://www.ptgrey.com/support/downloads)
