@@ -71,10 +71,10 @@ The design allows a single mouse at a time to enter the reaching tube. Upon entr
 
 ### **Prerequisites:**
 
-1. Obtain all the parts listed in HomeCageSinglePellet/resources/partsList.xls
-2. Have the PCB HomeCageSinglePellet/resources/PCB/nano.brd manufactured (Find a manufacturer, send them the .brd file using
+1. Obtain all the parts listed in `HomeCageSinglePellet/resources/partsList.xls`
+2. Have the PCB `HomeCageSinglePellet/resources/PCB/nano.brd` manufactured (Find a manufacturer, send them the .brd file using
 whatever process they use for upload, wait for it in the mail).
-3. 3D print all the .stl files contained in HomeCageSinglePellet/resources/CAD/STL/
+3. 3D print all the .stl files contained in `HomeCageSinglePellet/resources/CAD/STL/`
 
 ### **Attach headers and components to the PCB**
 
