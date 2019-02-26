@@ -208,7 +208,13 @@ SERVO1 signal pin on the PCB.
 
 32. Plug the microswitch wires into the MSZ pins on the PCB. (TODO: Figure out which wire goes onto which pin and add a picture)
 
-33. Assembly complete!
+33. Plug the 12V 1A power supply into either of the circulaer power connectors on the PCB box.
+
+34. Plug one of the micro USB cables into the Arduino on one end and the PC on the other.
+
+35. Plug one of the micro USB cables into the Arduino on one end and the PC on the other.
+
+36. Assembly complete!
  
 
 
