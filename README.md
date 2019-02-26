@@ -80,7 +80,7 @@ the PCB are spaced too far apart for the stepper driver pins). To address this w
 need to do this until someone gets around to fixing the PCB layout.
 <img width="600" height="600" src="https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP3.png">
 	
-3. Solder the capacitor across C1 as shown in the picture.
+3. Solder the capacitor across C1 as shown in the picture. (TODO: INSERT PICTURE)
 
 ### **Install the voltage regulator and power connectors**
 
