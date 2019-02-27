@@ -61,4 +61,13 @@ def check_directory_structure():
     assert(os.path.isdir('../../AnimalProfiles/MOUSE5/Temp')),"Error: HomeCageSinglePellet/AnimalProfiles/MOUSE5/Temp directory does not exist"
     assert(os.path.isfile('../../AnimalProfiles/MOUSE5/MOUSE5_save.txt')),"Error: HomeCageSinglePellet/AnimalProfiles/MOUSE5/MOUSE5_save.txt does not exist"
 
+
+    if(not os.path.isfile('../../config/trialLimitsConfig.txt')):
+        with open('../../config/trialLimitConfig.txt', 'w') as f:
+            f.write("0\n")
+            f.write("0\n")
+            f.write("0\n")
+            f.write("0\n")
+            f.write("0\n")
+
 check_directory_structure()

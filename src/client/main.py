@@ -18,7 +18,7 @@ from subprocess import PIPE, Popen
 import os
 import cv2
 import random
-
+import datetime
 
 
 systemCheck.check_directory_structure()
@@ -53,6 +53,41 @@ config.close()
 #       - Logs
 #       - Videos
 #       - save.txt
+
+mouse1TrialLimit = None
+mouse2TrialLimit = None
+mouse3TrialLimit = None
+mouse4TrialLimit = None
+mouse5TrialLimit = None
+
+mouse1TrialsToday = 0
+mouse2TrialsToday = 0
+mouse3TrialsToday = 0
+mouse4TrialsToday = 0
+mouse5TrialsToday = 0
+
+def loadAnimalProfileTrialLimits():
+
+    with open("../../config/trialLimitConfig.txt") as f:
+        mouse1TrialLimit = f.readline().rstrip()
+        mouse2TrialLimit = f.readline().rstrip()
+        mouse3TrialLimit = f.readline().rstrip()
+        mouse4TrialLimit = f.readline().rstrip()
+        mouse5TrialLimit = f.readline().rstrip()
+
+def resetAnimalProfileTrialsToday():
+
+    currentDT = datetime.datetime.now()
+
+    if(currentDT.hour == "07"):
+        print("Resetting animal trial limits for the day!")
+        mouse1TrialsToday = 0
+        mouse2TrialsToday = 0
+        mouse3TrialsToday = 0
+        mouse4TrialsToday = 0
+        mouse5TrialsToday = 0
+
+
 
 def loadAnimalProfiles(profile_save_directory):
     # Get list of profile folders
@@ -372,9 +407,46 @@ def main():
         if profile != -1:
 
             # Before starting a session, reload the animal profiles. This is done incase a profile was
-            # changed by the GUI or some other process since the last load occured. 
+            # changed by the GUI or some other process since the last load occured.
+            resetAnimalProfileTrialsToday()
             session_controller.set_profile_list(loadAnimalProfiles(PROFILE_SAVE_DIRECTORY))
             profile = session_controller.searchForProfile(RFID_code)
+
+            if(profile.mouseNumber == "1"):
+                if(mouse1TrialsToday >= mouse1TrialLimit):
+                    print("MOUSE1 has reached maximum trials for today...aborting!")
+                    continue
+                else:
+                    mouse1TrialsToday += 1
+
+            elif(profile.mouseNumber == "2"):
+                if(mouse2TrialsToday >= mouse2TrialLimit):
+                    print("MOUSE2 has reached maximum trials for today...aborting!")
+                    continue
+                else:
+                    mouse2TrialsToday += 1
+
+            elif(profile.mouseNumber == "3"):
+                if(mouse3TrialsToday >= mouse3TrialLimit):
+                    print("MOUSE3 has reached maximum trials for today...aborting!")
+                    continue
+                else:
+                    mouse3TrialsToday += 1
+
+            elif(profile.mouseNumber == "4"):
+                if(mouse4TrialsToday >= mouse4TrialLimit):
+                    print("MOUSE4 has reached maximum trials for today...aborting!")
+                    continue
+                else:
+                    mouse4TrialsToday += 1
+
+            elif(profile.mouseNumber == "5"):
+                if(mouse5TrialsToday >= mouse5TrialLimit):
+                    print("MOUSE5 has reached maximum trials for today...aborting!")
+                    continue
+                else:
+                    mouse5TrialsToday += 1
+
 
             # Start a session on Arduino server side. <A> is the magic byte that tells the Arduino to start a session.
             arduino_client.serialInterface.write(b'A')
@@ -386,7 +458,7 @@ def main():
             # Load profileList after each session as well. Can't remember why I decided to reload profiles before AND after session, 
             # but I don't see any downside and removing this might break something. 
             session_controller.set_profile_list(loadAnimalProfiles(PROFILE_SAVE_DIRECTORY))
-
+            loadAnimalProfileTrialLimits()
         # RFID NOT authorized
         else:
 

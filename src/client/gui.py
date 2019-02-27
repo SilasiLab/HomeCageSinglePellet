@@ -14,7 +14,8 @@ import os
 #
 #
 # Most of the buttons are attached to a function that simply reads and writes to a profileState. They will also update text boxes
-# when appropriate. It's mostly clear just by reading it. 
+# when appropriate. It's mostly clear just by reading it.
+
 class GUI:
 
 
@@ -29,6 +30,13 @@ class GUI:
 		self.profileStates = []
 		self.currentMouse = -1
 
+		with open("../../config/trialLimitConfig.txt") as f:
+			self.mouse1TrialLimit = f.readline().rstrip()
+			self.mouse2TrialLimit = f.readline().rstrip()
+			self.mouse3TrialLimit = f.readline().rstrip()
+			self.mouse4TrialLimit = f.readline().rstrip()
+			self.mouse5TrialLimit = f.readline().rstrip()
+
 
 		menubar = Menu(master)
 		menubar.config(fg="red",)
@@ -41,11 +49,11 @@ class GUI:
 		self.mouse3_button = Button(frame1, text="Select Mouse 3", command=self.select_mouse3_button_onClick, borderwidth = 3, relief = "raised")
 		self.mouse4_button = Button(frame1, text="Select Mouse 4", command=self.select_mouse4_button_onClick, borderwidth = 3, relief = "raised")
 		self.mouse5_button = Button(frame1, text="Select Mouse 5", command=self.select_mouse5_button_onClick, borderwidth = 3, relief = "raised")
-		self.mouse1_button.pack(side=LEFT)
-		self.mouse2_button.pack(side=LEFT)
-		self.mouse3_button.pack(side=LEFT)
-		self.mouse4_button.pack(side=LEFT)
-		self.mouse5_button.pack(side=LEFT)
+		self.mouse1_button.pack(padx=52,side=LEFT)
+		self.mouse2_button.pack(padx=52,side=LEFT)
+		self.mouse3_button.pack(padx=52,side=LEFT)
+		self.mouse4_button.pack(padx=52,side=LEFT)
+		self.mouse5_button.pack(padx=52,side=LEFT)
 
 		frame1.pack()
 
@@ -67,32 +75,54 @@ class GUI:
 
 
 		self.mouse1_label = Label(frame2, text="Dist= " + str(dists[0]))
-		self.mouse1_label.pack(padx=38,side=LEFT)
+		self.mouse1_label.pack(padx=90,side=LEFT)
 		self.mouse2_label = Label(frame2, text="Dist= "+ str(dists[1]))
-		self.mouse2_label.pack(padx=38,side=LEFT)
+		self.mouse2_label.pack(padx=90,side=LEFT)
 		self.mouse3_label = Label(frame2, text="Dist= "+ str(dists[2]))
-		self.mouse3_label.pack(padx=38,side=LEFT)
+		self.mouse3_label.pack(padx=90,side=LEFT)
 		self.mouse4_label = Label(frame2, text="Dist= "+ str(dists[3]))
-		self.mouse4_label.pack(padx=38,side=LEFT)
+		self.mouse4_label.pack(padx=90,side=LEFT)
 		self.mouse5_label = Label(frame2, text="Dist= "+ str(dists[4]))
-		self.mouse5_label.pack(padx=38,side=LEFT)
+		self.mouse5_label.pack(padx=90,side=LEFT)
 
 		frame2.pack()
 
 
 		frameArmButton = Frame(master)
-		self.armButton1 = Button(frameArmButton,text=armSettings[0], command=self.switch_arm_state_1)
-		self.armButton1.pack(padx=38,side=LEFT)
-		self.armButton2 = Button(frameArmButton,text=armSettings[1], command=self.switch_arm_state_2)
-		self.armButton2.pack(padx=38,side=LEFT)
-		self.armButton3 = Button(frameArmButton,text=armSettings[2], command=self.switch_arm_state_3)
-		self.armButton3.pack(padx=38,side=LEFT)
-		self.armButton4 = Button(frameArmButton,text=armSettings[3], command=self.switch_arm_state_4)
-		self.armButton4.pack(padx=38,side=LEFT)
-		self.armButton5 = Button(frameArmButton,text=armSettings[4], command=self.switch_arm_state_5)
-		self.armButton5.pack(padx=38,side=LEFT)
-
+		self.armButton1 = Button(frameArmButton,text=armSettings[0], command=self.switch_arm_state_1, width=12)
+		self.armButton1.pack(padx=60,side=LEFT)
+		self.armButton2 = Button(frameArmButton,text=armSettings[1], command=self.switch_arm_state_2, width=12)
+		self.armButton2.pack(padx=60,side=LEFT)
+		self.armButton3 = Button(frameArmButton,text=armSettings[2], command=self.switch_arm_state_3, width=12)
+		self.armButton3.pack(padx=60,side=LEFT)
+		self.armButton4 = Button(frameArmButton,text=armSettings[3], command=self.switch_arm_state_4, width=12)
+		self.armButton4.pack(padx=60,side=LEFT)
+		self.armButton5 = Button(frameArmButton,text=armSettings[4], command=self.switch_arm_state_5, width=12)
+		self.armButton5.pack(padx=60,side=LEFT)
 		frameArmButton.pack()
+
+		frameLimBox = Frame(master)
+		self.spinbox1 = Spinbox(frameLimBox, from_=0, to=300, command=self.update_spinbox1)
+		self.spinbox1.pack(padx=38,side=LEFT)
+		self.spinbox2 = Spinbox(frameLimBox, from_=0, to=300, command=self.update_spinbox2)
+		self.spinbox2.pack(padx=38,side=LEFT)
+		self.spinbox3 = Spinbox(frameLimBox, from_=0, to=300, command=self.update_spinbox3)
+		self.spinbox3.pack(padx=38,side=LEFT)
+		self.spinbox4 = Spinbox(frameLimBox, from_=0, to=300, command=self.update_spinbox4)
+		self.spinbox4.pack(padx=38,side=LEFT)
+		self.spinbox5 = Spinbox(frameLimBox, from_=0, to=300, command=self.update_spinbox5)
+		self.spinbox5.pack(padx=38,side=LEFT)
+		frameLimBox.pack()
+		for i in range(0,int(self.mouse1TrialLimit)):
+			self.spinbox1.invoke("buttonup")
+		for i in range(0,int(self.mouse2TrialLimit)):
+			self.spinbox2.invoke("buttonup")
+		for i in range(0,int(self.mouse3TrialLimit)):
+			self.spinbox3.invoke("buttonup")
+		for i in range(0,int(self.mouse4TrialLimit)):
+			self.spinbox4.invoke("buttonup")
+		for i in range(0,int(self.mouse5TrialLimit)):
+			self.spinbox5.invoke("buttonup")
 
 
 		frame42 = Frame(master)
@@ -108,12 +138,57 @@ class GUI:
 		frame4 = Frame(master)
 		self.updateButton = Button(frame4, text="Update", fg="green", command=self.update_button_onClick, pady=6)
 		self.close_button = Button(frame4, text="Shutdown", command=self.shutdown_onClick, borderwidth = 3, relief = "raised")
-		self.update_label = Label(frame4, text="\n", height=3, width= 34)
+		self.update_label = Label(frame4, text="\n", height=3, width= 40)
 		self.update_label.config(bd=2, relief="ridge")
 		self.updateButton.pack()
 		self.update_label.pack(side=BOTTOM)
 		frame4.pack()
 
+
+	def update_spinbox1(self):
+		self.mouse1TrialLimit = self.spinbox1.get()
+		with open("../../config/trialLimitConfig.txt", 'w') as f:
+			f.write(self.mouse1TrialLimit + "\n")
+			f.write(self.mouse2TrialLimit + "\n")
+			f.write(self.mouse3TrialLimit + "\n")
+			f.write(self.mouse4TrialLimit + "\n")
+			f.write(self.mouse5TrialLimit + "\n")
+
+	def update_spinbox2(self):
+		self.mouse2TrialLimit = self.spinbox2.get()
+		with open("../../config/trialLimitConfig.txt", 'w') as f:
+			f.write(self.mouse1TrialLimit + "\n")
+			f.write(self.mouse2TrialLimit + "\n")
+			f.write(self.mouse3TrialLimit + "\n")
+			f.write(self.mouse4TrialLimit + "\n")
+			f.write(self.mouse5TrialLimit + "\n")
+
+	def update_spinbox3(self):
+		self.mouse3TrialLimit = self.spinbox3.get()
+		with open("../../config/trialLimitConfig.txt", 'w') as f:
+			f.write(self.mouse1TrialLimit + "\n")
+			f.write(self.mouse2TrialLimit + "\n")
+			f.write(self.mouse3TrialLimit + "\n")
+			f.write(self.mouse4TrialLimit + "\n")
+			f.write(self.mouse5TrialLimit + "\n")
+
+	def update_spinbox4(self):
+		self.mouse4TrialLimit = self.spinbox4.get()
+		with open("../../config/trialLimitConfig.txt", 'w') as f:
+			f.write(self.mouse1TrialLimit + "\n")
+			f.write(self.mouse2TrialLimit + "\n")
+			f.write(self.mouse3TrialLimit + "\n")
+			f.write(self.mouse4TrialLimit + "\n")
+			f.write(self.mouse5TrialLimit + "\n")
+
+	def update_spinbox5(self):
+		self.mouse5TrialLimit = self.spinbox5.get()
+		with open("../../config/trialLimitConfig.txt", 'w') as f:
+			f.write(self.mouse1TrialLimit + "\n")
+			f.write(self.mouse2TrialLimit + "\n")
+			f.write(self.mouse3TrialLimit + "\n")
+			f.write(self.mouse4TrialLimit + "\n")
+			f.write(self.mouse5TrialLimit + "\n")
 
 
 	def switch_arm_state_1(self):
