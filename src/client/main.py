@@ -53,7 +53,6 @@ config.close()
 #       - Logs
 #       - Videos
 #       - save.txt
-
 mouse1TrialLimit = None
 mouse2TrialLimit = None
 mouse3TrialLimit = None
@@ -68,15 +67,18 @@ mouse5TrialsToday = 0
 
 def loadAnimalProfileTrialLimits():
 
+    global mouse1TrialLimit, mouse2TrialLimit, mouse3TrialLimit, mouse4TrialLimit, mouse5TrialLimit
+
     with open("../../config/trialLimitConfig.txt") as f:
-        mouse1TrialLimit = f.readline().rstrip()
-        mouse2TrialLimit = f.readline().rstrip()
-        mouse3TrialLimit = f.readline().rstrip()
-        mouse4TrialLimit = f.readline().rstrip()
-        mouse5TrialLimit = f.readline().rstrip()
+        mouse1TrialLimit = int(f.readline().rstrip())
+        mouse2TrialLimit = int(f.readline().rstrip())
+        mouse3TrialLimit = int(f.readline().rstrip())
+        mouse4TrialLimit = int(f.readline().rstrip())
+        mouse5TrialLimit = int(f.readline().rstrip())
 
 def resetAnimalProfileTrialsToday():
 
+    global mouse1TrialsToday, mouse2TrialsToday, mouse3TrialsToday, mouse4TrialsToday, mouse5TrialsToday
     currentDT = datetime.datetime.now()
 
     if(currentDT.hour == "07"):
@@ -388,6 +390,10 @@ def listen_for_rfid(ser):
 
 def main():
 
+    global mouse1TrialLimit, mouse2TrialLimit, mouse3TrialLimit, mouse4TrialLimit, mouse5TrialLimit
+    global mouse1TrialsToday, mouse2TrialsToday, mouse3TrialsToday, mouse4TrialsToday, mouse5TrialsToday
+
+    loadAnimalProfileTrialLimits()
     # These are handles to all the main system components.
     profile_list, arduino_client, session_controller, ser, guiProcess = sys_init()
 
