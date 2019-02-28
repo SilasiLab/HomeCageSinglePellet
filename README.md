@@ -218,39 +218,40 @@ SERVO1 signal pin on the PCB.
 36. Assembly complete!
  
 # **Calibration and Configuration:**
-	*You'll need to upload the `HomeCageSinglePellet/src/arduino/homecage_server/homecage_server.ino` file to the Arduino. 
-	(https://www.arduino.cc/en/Guide/ArduinoNano)
 
-	*There are 4 constants that will need to be modified in the file
-	`HomeCageSinglePellet/src/arduino/homecage_server/homecage_server.ino`
-	They are: `SERVO1_UP_POS`, `SERVO1_DOWN_POS`, `SERVO2_UP_POS` and `SERVO2_DOWN_POS`. They are located
-	on lines 41,43,45 and 47 respectively.
+*You'll need to upload the `HomeCageSinglePellet/src/arduino/homecage_server/homecage_server.ino` file to the Arduino. 
+(https://www.arduino.cc/en/Guide/ArduinoNano)
+
+*There are 4 constants that will need to be modified in the file
+`HomeCageSinglePellet/src/arduino/homecage_server/homecage_server.ino`
+They are: `SERVO1_UP_POS`, `SERVO1_DOWN_POS`, `SERVO2_UP_POS` and `SERVO2_DOWN_POS`. They are located
+on lines 41,43,45 and 47 respectively.
 	
-	These constants represent the PWM signal going to each servo. I won't explain PWM here, all you need to know
-	is different numbers correspond to different positions for the servos.
+These constants represent the PWM signal going to each servo. I won't explain PWM here, all you need to know
+is different numbers correspond to different positions for the servos.
 	
-	In the main loop, lines 421-425 have a block that will make the arms go up and down one at a time in an 
-	infinite loop. You'll need to observe the up/down positions of the arms during these movements to dial in the correct
-	position, using the constants mentioned above. I haven't found a better way to do this yet, and frankly all the
-	arduino code is poorly written. Any improvements or a rewrite would be welcomed. 
+In the main loop, lines 421-425 have a block that will make the arms go up and down one at a time in an 
+infinite loop. You'll need to observe the up/down positions of the arms during these movements to dial in the correct
+position, using the constants mentioned above. I haven't found a better way to do this yet, and frankly all the
+arduino code is poorly written. Any improvements or a rewrite would be welcomed. 
 	
-	Once you're happy with the up/down position of each arm during their "pellet presenting" movements, comment 
-	the infinite loop out and upload to the Arduino.
+Once you're happy with the up/down position of each arm during their "pellet presenting" movements, comment 
+the infinite loop out and upload to the Arduino.
 	
-	*Open `HomeCageSinglePellet/config/config.txt` and set the path to your `HomeCageSinglePellet/AnimalProfiles/` 
-	directory. (One of the Spinnaker video writing functions doesn't work with relative paths so we chose to work with 
-	full paths). I believe python has a library that will turn a relative path into a full path, so this could be fixed in 
-	the future.
+*Open `HomeCageSinglePellet/config/config.txt` and set the path to your `HomeCageSinglePellet/AnimalProfiles/` 
+directory. (One of the Spinnaker video writing functions doesn't work with relative paths so we chose to work with 
+full paths). I believe python has a library that will turn a relative path into a full path, so this could be fixed in 
+the future.
 	
-	*We don't provide exact details on camera setup, but if you want to use the analysis features provided in this 
-	project, it will be important to have video recording conditions as close as possible to ours. The performance of 
-	deelabcut will degrade rapidly as conditions stray from those used to produce the frames used to train the network.
-	Additionally the functions in kinalyze.py are dependent on specific recording conditions. 
+*We don't provide exact details on camera setup, but if you want to use the analysis features provided in this 
+project, it will be important to have video recording conditions as close as possible to ours. The performance of 
+deelabcut will degrade rapidly as conditions stray from those used to produce the frames used to train the network.
+Additionally the functions in kinalyze.py are dependent on specific recording conditions. 
 	
-	If you plan to use the analysis features, leave the recording settings in `HomeCageSinglePellet/config/config.txt` as 
-	the default. In terms of lighting conditions, camera mounting, recording angle, etc, just do your 
-	best to make it look like the picture below. If it's close enough, the analysis pipeline will work.
-	INSERT PICTURE OF FRAME CAPTURED BY PTGREY
+If you plan to use the analysis features, leave the recording settings in `HomeCageSinglePellet/config/config.txt` as 
+the default. In terms of lighting conditions, camera mounting, recording angle, etc, just do your 
+best to make it look like the picture below. If it's close enough, the analysis pipeline will work.
+INSERT PICTURE OF FRAME CAPTURED BY PTGREY
 
 
 
