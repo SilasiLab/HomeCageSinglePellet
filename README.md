@@ -31,7 +31,7 @@ The design allows a single mouse at a time to enter the reaching tube. Upon entr
 # **Software Installation:**
 1. Install Ubuntu 16.04 LTS on your machine.
 2. Install Anaconda. (https://www.anaconda.com/distribution/)
-3. Install the Flir Spinnaker SDK v1.10.31 (https://www.ptgrey.com/support/downloads)
+3. Install the Flir Spinnaker SDK v1.10.31 **INSERT GOOGLE DRIVE LINK TO SPINNAKER SDK HERE**
 4. Install Arduino IDE v1.8.5. (https://www.arduino.cc/en/Main/Software)
 5. Install OpenCV for C++.
 	- `sudo apt-get install build-essential cmake git libgtk2.0-dev pkg-config libavcodec-dev libavformat-dev libswscale-dev`
@@ -64,6 +64,7 @@ The design allows a single mouse at a time to enter the reaching tube. Upon entr
 6. Download the HCSP source code from https://github.com/SilasiLab/HomeCageSinglePellet and unpack it.
 7. Optional (Only if you want to use the analysis features): Install Deeplabcut using the Anaconda based pip installation method. (https://github.com/AlexEMG/DeepLabCut/blob/master/docs/installation.md)
 8. Optional (Only if you want to use the anaylsis features): Move the file `HomeCageSinglePellet/src/analysis/HCSP_analyze.py` into `~/.conda/envs/DLC2/lib/python3.6/site-packages/deeplabcut` (Where DLC2 is the name of the anaconda virtual environment where you installed Deeplabcut).
+9. Optional (Only if you want to use the anaylsis features): Download our pretrained DLC2 network for automatically extracting reach attempts from your videos. **INSERT GOOGLE DRIVE LINK TO NETWORK HERE**
 8. Done!
 	
 	
@@ -139,7 +140,7 @@ connector to the positive lead of the first power connector.
 14. Line the hopper rail piece up on the baseplate and screw in the 4 screws that hold it in place.
 <img width="600" height="600" src="https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP17.png">
 
-15. Attach the stepper motor as shown in the picture. Attach the coupler to the shaft of the motor.
+15. Attach the stepper motor as shown in the picture. Attach the coupler to the shaft of the motor. **Note:** For the steps involving the stepper motor, coupler and coupling screw; We don't yet have a design that uses standard parts. We currently take the screw detailed in the parts list and cut it and the stepper motor shaft to the correct lenght. **INSERT CORRECT LENGTH OF STEPPER MOTOR SHAFT AND COUPLING SCREW HERE.**
 <img width="600" height="600" src="https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP18.png">
 <img width="600" height="600" src="https://raw.githubusercontent.com/SilasiLab/HomeCageSinglePellet/master/resources/Images/STEP18.2.png">
 
@@ -216,6 +217,40 @@ SERVO1 signal pin on the PCB.
 
 36. Assembly complete!
  
+# **Calibration and Configuration:**
+	*You'll need to upload the `HomeCageSinglePellet/src/arduino/homecage_server/homecage_server.ino` file to the Arduino. 
+	(https://www.arduino.cc/en/Guide/ArduinoNano)
+
+	*There are 4 constants that will need to be modified in the file
+	`HomeCageSinglePellet/src/arduino/homecage_server/homecage_server.ino`
+	They are: `SERVO1_UP_POS`, `SERVO1_DOWN_POS`, `SERVO2_UP_POS` and `SERVO2_DOWN_POS`. They are located
+	on lines 41,43,45 and 47 respectively.
+	
+	These constants represent the PWM signal going to each servo. I won't explain PWM here, all you need to know
+	is different numbers correspond to different positions for the servos.
+	
+	In the main loop, lines 421-425 have a block that will make the arms go up and down one at a time in an 
+	infinite loop. You'll need to observe the up/down positions of the arms during these movements to dial in the correct
+	position, using the constants mentioned above. I haven't found a better way to do this yet, and frankly all the
+	arduino code is poorly written. Any improvements or a rewrite would be welcomed. 
+	
+	Once you're happy with the up/down position of each arm during their "pellet presenting" movements, comment 
+	the infinite loop out and upload to the Arduino.
+	
+	*Open `HomeCageSinglePellet/config/config.txt` and set the path to your `HomeCageSinglePellet/AnimalProfiles/` 
+	directory. (One of the Spinnaker video writing functions doesn't work with relative paths so we chose to work with 
+	full paths). I believe python has a library that will turn a relative path into a full path, so this could be fixed in 
+	the future.
+	
+	*We don't provide exact details on camera setup, but if you want to use the analysis features provided in this 
+	project, it will be important to have video recording conditions as close as possible to ours. The performance of 
+	deelabcut will degrade rapidly as conditions stray from those used to produce the frames used to train the network.
+	Additionally the functions in kinalyze.py are dependent on specific recording conditions. 
+	
+	If you plan to use the analysis features, leave the recording settings in `HomeCageSinglePellet/config/config.txt` as 
+	the default. In terms of lighting conditions, camera mounting, recording angle, etc, just do your 
+	best to make it look like the picture below. If it's close enough, the analysis pipeline will work.
+	INSERT PICTURE OF FRAME CAPTURED BY PTGREY
 
 
 
