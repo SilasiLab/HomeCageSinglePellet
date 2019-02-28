@@ -309,5 +309,6 @@ Another script (`HomeCageSinglePellet/src/analysis/scoreTrials.py`) is provided 
 * Make sure you are in the correct virtual environment.
 * Make sure the HomeCageSinglePellet/config/config.txt file contains the correct configuration. (If the file gets deleted it will be replaced by a default version at system start)
 * Make sure there are 1 to 5 profiles in the HomeCageSinglePellet/AnimalProfiles/ directory. Ensure these profiles contain all 		the appropriate files and that the save.txt file for each animal contains the correct information. 
-
+* Make sure that the Arduino mounted as device ttyUSB0 and that the RFID reader mounted as ttyUSB1 in /dev/. If they mounted 
+differently, rebooting and attaching them in the correct order will fix the problem.
 
