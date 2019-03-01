@@ -6,7 +6,8 @@ Walk through all the mice folders, and generate the csv files containing the ana
 import os
 import csv
 from tqdm import tqdm
-
+import pandas as pd
+from collections import OrderedDict
 
 def readAllFiles():
     '''
@@ -206,6 +207,29 @@ def write2CSV(data, targetDir):
         writer.writerow(line)
     f.close()
 
+def write2CSV_new(data, targetDir):
+    '''
+    This function takes the data dictionary and a target directory as input and will eventually write them into a csv file.
+
+    :param data: the output of the function txt2Reaches
+    :param targetDir: a target file name
+    :return: Nothing
+    '''
+
+    reachList = data['reaches']
+
+    data_frame = OrderedDict()
+
+    sorted_key = ['id', 'label', 'start_frame', 'end_frame', 'reach_frame', 'max_speed', 'max_speed_coordinates', 'min_speed', 'min_speed_coordinates', 'path_length_paw_forward', 'path_length_paw_backward','speed_per_moment', 'path_paw']
+
+    for k in sorted_key:
+        data_frame[k] = []
+
+    for reach in reachList:
+        for k in sorted_key:
+            data_frame[k].append(reach[k])
+    df = pd.DataFrame(data_frame)
+    df.to_csv(targetDir)
 
 def runTest(dict):
 
@@ -233,11 +257,9 @@ def runOneFile(txtFile, dict):
 
     data = txt2Reaches(txtFile, dict)
     targetFile = txtFile.replace('_reaches_scored', '_analysed').replace('txt', 'csv')
-    write2CSV(data, targetFile)
+    write2CSV_new(data, targetFile)
 
-if __name__ == '__main__':
 
-    targetDir = "/home/junzheng/work/silasi/analyses/test"
-    dict = {'Background': 0, 'Invalid Trial': 1, 'Pellet Knocked Off': 2, 'Grasp2': 3, 'Successful Grasp': 4}
-    run(targetDir, dict)
+
+
 
