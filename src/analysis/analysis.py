@@ -103,12 +103,6 @@ def txt2Reaches(txtFile, dict):
                     [x1, y1, z1] = [float(listLine[0]), float(listLine[1]), float(listLine[2])]
                     [x2, y2, z2] = tempReach['path_paw'][-1]
                     distance = ((x1 - x2) ** 2 + (y1 - y2) ** 2 + (z1 - z2) ** 2) ** 0.5
-                    if z1 - z2 > 0:
-                        pathForwardLength += distance
-                        reachFrame += 1
-                    else:
-                        pathBackwardLength += distance
-
                     speed = distance * 40.
                     tempReach['speed_per_moment'].append(speed)
                 tempReach['path_paw'].append([float(listLine[0]), float(listLine[1]), float(listLine[2])])
@@ -121,6 +115,24 @@ def txt2Reaches(txtFile, dict):
                 minSpeed = min(tempReach['speed_per_moment'])
                 tempReach['min_speed'] = minSpeed
                 tempReach['min_speed_coordinates'] = tempReach['speed_per_moment'].index(minSpeed)
+                min_distance = float('inf')
+
+                for index in range(len(tempReach['path_paw'])):
+                    [x, y, z] = tempReach['path_paw'][index]
+                    temp_distance = x**2 + y**2 + z**2
+                    if temp_distance < min_distance:
+                        min_distance = temp_distance
+                        reachFrame = index
+
+                for index in range(len(tempReach['path_paw']) - 1):
+                    [x1, y1, z1] = tempReach['path_paw'][index]
+                    [x2, y2, z2] = tempReach['path_paw'][index + 1]
+                    distance = ((x1 - x2) ** 2 + (y1 - y2) ** 2 + (z1 - z2) ** 2) ** 0.5
+                    if index < reachFrame:
+                        pathForwardLength += distance
+                    else:
+                        pathBackwardLength += distance
+
                 tempReach['reach_frame'] = reachFrame
                 tempReach['path_length_paw_forward'] = pathForwardLength
                 tempReach['path_length_paw_backward'] = pathBackwardLength
