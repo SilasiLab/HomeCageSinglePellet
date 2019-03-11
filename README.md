@@ -16,6 +16,8 @@ The design allows a single mouse at a time to enter the reaching tube. Upon entr
 	* OpenCV v3.4.x
 	* tkinter 
 	* matplotlib
+	* Pillow
+	* tqdm
 * Flir Spinnaker SDK v1.10.31
 	* libavcodec-ffmpeg56
 	* libavformat-ffmpeg56
@@ -60,6 +62,8 @@ The design allows a single mouse at a time to enter the reaching tube. Upon entr
 	- `conda install -c anaconda pyserial`
 	- `conda install -c anaconda tk`
 	- `conda install -c conda-forge matplotlib`
+	- `conda install tqdm`
+	- `conda install Pillow`
 
 6. Download the HCSP source code from https://github.com/SilasiLab/HomeCageSinglePellet and unpack it.
 7. Optional (Only if you want to use the analysis features): Install Deeplabcut using the Anaconda based pip installation method. (https://github.com/AlexEMG/DeepLabCut/blob/master/docs/installation.md)
