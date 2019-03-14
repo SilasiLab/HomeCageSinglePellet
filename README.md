@@ -225,6 +225,9 @@ SERVO1 signal pin on the PCB.
 
 1. You'll need to upload the `HomeCageSinglePellet/src/arduino/homecage_server/homecage_server.ino` file to the Arduino. 
 (https://www.arduino.cc/en/Guide/ArduinoNano)
+NB.:
+A. After a fresh install of Ubuntu, there may be issues accessing serial ports. Run the following command to give full access: sudo usermod -a -G dialout $USER  (in our case user: silasi).
+B. Use following setting in Arduino IDE: Tools -> Processor -> Atmega 328P (Old Bootloader)
 
 2. There are 4 constants that will need to be modified in the file
 `HomeCageSinglePellet/src/arduino/homecage_server/homecage_server.ino`
@@ -271,6 +274,13 @@ enough, the analysis pipeline will work. **INSERT PICTURE OF FRAME CAPTURED BY P
 	- Ensure no sessions are currently running. 
 	- Press the quit button on the GUI.
 	- Ctrl+c out of the program running in the terminal.
+NB.
+1. Arduino needs to be USB0 , and RFID reader needs to be USB1. You can see connected USB devices with terminal command:
+ls /dev/tty*
+
+
+
+
 
 
 
