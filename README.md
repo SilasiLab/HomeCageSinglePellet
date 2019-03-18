@@ -96,7 +96,8 @@ need to do this until someone gets around to fixing the PCB layout.
 
 ### **Install the voltage regulator and power connectors**
 
-4. Attach 6 leads to the voltage regulator:
+4. Voltage regulator output must be set to 5V by turning the small screw on the blue pot. This is done my powering the device with 12V and recording the output with multimeter while adjusting the pot screw.
+Attach 6 leads to the voltage regulator:
 	- 2 Leads to the positive input pad.
 	- 2 leads to the negative input pad.
 	- 1 lead to the positive output pad.
