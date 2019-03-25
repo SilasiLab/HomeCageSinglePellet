@@ -1,0 +1,6 @@
+model_checkpoint_path: "/home/sliasi/retrain_deeplabcut/retraining1-Mackenzie-2019-03-14/dlc-models/iteration-0/retraining1Mar14-trainset95shuffle1/train/snapshot-1030000"
+all_model_checkpoint_paths: "/home/sliasi/retrain_deeplabcut/retraining1-Mackenzie-2019-03-14/dlc-models/iteration-0/retraining1Mar14-trainset95shuffle1/train/snapshot-850000"
+all_model_checkpoint_paths: "/home/sliasi/retrain_deeplabcut/retraining1-Mackenzie-2019-03-14/dlc-models/iteration-0/retraining1Mar14-trainset95shuffle1/train/snapshot-900000"
+all_model_checkpoint_paths: "/home/sliasi/retrain_deeplabcut/retraining1-Mackenzie-2019-03-14/dlc-models/iteration-0/retraining1Mar14-trainset95shuffle1/train/snapshot-950000"
+all_model_checkpoint_paths: "/home/sliasi/retrain_deeplabcut/retraining1-Mackenzie-2019-03-14/dlc-models/iteration-0/retraining1Mar14-trainset95shuffle1/train/snapshot-1000000"
+all_model_checkpoint_paths: "/home/sliasi/retrain_deeplabcut/retraining1-Mackenzie-2019-03-14/dlc-models/iteration-0/retraining1Mar14-trainset95shuffle1/train/snapshot-1030000"
