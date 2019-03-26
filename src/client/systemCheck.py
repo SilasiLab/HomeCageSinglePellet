@@ -23,7 +23,7 @@ def check_directory_structure():
     assert(os.path.isdir('../../src/client')),"Error: HomeCageSinglePellet/src/client directory does not exist"
     assert(os.path.isdir('../../src/ptgrey')),"Error: HomeCageSinglePellet/src/ptgrey directory does not exist"
     assert(os.path.isfile('../../bin/SessionVideo')),"Error: HomeCageSinglePellet/bin/SessionVideo file does not exist"
-    assert(os.path.isfile('../../config/3D_reconstruction_calibration.txt')),"Error: HomeCageSinglePellet/config/3D_reconstruction_calibration.txt file does not exist"
+    #assert(os.path.isfile('../../config/3D_reconstruction_calibration.txt')),"Error: HomeCageSinglePellet/config/3D_reconstruction_calibration.txt file does not exist"
     assert(os.path.isfile('../../config/config.txt')),"Error: HomeCageSinglePellet/config/config.txt file does not exist"
     assert(os.path.isdir('../../AnimalProfiles/MOUSE1')),"Error: HomeCageSinglePellet/AnimalProfiles/MOUSE1 directory does not exist"
     assert(os.path.isdir('../../AnimalProfiles/MOUSE1/Analyses')),"Error: HomeCageSinglePellet/AnimalProfiles/MOUSE1/Analyses directory does not exist"

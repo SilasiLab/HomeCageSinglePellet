@@ -363,7 +363,9 @@ def launch_gui():
 def sys_init():
     profile_list = loadAnimalProfiles(PROFILE_SAVE_DIRECTORY)
     arduino_client = arduinoClient.client("/dev/ttyUSB0", 9600)
+    print("first step")
     ser = serial.Serial('/dev/ttyUSB1', 9600)
+    
     guiProcess = launch_gui()
     session_controller = SessionController(profile_list, arduino_client)
     return profile_list, arduino_client, session_controller, ser, guiProcess
@@ -395,6 +397,7 @@ def main():
 
     loadAnimalProfileTrialLimits()
     # These are handles to all the main system components.
+    
     profile_list, arduino_client, session_controller, ser, guiProcess = sys_init()
 
     # Entry point of the system. This block waits for an RFID to enter the <SERIAL_INTERFACE_PATH> buffer.

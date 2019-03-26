@@ -197,6 +197,7 @@ int zeroStepper() {
 
   digitalWrite(A3, HIGH);
   delay(100);
+  
   while(!switchState){
 
     digitalWrite(A4, HIGH);
@@ -418,15 +419,13 @@ int startSession() {
 void loop() { 
 
   while(1){
-    displayPellet(right);
-    delay(2000);
-    displayPellet(left);
-    delay(2000);
-  }
-
-
-  if(listenForStartCommand()){
+//    /
+    if(listenForStartCommand()){
       startSession();
   }
+  }
+
+
+  
          
 }

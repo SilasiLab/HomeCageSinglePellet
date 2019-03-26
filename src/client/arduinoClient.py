@@ -17,16 +17,18 @@ class client(object):
         #   when you open a serial connection with it, so a ~3 second delay
         #   after opening the connection is recommended)
         self.serialInterface = serial.Serial(arduinoSerialPortPath, baudrate)
+        
         self.serialInterface.flushInput()
         sleep(3)
-
         # Wait for Arduino to say it's ready TODO: readline is blocking....add timeout eventually
         readyMsg = self.serialInterface.readline()
+        print(".....ok?")
         if readyMsg == b"READY\n":
             print("Arduino: ", readyMsg)
         else:
             print("Arduino took too long to respond...shutting down")
             exit()
+
 
     # DEPRECATED: This function was used to read RFIDs from the Arduino, before we switched the 
     # RFID reader from the Arduino to the PC. 
