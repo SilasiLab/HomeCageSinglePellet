@@ -227,9 +227,10 @@ SERVO1 signal pin on the PCB.
 1. You'll need to upload the `HomeCageSinglePellet/src/arduino/homecage_server/homecage_server.ino` file to the Arduino. 
 (https://www.arduino.cc/en/Guide/ArduinoNano)
 NB.:
-A. After a fresh install of Ubuntu, there may be issues accessing serial ports. Run the following command to give full access: sudo usermod -a -G dialout $USER  (in our case user: silasi).
-B. Use following setting in Arduino IDE: Tools -> Processor -> Atmega 328P (Old Bootloader)
-
+* A. After a fresh install of Ubuntu, there may be issues accessing serial ports. Run the following command to give full access: sudo usermod -a -G dialout $USER  (in our case user: silasi).
+* B. Use following setting in Arduino IDE: 
+	- 1. Tools -> Board -> Arduino Nano
+	- 2. Tools -> Processor -> Atmega 328P (Old Bootloader)
 2. There are 4 constants that will need to be modified in the file
 `HomeCageSinglePellet/src/arduino/homecage_server/homecage_server.ino`
 They are: `SERVO1_UP_POS`, `SERVO1_DOWN_POS`, `SERVO2_UP_POS` and `SERVO2_DOWN_POS`. They are located
